@@ -12,11 +12,11 @@ Currently work in progress, not all files type below supported and script is ins
 * NEC PC-6001, PC-6601, PC-8801, PC-9801: s98
 * NEC PC-Engine/TurboGrafx-16: hes
 * Nintendo 3DS: mus, bcstm, wem, bcwav, fsb
-* Nintendo DS: adx, mini2sf, sad
+* Nintendo DS: 2sf, adx, mini2sf, sad
 * Nintendo GB & GBC: gbs
-* Nintendo GBA: minigsf
+* Nintendo GBA: gsf, minigsf
 * Nintendo GameCube: adx, cfn, dsp, hps, adp, thp, mus
-* Nintendo N64: miniusf
+* Nintendo N64: usf, miniusf
 * Nintendo NES: nsf
 * Nintendo SNES: spc
 * Nintendo Switch: bfstm, bfwav, ktss
@@ -41,7 +41,7 @@ Currently work in progress, not all files type below supported and script is ins
 `ffmpeg sox bc bchunk xxd`
 
 ## VGM decode dependencies
-`info68 sc68 vgm2wav vgmstream_cli vgmtag zxtune`
+`info68 sc68 vgm2wav vgmstream_cli vgmtag zxtune123`
 
 * gbsplay - https://github.com/mmitch/gbsplay
 * info68 - https://sourceforge.net/projects/sc68/
@@ -49,13 +49,17 @@ Currently work in progress, not all files type below supported and script is ins
 * vgm2wav - https://github.com/ValleyBell/libvgm
 * vgmstream_cli - https://github.com/losnoco/vgmstream
 * vgmtag - https://github.com/vgmrips/vgmtools
-* zxtune - https://zxtune.bitbucket.io/
+* zxtune - https://zxtune.bitbucket.io/ - Prefered version zxtune_r4880
 
-These dependencies must install properly on the system, or the binaries present in a directory named bin in the vgm2flac directory.
+All these dependencies must install properly on the system, or the binaries (of VGM decode) present in a directory named bin in the vgm2flac directory.
+
+--------------------------------------------------------------------------------------------------
+## Known error
+* zxtune123 in version higher than r4880 do a backend error
+* usf/miniusf decoding stuck = zxtune bug
 
 --------------------------------------------------------------------------------------------------
 ## Holy reading
-* Game Boy
-	* https://ocremix.org/info/GBS_Format_Specification
-* Super Nintendo
-	* https://ocremix.org/info/SPC_Format_Specification
+* GBS spec : https://ocremix.org/info/GBS_Format_Specification
+* SPC spec: https://ocremix.org/info/SPC_Format_Specification
+* PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt

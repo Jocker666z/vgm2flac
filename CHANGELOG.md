@@ -1,4 +1,13 @@
 # Changelog
+v0.02:
+* improve tags loops, especialy for artist
+* support of PS1 files = pfs, minipfs
+* support of PS2 files=  pfs2, minipfs2
+* support of Dreamcast files= dfs
+* support of GBA files = gfs, minigfs
+* support of N64 files = ufs, miniufs
+* support of NDS files = 2fs, mini2fs
+
 v0.01:
 * support of iso files in = bin|iso
 * support of SNES files in = spc

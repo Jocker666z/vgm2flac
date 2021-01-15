@@ -7,7 +7,7 @@
 # licence : GNU GPL-2.0
 
 # Version
-version=v0.01
+version=v0.02
 
 # Paths
 vgm2flac_path="$( cd "$( dirname "$0" )" && pwd )"
@@ -31,6 +31,7 @@ ext_vgm2wav="s98|vgm|vgz"
 ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|vag|vgs|vpk|wem|xvag|xwav"
 ext_uade="mod"
 ext_zxtune_gbs="gbs"
+ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|ssf|usf"
 
 # Messages
 MESS_SEPARATOR="--------------------------------------------------------------"
@@ -172,6 +173,7 @@ mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egre
 mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
 mapfile -t lst_uade < <(find "$PWD" -maxdepth 1 -type f -regex ".*\($ext_uade\)..*$" 2>/dev/null | sort)
 mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_gbs')$' 2>/dev/null | sort)
+mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort)
 
 # bin/cue clean
 if [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If cue = 1
@@ -247,7 +249,7 @@ ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 1
 }
 
 # Convert loop
-bchunk_loop() {
+loop_bchunk() {
 if test -n "$bchunk"; then				# If bchunk="1" in list_source_files()
 	# Tag
 	tag_questions
@@ -278,7 +280,7 @@ if test -n "$bchunk"; then				# If bchunk="1" in list_source_files()
 	wait
 fi
 }
-ffmpeg_loop() {
+loop_ffmpeg() {
 for files in "${lst_ffmpeg[@]}"; do
 	shopt -s nocasematch									# Set case insentive
 	case "${files[@]##*.}" in
@@ -317,7 +319,7 @@ for files in "${lst_ffmpeg[@]}"; do
 	wav2flac
 done
 }
-sc68_loop() {
+loop_sc68() {
 for files in "${lst_sc68[@]}"; do
 	# Tag extract
 	"$info68_bin" -A "$files" > "$vgm2flac_cache_tag"
@@ -362,7 +364,7 @@ for files in "${lst_sc68[@]}"; do
 	wait
 done
 }
-sox_loop() {
+loop_sox() {
 for files in "${lst_sox[@]}"; do
 	# Test if data by measuring maximum difference between two successive samples
 	local delta=$(sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$files" -n stat 2>&1 | grep "Maximum delta:" | awk '{print $3}')
@@ -401,22 +403,14 @@ for files in "${lst_sox[@]}"; do
 done
 wait
 }
-vgm2wav_loop() {
+loop_vgm2wav() {
 for files in "${lst_vgm2wav[@]}"; do
 	shopt -s nocasematch									# Set case insentive
 	case "${files[@]##*.}" in
 		*vgm|*vgz)
 			shopt -u nocasematch							# Set case sentive
-			# Tag extract
-			"$vgm_tag_bin" -ShowTag8 "$files" > "$vgm2flac_cache_tag"
-			tag_song=$(sed -n 's/Track Title:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
-			if [[ -z "$tag_game" && -z "$tag_artist" && -z "$tag_machine" ]]; then
-				tag_game=$(sed -n 's/Game Name:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
-				tag_artist=$(sed -n 's/Composer:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
-				tag_machine=$(sed -n 's/System:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
-				tag_date=$(sed -n 's/Release:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
-			fi
 			# Tag
+			tag_vgm
 			tag_questions
 			tag_album
 			tag_song
@@ -426,14 +420,7 @@ for files in "${lst_vgm2wav[@]}"; do
 		*s98)
 			shopt -u nocasematch							# Set case sentive
 			# Tag
-			strings "$files" > "$vgm2flac_cache_tag"
-			tag_song=$(cat "$vgm2flac_cache_tag" | grep -i -a title | sed 's/^.*=//' | head -1)
-			if [[ -z "$tag_game" && -z "$tag_artist" && -z "$tag_machine" ]]; then
-				tag_game=$(cat "$vgm2flac_cache_tag" | grep -i -a game | sed 's/^.*=//' | head -1)
-				tag_artist=$(cat "$vgm2flac_cache_tag" | grep -i -a artist | sed 's/^.*=//' | head -1)
-				tag_machine=$(cat "$vgm2flac_cache_tag" | grep -i -a system | sed 's/^.*=//' | head -1)
-				tag_date=$(cat "$vgm2flac_cache_tag" | grep -i -a year | sed 's/^.*=//' | head -1)
-			fi
+			tag_s98
 			tag_questions
 			tag_album
 			tag_song
@@ -449,7 +436,7 @@ for files in "${lst_vgm2wav[@]}"; do
 	wav2flac
 done
 }
-vgmstream_loop() {
+loop_vgmstream() {
 for files in "${lst_vgmstream[@]}"; do
 	# Tag
 	tag_questions
@@ -482,10 +469,10 @@ for files in "${lst_vgmstream[@]}"; do
 done
 wait
 }
-zxtune_gbs_loop() {
+loop_zxtune_gbs() {
 for gbs in "${lst_zxtune_gbs[@]}"; do
 	# Tag extract
-	if [[ -z "$tag_game" && -z "$tag_artist" && -z "$tag_machine" ]]; then
+	if [[ -z "$tag_game" && -z "$tag_artist" ]]; then
 		tag_game=$(xxd -ps -s 0x10 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 		tag_artist=$(xxd -ps -s 0x30 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 	fi
@@ -523,6 +510,47 @@ for gbs in "${lst_zxtune_gbs[@]}"; do
 	done
 
 done
+}
+loop_zxtune_xfs() {
+for files in "${lst_zxtune_xsf[@]}"; do
+	# Tag
+	tag_xfs
+	tag_questions
+	tag_album
+	tag_song
+
+	# Extract WAV
+	local file_name_base="${files%.*}"
+	local file_name="${file_name_base##*/}"
+	(
+	"$zxtune123_bin" --wav filename="${file_name##*/}".wav "$files"
+	) &
+	if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+		wait -n
+	fi
+done
+wait
+
+for files in "${lst_zxtune_xsf[@]}"; do
+	# Tag
+	tag_xfs
+	tag_questions
+	tag_album
+	tag_song
+
+	# Remove silence
+	wav_remove_silent
+	# Peak normalisation to 0, false stereo detection 
+	wav_normalization_channel_test
+	# Flac conversion
+	(
+	wav2flac
+	) &
+	if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+		wait -n
+	fi
+done
+wait
 }
 
 # Tag
@@ -578,11 +606,13 @@ tag_spc() {
 local id666_test=$(xxd -ps -s 0x00023h -l 1 "$files")	# Test ID666 here
 if [ "$id666_test" = "1a" ]; then						# 1a hex = 26 dec
 	tag_song=$(xxd -ps -s 0x0002Eh -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
+
 	tag_artist_backup="$tag_artist"
 	tag_artist=$(xxd -ps -s 0x000B1h -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 	if [[ -z "$tag_artist" ]]; then
 		tag_artist="$tag_artist_backup"
 	fi
+
 	if [[ -z "$tag_game" ]]; then
 		tag_game=$(xxd -ps -s 0x0004Eh -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 	fi
@@ -622,6 +652,72 @@ if [ "${#lst_m3u[@]}" -gt "0" ]; then
 else
 	tag_song="[untitled]"
 	gbs_duration_second="180"
+fi
+}
+tag_xfs() {
+strings "$files" | awk '/TAG/{y=1;next}y' > "$vgm2flac_cache_tag"
+
+tag_song=$(cat "$vgm2flac_cache_tag" | grep -i -a title= | sed 's/^.*=//')
+
+tag_artist_backup="$tag_artist"
+tag_artist=$(cat "$vgm2flac_cache_tag" | grep -i -a artist= | sed 's/^.*=//')
+if [[ -z "$tag_artist" ]]; then
+	tag_artist="$tag_artist_backup"
+fi
+
+if [[ -z "$tag_game" && -z "$tag_date" ]]; then
+	tag_game=$(cat "$vgm2flac_cache_tag" | grep -i -a game= | sed 's/^.*=//')
+	tag_date=$(cat "$vgm2flac_cache_tag" | grep -i -a year= | sed 's/^.*=//')
+fi
+
+if [[ "${files##*.}" = "psf" || "${files##*.}" = "minipfs" ]]; then
+	tag_machine="PS1"
+elif [[ "${files##*.}" = "psf2" || "${files##*.}" = "minipfs2" ]]; then
+	tag_machine="PS2"
+elif [[ "${files##*.}" = "2sf" || "${files##*.}" = "mini2sf" ]]; then
+	tag_machine="DS"
+elif [[ "${files##*.}" = "ssf" || "${files##*.}" = "minissf" ]]; then
+	tag_machine="Saturn"
+elif [[ "${files##*.}" = "gsf" || "${files##*.}" = "minigsf" ]]; then
+	tag_machine="GBA"
+elif [[ "${files##*.}" = "usf" || "${files##*.}" = "miniusf" ]]; then
+	tag_machine="N64"
+elif [[ "${files##*.}" = "dsf" ]]; then
+	tag_machine="Dreamcast"
+fi
+}
+tag_vgm() {
+"$vgm_tag_bin" -ShowTag8 "$files" > "$vgm2flac_cache_tag"
+
+tag_song=$(sed -n 's/Track Title:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+
+tag_artist_backup="$tag_artist"
+tag_artist=$(sed -n 's/Composer:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+if [[ -z "$tag_artist" ]]; then
+	tag_artist="$tag_artist_backup"
+fi
+
+if [[ -z "$tag_game" && -z "$tag_machine" && -z "$tag_date" ]]; then
+	tag_game=$(sed -n 's/Game Name:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+	tag_machine=$(sed -n 's/System:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+	tag_date=$(sed -n 's/Release:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+fi
+}
+tag_s98() {
+strings "$files" > "$vgm2flac_cache_tag"
+
+tag_song=$(cat "$vgm2flac_cache_tag" | grep -i -a title | sed 's/^.*=//' | head -1)
+
+tag_artist_backup="$tag_artist"
+tag_artist=$(cat "$vgm2flac_cache_tag" | grep -i -a artist | sed 's/^.*=//' | head -1)
+if [[ -z "$tag_artist" ]]; then
+	tag_artist="$tag_artist_backup"
+fi
+
+if [[ -z "$tag_game" && -z "$tag_machine" && -z "$tag_date" ]]; then
+	tag_game=$(cat "$vgm2flac_cache_tag" | grep -i -a game | sed 's/^.*=//' | head -1)
+		tag_machine=$(cat "$vgm2flac_cache_tag" | grep -i -a system | sed 's/^.*=//' | head -1)
+	tag_date=$(cat "$vgm2flac_cache_tag" | grep -i -a year | sed 's/^.*=//' | head -1)
 fi
 }
 
@@ -677,13 +773,14 @@ check_cache_directory
 list_source_files
 
 #
-bchunk_loop
-ffmpeg_loop
-sc68_loop
-sox_loop
-vgm2wav_loop
-vgmstream_loop
-zxtune_gbs_loop
+loop_bchunk
+loop_ffmpeg
+loop_sc68
+loop_sox
+loop_vgm2wav
+loop_vgmstream
+loop_zxtune_gbs
+loop_zxtune_xfs
 
 #
 list_temp_files
