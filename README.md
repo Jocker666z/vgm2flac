@@ -17,7 +17,7 @@ Currently work in progress, the script is instable. The crossed out files below 
 * Nintendo GBA: gsf, minigsf
 * Nintendo GameCube: adx, cfn, dsp, hps, adp, thp, mus
 * Nintendo N64: usf, miniusf
-* ~~Nintendo NES: nsf~~
+* Nintendo NES: nsf, ~~nsfe~~
 * Nintendo SNES: spc
 * Nintendo Switch: bfstm, bfwav, ktss
 * Nintendo Wii: ads, mus
@@ -49,9 +49,9 @@ Currently work in progress, the script is instable. The crossed out files below 
 * vgm2wav - https://github.com/ValleyBell/libvgm
 * vgmstream_cli - https://github.com/losnoco/vgmstream
 * vgmtag - https://github.com/vgmrips/vgmtools
-* zxtune - https://zxtune.bitbucket.io/ - Prefered version zxtune_r4880
+* zxtune - https://zxtune.bitbucket.io/ - Prefered version zxtune_r4880 https://github.com/Jocker666z/vgm2flac-dep
 
-All these dependencies must install properly on the system, or the binaries (of VGM decode) present in a directory named bin in the vgm2flac directory.
+All these dependencies must install properly on the system, or the binaries (of VGM decode) present in a directory named bin in the vgm2flac path.
 
 --------------------------------------------------------------------------------------------------
 ## Known error
@@ -61,5 +61,7 @@ All these dependencies must install properly on the system, or the binaries (of 
 --------------------------------------------------------------------------------------------------
 ## Holy reading
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
+* NSF spec: https://wiki.nesdev.com/w/index.php/NSF
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
+* http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
