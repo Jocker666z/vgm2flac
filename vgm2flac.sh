@@ -1,17 +1,15 @@
 #!/bin/bash
 # vgm2flac
+# Bash tool for vgm encoding to flac
 #
 # Author : Romain Barbarot
-# https://github.com/Jocker666z/ffmes/
+# https://github.com/Jocker666z/vgm2flac
 #
 # licence : GNU GPL-2.0
 
-# Version
-version=v0.02
 
 # Paths
 vgm2flac_path="$( cd "$( dirname "$0" )" && pwd )"
-vgm2flac_bin_path="$vgm2flac_path/bin"
 vgm2flac_cache="/home/$USER/.cache/vgm2flac"												# Cache directory
 vgm2flac_cache_tag="/home/$USER/.cache/vgm2flac/tag-$(date +%Y%m%s%N).info"					# Tag cache
 
@@ -24,12 +22,13 @@ default_sox_fade_out="5"																	# Default fade out value in second
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|iso"
 ext_ffmpeg="spc|xa"
+ext_ffmpeg_amiga="mod"
 ext_sc68="snd|sndh"
 ext_sox="bin|pcm|raw|tak"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|vag|vgs|vpk|wem|xvag|xwav"
-ext_uade="mod"
+ext_uade=""
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|ssf|usf"
@@ -38,42 +37,11 @@ ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|mi
 MESS_SEPARATOR="--------------------------------------------------------------"
 
 # Bin check and set variable
-gbsplay_bin() {
-local bin_name="gbsplay"
-local system_bin_location=$(which $bin_name)
-local vgm2flac_bin_location="$vgm2flac_bin_path/$bin_name"
-
-if which "$vgm2flac_bin_location" >/dev/null 2>&1; then
-	gbsplay_bin="$vgm2flac_bin_location"
-elif test -z "$gbsplay_bin" && test -n "$system_bin_location"; then
-	gbsplay_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-gbsinfo_bin() {
-local bin_name="gbsinfo"
-local system_bin_location=$(which $bin_name)
-local vgm2flac_bin_location="$vgm2flac_bin_path/$bin_name"
-
-if which "$vgm2flac_bin_location" >/dev/null 2>&1; then
-	gbsinfo_bin="$vgm2flac_bin_location"
-elif test -z "$gbsinfo_bin" && test -n "$system_bin_location"; then
-	gbsinfo_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
 info68_bin() {
 local bin_name="info68"
 local system_bin_location=$(which $bin_name)
-local vgm2flac_bin_location="$vgm2flac_bin_path/$bin_name"
 
-if which "$vgm2flac_bin_location" >/dev/null 2>&1; then
-	info68_bin="$vgm2flac_bin_location"
-elif test -z "$info68_bin" && test -n "$system_bin_location"; then
+if test -n "$system_bin_location"; then
 	info68_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -83,11 +51,8 @@ fi
 sc68_bin() {
 local bin_name="sc68"
 local system_bin_location=$(which $bin_name)
-local vgm2flac_bin_location="$vgm2flac_bin_path/$bin_name"
 
-if which "$vgm2flac_bin_location" >/dev/null 2>&1; then
-	sc68_bin="$vgm2flac_bin_location"
-elif test -z "$sc68_bin" && test -n "$system_bin_location"; then
+if test -n "$system_bin_location"; then
 	sc68_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -97,11 +62,8 @@ fi
 vgm2wav_bin() {
 local bin_name="vgm2wav"
 local system_bin_location=$(which $bin_name)
-local vgm2flac_bin_location="$vgm2flac_bin_path/$bin_name"
 
-if which "$vgm2flac_bin_location" >/dev/null 2>&1; then
-	vgm2wav_bin="$vgm2flac_bin_location"
-elif test -z "$vgm2wav_bin" && test -n "$system_bin_location"; then
+if test -n "$system_bin_location"; then
 	vgm2wav_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -111,11 +73,8 @@ fi
 vgmstream_cli_bin() {
 local bin_name="vgmstream_cli"
 local system_bin_location=$(which $bin_name)
-local vgm2flac_bin_location="$vgm2flac_bin_path/$bin_name"
 
-if which "$vgm2flac_bin_location" >/dev/null 2>&1; then
-	vgmstream_cli_bin="$vgm2flac_bin_location"
-elif test -z "$vgmstream_cli_bin" && test -n "$system_bin_location"; then
+if test -n "$system_bin_location"; then
 	vgmstream_cli_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -125,11 +84,8 @@ fi
 vgm_tag_bin() {
 local bin_name="vgm_tag"
 local system_bin_location=$(which $bin_name)
-local vgm2flac_bin_location="$vgm2flac_bin_path/$bin_name"
 
-if which "$vgm2flac_bin_location" >/dev/null 2>&1; then
-	vgm_tag_bin="$vgm2flac_bin_location"
-elif test -z "$vgm_tag_bin" && test -n "$system_bin_location"; then
+if test -n "$system_bin_location"; then
 	vgm_tag_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -139,11 +95,8 @@ fi
 zxtune123_bin() {
 local bin_name="zxtune123"
 local system_bin_location=$(which $bin_name)
-local vgm2flac_bin_location="$vgm2flac_bin_path/$bin_name"
 
-if which "$vgm2flac_bin_location" >/dev/null 2>&1; then
-	zxtune123_bin="$vgm2flac_bin_location"
-elif test -z "$vgm_tag_bin" && test -n "$system_bin_location"; then
+if test -n "$system_bin_location"; then
 	zxtune123_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -167,6 +120,7 @@ list_source_files() {
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort)
 mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg')$' 2>/dev/null | sort)
+mapfile -t lst_ffmpeg_amiga < <(find "$PWD" -maxdepth 1 -type f -regex ".*\($ext_ffmpeg_amiga\)..*$" 2>/dev/null | sort)
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
@@ -315,6 +269,25 @@ for files in "${lst_ffmpeg[@]}"; do
 
 	# Peak normalisation to 0, false stereo detection 
 	wav_normalization_channel_test
+	# Remove silence
+	wav_remove_silent
+	# Flac conversion
+	wav2flac
+done
+}
+loop_ffmpeg_amiga() {
+for files in "${lst_ffmpeg_amiga[@]}"; do
+	shopt -s nocasematch									# Set case insentive
+	# Tag
+	tag_questions
+	tag_album
+	tag_song
+	# Extract WAV
+	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec pcm_s16le -f wav "${files%.*}".wav
+	# Peak normalisation to 0, false stereo detection 
+	wav_normalization_channel_test
+	# Fade out
+	wav_fade_out
 	# Remove silence
 	wav_remove_silent
 	# Flac conversion
@@ -678,7 +651,8 @@ fi
 }
 tag_gbs() {
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
-	cat "${gbs%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n  > "$vgm2flac_cache_tag"
+	cat "${gbs%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
+	| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g'> "$vgm2flac_cache_tag"
 
 	# Prevent track start at 0 in m3u
 	local tag_track_test=$(cat "$vgm2flac_cache_tag" | head -1 | awk -F"," '{ print $2 }')
@@ -691,7 +665,9 @@ if [ "${#lst_m3u[@]}" -gt "0" ]; then
 		tag_song="[untitled]"
 	fi
 	# Get fade out and duration
-	gbs_duration=$(cat "$vgm2flac_cache_tag" | grep ",$gbs_track," | awk -F"," '{ print $4 }' | tr -d '[:space:]' | awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')			# Total duration in m:s
+	gbs_duration=$(cat "$vgm2flac_cache_tag" | grep ",$gbs_track," \
+					| awk -F"," '{ print $4 }' | tr -d '[:space:]' \
+					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')			# Total duration in m:s
 	if [[ -z "$gbs_duration" ]]; then
 		gbs_duration_second="180"
 	else
@@ -775,7 +751,8 @@ fi
 }
 tag_nsf() {
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
-	cat "${nsf%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n  > "$vgm2flac_cache_tag"
+	cat "${nsf%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
+	| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g'> "$vgm2flac_cache_tag"
 
 	# Prevent track start at 0 in m3u
 	local tag_track_test=$(cat "$vgm2flac_cache_tag" | head -1 | awk -F"," '{ print $2 }')
@@ -789,7 +766,9 @@ if [ "${#lst_m3u[@]}" -gt "0" ]; then
 	fi
 
 	# Get fade out and duration
-	nsf_duration=$(cat "$vgm2flac_cache_tag" | grep ",$nbs_track," | awk -F"," '{ print $(NF-2) }' | tr -d '[:space:]' | awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')			# Total duration in m:s
+	nsf_duration=$(cat "$vgm2flac_cache_tag" | grep ",$nbs_track," \
+					| awk -F"," '{ print $(NF-2) }' | tr -d '[:space:]' \
+					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')			# Total duration in m:s
 	if [[ $nsf_duration =~ ^0:* ]]; then
 		nsf_duration=$(echo "$nsf_duration" | awk -F":" '{ print ($2":"$3) }')
 	fi
@@ -800,7 +779,9 @@ if [ "${#lst_m3u[@]}" -gt "0" ]; then
 	fi
 
 	# Fade out
-	nsf_fading=$(cat "$vgm2flac_cache_tag" | grep ",$nbs_track," | awk -F"," '{ print $(NF) }' | tr -d '[:space:]' | awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')			# Fade out duration in s
+	nsf_fading=$(cat "$vgm2flac_cache_tag" | grep ",$nbs_track," \
+				| awk -F"," '{ print $(NF) }' | tr -d '[:space:]' \
+				| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')			# Fade out duration in s
 	if [[ $nsf_fading =~ ^0:* ]]; then
 		nsf_fading=$(echo "$nsf_fading" | awk -F":" '{ print ($2":"$3) }')
 	fi
@@ -869,6 +850,7 @@ list_source_files
 #
 loop_bchunk
 loop_ffmpeg
+loop_ffmpeg_amiga
 loop_sc68
 loop_sox
 loop_vgm2wav

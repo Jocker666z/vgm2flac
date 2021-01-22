@@ -1,4 +1,10 @@
 # Changelog
+v0.04:
+* gbs, nsf - multiple fix with get tag separator ","
+* gbs - remove gbsplay from dependencies, now use zxtune for decoding
+* add LICENCE file GNU/GPL v2
+* big readme update
+
 v0.03:
 * gbs - fix get tag duration fading if "," in title
 * gbs - fix false stereo detection

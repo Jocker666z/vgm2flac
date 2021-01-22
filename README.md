@@ -1,8 +1,32 @@
 # vgm2flac - Bash tool for vgm encoding to flac
 
-Currently work in progress, the script is instable. The crossed out files below are not available for the moment, but will become available.
+## Install & Update
 
---------------------------------------------------------------------------------------------------
+`curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
+
+### Dependencies
+`ffmpeg sox bc bchunk xxd info68 sc68 vgm2wav vgmstream_cli vgmtag zxtune123`
+
+All these dependencies must installed properly on the system.
+
+* ffmpeg must be compiled with: --enable-libgme --enable-libopenmpt --enable-nonfree
+* sc68 & info68:
+	* https://sourceforge.net/projects/sc68/
+	* Prefered version: https://github.com/Jocker666z/sc68
+* vgm2wav: https://github.com/ValleyBell/libvgm
+* vgmstream_cli: https://github.com/losnoco/vgmstream
+* vgmtag: https://github.com/vgmrips/vgmtools
+* zxtune:
+	* https://zxtune.bitbucket.io/
+	* Prefered version: zxtune_r4880 https://github.com/Jocker666z/vgm2flac-dep
+* uade:
+	* https://gitlab.com/uade-music-player/uade
+	* Prefered version: https://gitlab.com/jocker666z/uade
+
+Help is available at the bottom of the page for the installation of dependencies that are generally not present on the official repositories of the largest GNU/Linux distributions.
+
+## Use
+
 ## Files supported :
 * 3DO : aif
 * Atari: snd, sndh
@@ -36,32 +60,68 @@ Currently work in progress, the script is instable. The crossed out files below 
 * Various machines: vgm, vgz, adx, rak, tak, eam, at3, raw, wem, pcm
 * Various machines CD-DA: bin, bin/cue, iso/cue
 
---------------------------------------------------------------------------------------------------
-## Common dependencies
-`ffmpeg sox bc bchunk xxd`
+The crossed out files are not available for the moment.
 
-## VGM decode dependencies
-`info68 sc68 vgm2wav vgmstream_cli vgmtag zxtune123`
-
-* gbsplay - https://github.com/mmitch/gbsplay
-* info68 - https://sourceforge.net/projects/sc68/
-* sc68 - https://sourceforge.net/projects/sc68/ - Prefered version https://github.com/Jocker666z/sc68
-* vgm2wav - https://github.com/ValleyBell/libvgm
-* vgmstream_cli - https://github.com/losnoco/vgmstream
-* vgmtag - https://github.com/vgmrips/vgmtools
-* zxtune - https://zxtune.bitbucket.io/ - Prefered version zxtune_r4880 https://github.com/Jocker666z/vgm2flac-dep
-
-All these dependencies must install properly on the system, or the binaries (of VGM decode) present in a directory named bin in the vgm2flac path.
-
---------------------------------------------------------------------------------------------------
 ## Known error
 * zxtune123 in version higher than r4880 do a backend error
 * usf/miniusf decoding stuck = zxtune123 bug
 
---------------------------------------------------------------------------------------------------
 ## Holy reading
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
 * NSF spec: https://wiki.nesdev.com/w/index.php/NSF
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
 * http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
+
+## Help for dependencies installation:
+### sc68 & info68
+Build dependencies: `git build-essential autoconf libtool libtool-bin automake pkg-config libao-dev zlib1g-dev`
+```
+cd
+git clone https://github.com/Jocker666z/sc68 && cd sc68
+tools/svn-bootstrap.sh && ./configure LDFLAGS="-static"
+make -j"$(nproc)"
+su -c "make install" -m "root"
+```
+
+### vgm2wav
+Build dependencies: `git build-essential cmake zlib1g-dev libao-dev libdbus-1-dev`
+```
+git clone https://github.com/ValleyBell/libvgm && cd libvgm
+mkdir build && cd build && cmake .. 
+make -j"$(nproc)"
+su -c "make install" -m "root"
+```
+
+### vgm_tag
+Build dependencies: `git build-essential`
+```
+git clone https://github.com/vgmrips/vgmtools && cd vgmtools
+make -j"$(nproc)"
+cp vgm_tag /home/$USER/.local/bin
+```
+
+### vgmstream_cli
+Build dependencies: `git build-essential cmake audacious-dev libao-dev libvorbis-dev libmpg123-dev`
+```
+git clone https://github.com/losnoco/vgmstream && cd vgmstream
+mkdir build && cd build && cmake .. 
+make -j"$(nproc)"
+su -c "make install" -m "root"
+```
+
+### uade
+Build dependencies: `git abuild-essential udacious-dev libao-dev libvorbis-dev libmpg123-dev`
+```
+git clone https://gitlab.com/jocker666z/uade && cd uade
+./configure --bencode-tools-prefix="$PWD"/bencode-tools
+make -j"$(nproc)"
+su -c "make install" -m "root"
+```
+
+### zxtune123
+```
+cd /home/$USER/.local/bin/
+wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r4880.tar.bz2
+tar -xf zxtune123_r4880.tar.bz2 && rm zxtune123_r4880.tar.bz2
+```
