@@ -1,11 +1,11 @@
 # vgm2flac - Bash tool for vgm encoding to flac
 
-## Install & Update
+## Install & update
 
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`ffmpeg sox bc bchunk xxd info68 sc68 vgm2wav vgmstream_cli vgmtag zxtune123`
+`ffmpeg sox bc bchunk xxd info68 sc68 vgm2wav vgmstream_cli vgm_tag zxtune123`
 
 All these dependencies must installed properly on the system.
 
@@ -19,16 +19,26 @@ All these dependencies must installed properly on the system.
 * zxtune:
 	* https://zxtune.bitbucket.io/
 	* Prefered version: zxtune_r4880 https://github.com/Jocker666z/vgm2flac-dep
-* uade:
-	* https://gitlab.com/uade-music-player/uade
-	* Prefered version: https://gitlab.com/jocker666z/uade
+* uade: https://gitlab.com/uade-music-player/uade
 
 Help is available at the bottom of the page for the installation of dependencies that are generally not present on the official repositories of the largest GNU/Linux distributions.
 
-## Use
+## Use & description
+Simply launch vgm2flac command in directory with vgm files supported.
+
+* If possible, encoding is done in parallel.
+* If available, the tags are always implemented in the final file.
+* Final flac in always in 16bits with best compression level (ffmpeg option: -compression_level 12 -sample_fmt s16)
+* Encoding loop order:
+	* vgm encoding in wav file
+	* peak normalisation to 0db & false stereo detection
+	* apply fade out if necessary
+	* remove audio silence at start & end
+	* wav encoding in flac file
 
 ## Files supported :
 * 3DO : aif
+* ~~Amiga: aam, cust, dw, mod~~
 * Atari: snd, sndh
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sfd, xwav
@@ -113,13 +123,20 @@ su -c "make install" -m "root"
 ### uade
 Build dependencies: `git abuild-essential udacious-dev libao-dev libvorbis-dev libmpg123-dev`
 ```
-git clone https://gitlab.com/jocker666z/uade && cd uade
-./configure --bencode-tools-prefix="$PWD"/bencode-tools
+cd
+git clone https://gitlab.com/heikkiorsila/bencodetools && cd bencodetools
+./configure
+make -j"$(nproc)"
+su -c "make install" -m "root"
+cd
+git clone https://gitlab.com/uade-music-player/uade && cd uade
+./configure
 make -j"$(nproc)"
 su -c "make install" -m "root"
 ```
 
 ### zxtune123
+
 ```
 cd /home/$USER/.local/bin/
 wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r4880.tar.bz2
