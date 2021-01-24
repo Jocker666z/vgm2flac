@@ -2,11 +2,10 @@
 # vgm2flac
 # Bash tool for vgm encoding to flac
 #
-# Author : Romain Barbarot
+# Author: Romain Barbarot
 # https://github.com/Jocker666z/vgm2flac
 #
 # licence : GNU GPL-2.0
-
 
 # Paths
 vgm2flac_path="$( cd "$( dirname "$0" )" && pwd )"
@@ -22,13 +21,12 @@ default_sox_fade_out="5"																	# Default fade out value in second
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|iso"
 ext_ffmpeg="spc|xa"
-ext_ffmpeg_amiga="mod"
 ext_sc68="snd|sndh"
 ext_sox="bin|pcm|raw|tak"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|vag|vgs|vpk|wem|xvag|xwav"
-ext_uade=""
+ext_uade="aam\|cust\|dw\|mod"
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|ssf|usf"
@@ -120,7 +118,6 @@ list_source_files() {
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort)
 mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg')$' 2>/dev/null | sort)
-mapfile -t lst_ffmpeg_amiga < <(find "$PWD" -maxdepth 1 -type f -regex ".*\($ext_ffmpeg_amiga\)..*$" 2>/dev/null | sort)
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
@@ -275,25 +272,6 @@ for files in "${lst_ffmpeg[@]}"; do
 	wav2flac
 done
 }
-loop_ffmpeg_amiga() {
-for files in "${lst_ffmpeg_amiga[@]}"; do
-	shopt -s nocasematch									# Set case insentive
-	# Tag
-	tag_questions
-	tag_album
-	tag_song
-	# Extract WAV
-	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec pcm_s16le -f wav "${files%.*}".wav
-	# Peak normalisation to 0, false stereo detection 
-	wav_normalization_channel_test
-	# Fade out
-	wav_fade_out
-	# Remove silence
-	wav_remove_silent
-	# Flac conversion
-	wav2flac
-done
-}
 loop_sc68() {
 for files in "${lst_sc68[@]}"; do
 	# Tag extract
@@ -307,9 +285,9 @@ for files in "${lst_sc68[@]}"; do
 	tag_questions
 	tag_album
 	# Get total track
-	local sub_track=$(cat "$vgm2flac_cache_tag" | grep -i -a track: | sed 's/^.*: //' | tail -1)
+	local total_sub_track=$(cat "$vgm2flac_cache_tag" | grep -i -a track: | sed 's/^.*: //' | tail -1)
 	# Track loop
-	for sub_track in `seq -w 1 $sub_track`; do
+	for sub_track in `seq -w 1 $total_sub_track`; do
 		# Extract WAV
 		local track_name=$(basename "${files%.*}")
 		"$sc68_bin" -c -t "$sub_track" "$files" > "$sub_track".raw
@@ -364,10 +342,10 @@ for files in "${lst_sox[@]}"; do
 	# Tag
 	tag_song="[untitled]"
 	tag_song
-	# Remove silence
-	wav_remove_silent
 	# Peak normalisation to 0, false stereo detection 
 	wav_normalization_channel_test
+	# Remove silence
+	wav_remove_silent
 	# Flac conversion
 	(
 	wav2flac
@@ -379,37 +357,66 @@ done
 wait
 }
 loop_vgm2wav() {
+# Wav loop
 for files in "${lst_vgm2wav[@]}"; do
 	shopt -s nocasematch									# Set case insentive
 	case "${files[@]##*.}" in
 		*vgm|*vgz)
 			shopt -u nocasematch							# Set case sentive
+			# Extract WAV
+			(
+			"$vgm2wav_bin" "$files" "${files%.*}".wav
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		;;
+		*s98)
+			shopt -u nocasematch							# Set case sentive
+			# Extract WAV
+			(
+			"$vgm2wav_bin" --loops 1 "$files" "${files%.*}".wav
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		;;
+	esac
+done
+wait
+
+# Flac/tag loop
+for files in "${lst_vgm2wav[@]}"; do
+	shopt -s nocasematch									# Set case insentive
+	# Tag
+	case "${files[@]##*.}" in
+		*vgm|*vgz)
+			shopt -u nocasematch							# Set case sentive
 			# Tag
 			tag_vgm
-			tag_questions
-			tag_album
-			tag_song
-			# Extract WAV
-			"$vgm2wav_bin" "$files" "${files%.*}".wav
 		;;
 		*s98)
 			shopt -u nocasematch							# Set case sentive
 			# Tag
 			tag_s98
-			tag_questions
-			tag_album
-			tag_song
-			# Extract WAV
-			"$vgm2wav_bin" --loops 1 "$files" "${files%.*}".wav
 		;;
 	esac
+	tag_questions
+	tag_album
+	tag_song
 	# Peak normalisation to 0, false stereo detection 
 	wav_normalization_channel_test
 	# Remove silence
 	wav_remove_silent
 	# Flac conversion
+	(
 	wav2flac
+	) &
+	if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+		wait -n
+	fi
 done
+wait
 }
 loop_vgmstream() {
 for files in "${lst_vgmstream[@]}"; do
@@ -444,9 +451,40 @@ for files in "${lst_vgmstream[@]}"; do
 done
 wait
 }
+loop_uade() {
+for files in "${lst_uade[@]}"; do
+	# Tag
+	tag_song=""
+	tag_song
+	tag_machine="Amiga"
+	tag_questions
+	tag_album
+
+	# Get total track
+	set -x
+	local total_sub_track=$(uade123 -g "$files" | grep "subsongs:" | awk '/^subsongs:/ { print $NF }')
+	# wav loop
+	for sub_track in `seq -w 1 $total_sub_track`; do
+		# Filename construction
+		if [ "$total_sub_track" -eq "01" ]; then
+			local file_name_base="${files##*/}"
+			local file_name="${file_name_base#*.}"
+			echo $file_name
+			echo $total_sub_track
+			exit
+		else
+			echo
+			exit
+		fi
+	done
+
+done
+}
 loop_zxtune_gbs() {
 for gbs in "${lst_zxtune_gbs[@]}"; do
+
 	# Tag extract
+	tag_gbs_extract
 	tag_game=$(xxd -ps -s 0x10 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 	tag_artist=$(xxd -ps -s 0x30 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 
@@ -456,21 +494,46 @@ for gbs in "${lst_zxtune_gbs[@]}"; do
 
 	# Get total real total track
 	local file_total_track=$(xxd -ps -s 0x04 -l 1 "$gbs" | awk -Wposix '{printf("%d\n","0x" $1)}')	# Hex to decimal
-	local sub_track="$file_total_track"
-	# wav and flac loop
-	for sub_track in `seq -w 1 $sub_track`; do
+	local total_sub_track="$file_total_track"
+
+	# Wav loop
+	for sub_track in `seq -w 1 $total_sub_track`; do
+		# Extract WAV
+		(
+		"$zxtune123_bin" --wav filename="$sub_track".wav "$gbs"?#"$sub_track"
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Wav duration loop
+	for sub_track in `seq -w 1 $total_sub_track`; do
 		# Tag
 		gbs_track=$((10#"$sub_track"))
 		tag_gbs
 
-		# Extract WAV
-		"$zxtune123_bin" --wav filename="$sub_track".wav "$gbs"?#"$sub_track"
+		# Duration change if different to 180s
+		if [[ "$gbs_duration_second" != "180" ]]; then
+			(
+			ffmpeg $ffmpeg_log_lvl -y -i "$sub_track".wav -t $gbs_duration_second -acodec pcm_s16le -ar 44100 -f wav "$sub_track - $tag_song".wav \
+			&& rm "$sub_track".wav &>/dev/null
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		fi
+	done
+	wait
 
-		# Clean WAV duration
-		ffmpeg $ffmpeg_log_lvl -y -i "$sub_track".wav -t $gbs_duration_second -acodec pcm_s16le -ar 44100 -f wav "$sub_track - $tag_song".wav
-		rm "$sub_track".wav &>/dev/null
+	# Flac loop
+	for sub_track in `seq -w 1 $total_sub_track`; do
+		# Tag
+		gbs_track=$((10#"$sub_track"))
+		tag_gbs
 
-		# File variable for function
+		# File variable for next function
 		files="$sub_track - $tag_song.wav"
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
@@ -494,29 +557,55 @@ done
 loop_zxtune_nsf() {
 for nsf in "${lst_zxtune_nsf[@]}"; do
 	# Tag extract
+	tag_nsf_extract
 	tag_artist=$(xxd -ps -s 0x02E -l 32 "$nsf" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 	tag_game=$(xxd -ps -s 0x00E -l 32 "$nsf" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 	tag_machine="NES"
 	tag_questions
 	tag_album
 
-	# Get total real total track
+	# Get total track
 	local file_total_track=$(xxd -ps -s 0x006 -l 1 "$nsf" | awk -Wposix '{printf("%d\n","0x" $1)}')	# Hex to decimal
-	local sub_track="$file_total_track"
-	# wav and flac loop
-	for sub_track in `seq -w 1 $sub_track`; do
+	local total_sub_track="$file_total_track"
+
+	# Wav loop
+	for sub_track in `seq -w 1 $total_sub_track`; do
+		# Extract WAV
+		(
+		"$zxtune123_bin" --wav filename="$sub_track".wav "$nsf"?#"$sub_track"
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Wav duration loop
+	for sub_track in `seq -w 1 $total_sub_track`; do
+		# Tag
+		gbs_track=$((10#"$sub_track"))
+		tag_gbs
+
+		# Duration change if different to 180s
+		if [[ "$nsf_duration_second" != "180" ]]; then
+			(
+			ffmpeg $ffmpeg_log_lvl -y -i "$sub_track".wav -t $gbs_duration_second -acodec pcm_s16le -ar 44100 -f wav "$sub_track - $tag_song".wav \
+			&& rm "$sub_track".wav &>/dev/null
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		fi
+	done
+	wait
+
+	# Flac loop
+	for sub_track in `seq -w 1 $total_sub_track`; do
 		# Tag
 		nbs_track=$((10#"$sub_track"))
 		tag_nsf
 
-		# Extract WAV
-		"$zxtune123_bin" --wav filename="$sub_track".wav "$nsf"?#"$sub_track"
-
-		# Clean WAV duration
-		ffmpeg $ffmpeg_log_lvl -y -i "$sub_track".wav -t $nsf_duration_second -acodec pcm_s16le -ar 44100 -f wav "$sub_track - $tag_song".wav
-		rm "$sub_track".wav &>/dev/null
-
-		# File variable for function
+		# File variable for next function
 		files="$sub_track - $tag_song.wav"
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
@@ -534,17 +623,11 @@ for nsf in "${lst_zxtune_nsf[@]}"; do
 		fi
 	done
 	wait
-
 done
 }
 loop_zxtune_xfs() {
+# Wav loop
 for files in "${lst_zxtune_xsf[@]}"; do
-	# Tag
-	tag_xfs
-	tag_questions
-	tag_album
-	tag_song
-
 	# Extract WAV
 	local file_name_base="${files%.*}"
 	local file_name="${file_name_base##*/}"
@@ -557,6 +640,7 @@ for files in "${lst_zxtune_xsf[@]}"; do
 done
 wait
 
+# Flac/tag loop
 for files in "${lst_zxtune_xsf[@]}"; do
 	# Tag
 	tag_xfs
@@ -564,10 +648,10 @@ for files in "${lst_zxtune_xsf[@]}"; do
 	tag_album
 	tag_song
 
-	# Remove silence
-	wav_remove_silent
 	# Peak normalisation to 0, false stereo detection 
 	wav_normalization_channel_test
+	# Remove silence
+	wav_remove_silent
 	# Flac conversion
 	(
 	wav2flac
@@ -649,18 +733,28 @@ if [[ -z "$tag_machine" ]]; then
 	tag_machine="SNES"
 fi
 }
+tag_gbs_extract() {
+if [ "${#lst_m3u[@]}" -gt "0" ]; then
+	local m3u_track_hex_test=$(cat "${gbs%.*}".m3u |  awk -F"," '{ print $2 }' | grep "$")
+	if [[ -z "$m3u_track_hex_test" ]]; then
+		cat "${gbs%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
+		| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
+	else
+		cat "${gbs%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' \
+		| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+1; print}' \
+		| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
+	fi
+fi
+}
 tag_gbs() {
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
-	cat "${gbs%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
-	| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g'> "$vgm2flac_cache_tag"
-
 	# Prevent track start at 0 in m3u
 	local tag_track_test=$(cat "$vgm2flac_cache_tag" | head -1 | awk -F"," '{ print $2 }')
 	if [[ "$tag_track_test" = "0" ]]; then
 		gbs_track=$(("$gbs_track"-1))
 	fi
 
-	tag_song=$(cat "$vgm2flac_cache_tag" | grep ",$gbs_track," | awk -F"," '{ print $(NF-2) }')
+	tag_song=$(cat "$vgm2flac_cache_tag" | grep ",$gbs_track," | awk -F"," '{ print $3 }')
 	if [[ -z "$tag_song" ]]; then
 		tag_song="[untitled]"
 	fi
@@ -749,11 +843,21 @@ if [[ -z "$tag_game" && -z "$tag_machine" && -z "$tag_date" ]]; then
 	tag_date=$(cat "$vgm2flac_cache_tag" | grep -i -a year | sed 's/^.*=//' | head -1)
 fi
 }
+tag_nsf_extract() {
+if [ "${#lst_m3u[@]}" -gt "0" ]; then
+	local m3u_track_hex_test=$(cat "${nsf%.*}".m3u |  awk -F"," '{ print $2 }' | grep "$")
+	if [[ -z "$m3u_track_hex_test" ]]; then
+		cat "${nsf%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
+		| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
+	else
+		cat "${nsf%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' \
+		| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+1; print}' \
+		| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
+	fi
+fi
+}
 tag_nsf() {
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
-	cat "${nsf%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
-	| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g'> "$vgm2flac_cache_tag"
-
 	# Prevent track start at 0 in m3u
 	local tag_track_test=$(cat "$vgm2flac_cache_tag" | head -1 | awk -F"," '{ print $2 }')
 	if [[ "$tag_track_test" = "0" ]]; then
@@ -850,9 +954,9 @@ list_source_files
 #
 loop_bchunk
 loop_ffmpeg
-loop_ffmpeg_amiga
 loop_sc68
 loop_sox
+loop_uade
 loop_vgm2wav
 loop_vgmstream
 loop_zxtune_gbs
