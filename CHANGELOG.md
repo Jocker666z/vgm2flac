@@ -1,4 +1,21 @@
 # Changelog
+v0.06
+* support of files amiga : aam, cust, dw, gmc, mdat, mod, sa, sb
+* add check install of uade123 bin
+* support of PS3 file = txtp
+
+v0.05:
+* amiga - implementation start
+* gbs, nsf, sc68 - minor fix total_sub_track variable
+* gbs - fix get title from m3u
+* gbs, nfs:
+	* check/convert if track number in hexa
+	* extract tag from m3u one time (outside from wav loop)
+	* now parallel encoding, with a modern processor the encoding time is now ridiculous
+* xfs - remove double get tag in loop
+* vgm, vgz, s98 - now parallel encoding, with a modern processor the encoding time is now ridiculous
+* readme, add description of conversion loop
+
 v0.04:
 * gbs, nsf - multiple fix with get tag separator ","
 * gbs - remove gbsplay from dependencies, now use zxtune for decoding

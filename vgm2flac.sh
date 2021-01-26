@@ -25,8 +25,8 @@ ext_sc68="snd|sndh"
 ext_sox="bin|pcm|raw|tak"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
-ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|vag|vgs|vpk|wem|xvag|xwav"
-ext_uade="aam\|cust\|dw\|mod"
+ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav"
+ext_uade="aam|cust|dw|gmc|mdat|mod|sa|sb|sfx"
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|ssf|usf"
@@ -52,6 +52,17 @@ local system_bin_location=$(which $bin_name)
 
 if test -n "$system_bin_location"; then
 	sc68_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
+fi
+}
+uade123_bin() {
+local bin_name="uade123"
+local system_bin_location=$(which $bin_name)
+
+if test -n "$system_bin_location"; then
+	uade123_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
 	exit
@@ -123,7 +134,7 @@ mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
 mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
-mapfile -t lst_uade < <(find "$PWD" -maxdepth 1 -type f -regex ".*\($ext_uade\)..*$" 2>/dev/null | sort)
+mapfile -t lst_uade < <(find "$PWD" -maxdepth 1 -type f | grep -E -- '['$ext_uade'].[.]' | sort)
 mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort)
@@ -356,6 +367,64 @@ for files in "${lst_sox[@]}"; do
 done
 wait
 }
+loop_uade() {
+for files in "${lst_uade[@]}"; do
+	# Tag
+	tag_machine="Amiga"
+	tag_questions
+	tag_album
+
+	# Get total track
+	local total_sub_track=$(uade123 -g "$files" | grep "subsongs:" | awk '/^subsongs:/ { print $NF }')
+	# Total correction if 0
+	if [ "$total_sub_track" -eq "0" ]; then
+		total_sub_track="1"
+	fi
+	# Wav loop
+	for sub_track in `seq -w 1 $total_sub_track`; do
+		# Filename construction
+		if [ "$total_sub_track" -eq "1" ]; then
+			local file_name_base="${files##*/}"
+			local file_name="${file_name_base#*.}"
+		else
+			local file_name_base="${files##*/}"
+			local file_name="${file_name_base#*.}-$sub_track"
+		fi
+		# Wav extract
+		(
+		"$uade123_bin" --one --silence-timeout 5 --panning 0.8 --subsong "$sub_track" "$files" -f "$file_name".wav
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+done
+
+# Generate wav array
+list_temp_files
+
+# Flac loop
+for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song
+
+		# Peak normalisation to 0, false stereo detection 
+		wav_normalization_channel_test
+		# Fade out
+		wav_fade_out
+		# Remove silence
+		wav_remove_silent
+		# Flac conversion
+		(
+		wav2flac
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+done
+wait
+}
 loop_vgm2wav() {
 # Wav loop
 for files in "${lst_vgm2wav[@]}"; do
@@ -450,35 +519,6 @@ for files in "${lst_vgmstream[@]}"; do
 	fi
 done
 wait
-}
-loop_uade() {
-for files in "${lst_uade[@]}"; do
-	# Tag
-	tag_song=""
-	tag_song
-	tag_machine="Amiga"
-	tag_questions
-	tag_album
-
-	# Get total track
-	set -x
-	local total_sub_track=$(uade123 -g "$files" | grep "subsongs:" | awk '/^subsongs:/ { print $NF }')
-	# wav loop
-	for sub_track in `seq -w 1 $total_sub_track`; do
-		# Filename construction
-		if [ "$total_sub_track" -eq "01" ]; then
-			local file_name_base="${files##*/}"
-			local file_name="${file_name_base#*.}"
-			echo $file_name
-			echo $total_sub_track
-			exit
-		else
-			echo
-			exit
-		fi
-	done
-
-done
 }
 loop_zxtune_gbs() {
 for gbs in "${lst_zxtune_gbs[@]}"; do
@@ -942,6 +982,7 @@ fi
 # Bin check & set
 info68_bin
 sc68_bin
+uade123_bin
 vgm2wav_bin
 vgmstream_cli_bin
 vgm_tag_bin

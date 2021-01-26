@@ -5,7 +5,7 @@
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`ffmpeg sox bc bchunk xxd info68 sc68 vgm2wav vgmstream_cli vgm_tag zxtune123`
+`ffmpeg sox bc bchunk xxd info68 sc68 uade vgm2wav vgmstream_cli vgm_tag zxtune123`
 
 All these dependencies must installed properly on the system.
 
@@ -28,7 +28,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 * If possible, encoding is done in parallel.
 * If available, the tags are always implemented in the final file.
-* Final flac in always in 16bits with best compression level (ffmpeg option: -compression_level 12 -sample_fmt s16)
+* Final flac is always in 16bits with best compression level (ffmpeg option: -compression_level 12 -sample_fmt s16)
 * Encoding loop order:
 	* vgm encoding in wav file
 	* peak normalisation to 0db & false stereo detection
@@ -38,7 +38,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 ## Files supported :
 * 3DO : aif
-* ~~Amiga: aam, cust, dw, mod~~
+* Amiga: aam, cust, dw, gmc, mdat, mod, sa, sb
 * Atari: snd, sndh
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sfd, xwav
@@ -62,7 +62,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sharp X1 : s98
 * Sony Playstation: psf, minipsf, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, vag, vpk, sng, vgs
-* Sony Playstation 3: aa3, adx, at3, genh, laac, msf, mtaf, sgd, ss2, vag, xvag, wem
+* Sony Playstation 3: aa3, adx, at3, genh, laac, msf, mtaf, sgd, ss2, vag, xvag, txtp wem
 * Sony Playstation 4: wem
 * Sony PSP: at3
 * Panasonic 3DO: aifc, str
@@ -121,7 +121,7 @@ su -c "make install" -m "root"
 ```
 
 ### uade
-Build dependencies: `git abuild-essential udacious-dev libao-dev libvorbis-dev libmpg123-dev`
+Build dependencies: `git build-essential udacious-dev libao-dev libvorbis-dev libmpg123-dev`
 ```
 cd
 git clone https://gitlab.com/heikkiorsila/bencodetools && cd bencodetools
