@@ -1,6 +1,6 @@
 # Changelog
 v0.06
-* support of files amiga : aam, cust, dw, gmc, mdat, mod, sa, sb
+* support of files amiga : aam, core, cust, dw, gmc, mdat, mod, sa, sb
 * add check install of uade123 bin
 * support of PS3 file = txtp
 

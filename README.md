@@ -38,7 +38,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 ## Files supported :
 * 3DO : aif
-* Amiga: aam, cust, dw, gmc, mdat, mod, sa, sb
+* Amiga: aam, core, cust, dw, gmc, mdat, mod, sa, sb
 * Atari: snd, sndh
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sfd, xwav
@@ -51,7 +51,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo GBA: gsf, minigsf
 * Nintendo GameCube: adx, cfn, dsp, hps, adp, thp, mus
 * Nintendo N64: usf, miniusf
-* Nintendo NES: nsf, ~~nsfe~~
+* Nintendo NES: nsf
 * Nintendo SNES: spc
 * Nintendo Switch: bfstm, bfwav, ktss
 * Nintendo Wii: ads, mus
@@ -62,7 +62,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sharp X1 : s98
 * Sony Playstation: psf, minipsf, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, vag, vpk, sng, vgs
-* Sony Playstation 3: aa3, adx, at3, genh, laac, msf, mtaf, sgd, ss2, vag, xvag, txtp wem
+* Sony Playstation 3: aa3, adx, at3, genh, laac, msf, mtaf, sgd, ss2, vag, xvag, txtp, wem
 * Sony Playstation 4: wem
 * Sony PSP: at3
 * Panasonic 3DO: aifc, str

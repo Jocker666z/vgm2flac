@@ -26,7 +26,7 @@ ext_sox="bin|pcm|raw|tak"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav"
-ext_uade="aam|cust|dw|gmc|mdat|mod|sa|sb|sfx"
+ext_uade="aam|core|cust|dw|gmc|mdat|mod|sa|sb|sfx"
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|ssf|usf"
@@ -879,7 +879,7 @@ fi
 
 if [[ -z "$tag_game" && -z "$tag_machine" && -z "$tag_date" ]]; then
 	tag_game=$(cat "$vgm2flac_cache_tag" | grep -i -a game | sed 's/^.*=//' | head -1)
-		tag_machine=$(cat "$vgm2flac_cache_tag" | grep -i -a system | sed 's/^.*=//' | head -1)
+	tag_machine=$(cat "$vgm2flac_cache_tag" | grep -i -a system | sed 's/^.*=//' | head -1)
 	tag_date=$(cat "$vgm2flac_cache_tag" | grep -i -a year | sed 's/^.*=//' | head -1)
 fi
 }
