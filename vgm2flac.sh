@@ -29,6 +29,7 @@ ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwa
 ext_uade="aam|core|cust|dw|gmc|mdat|mod|sa|sb|sfx"
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
+ext_zxtune_sid="sid"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|ssf|usf"
 
 # Messages
@@ -134,9 +135,10 @@ mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
 mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
-mapfile -t lst_uade < <(find "$PWD" -maxdepth 1 -type f | grep -E -- '['$ext_uade'].[.]' | sort)
+mapfile -t lst_uade < <(find "$PWD" -maxdepth 1 -type f | grep -E -- '['$ext_uade'][.]' | sort)
 mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
+mapfile -t lst_zxtune_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_sid')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort)
 
 # bin/cue clean
@@ -665,6 +667,48 @@ for nsf in "${lst_zxtune_nsf[@]}"; do
 	wait
 done
 }
+loop_zxtune_sid() {
+for files in "${lst_zxtune_sid[@]}"; do
+	# Tag extract
+	tag_questions
+	tag_album
+
+	# Wav loop
+	set -x
+	for sub_track in `seq -w 1 256`; do
+		# Extract WAV
+		"$zxtune123_bin" --wav filename="$sub_track".wav "$files"?#"$sub_track" && echo $? || echo $?
+		local zxtune123_result=$?
+		if [ $? != 0 ]; then
+			total_sub_track=$(( "$sub_track" - 1 ))
+			echo $total_sub_track
+			break
+		fi
+	done
+
+	## Flac loop
+	#for sub_track in `seq -w 1 $total_sub_track`; do
+
+		## File variable for next function
+		#files="$sub_track - $tag_song.wav"
+		## Peak normalisation to 0, false stereo detection 
+		#wav_normalization_channel_test
+		## Fade out
+		#imported_sox_fade_out="$nsf_fading_second"
+		#wav_fade_out
+		## Remove silence
+		#wav_remove_silent
+		## Flac conversion
+		#(
+		#wav2flac
+		#) &
+		#if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			#wait -n
+		#fi
+	#done
+	#wait
+done
+}
 loop_zxtune_xfs() {
 # Wav loop
 for files in "${lst_zxtune_xsf[@]}"; do
@@ -1002,6 +1046,7 @@ loop_vgm2wav
 loop_vgmstream
 loop_zxtune_gbs
 loop_zxtune_nsf
+loop_zxtune_sid
 loop_zxtune_xfs
 
 #

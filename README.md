@@ -39,7 +39,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 ## Files supported :
 * 3DO : aif
 * Amiga: aam, core, cust, dw, gmc, mdat, mod, sa, sb
-* Atari: snd, sndh
+* Atari ST: snd, sndh
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sfd, xwav
 * Microsoft Xbox 360: wem
@@ -59,7 +59,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sega Mega Drive/Genesis: vgm, vgz
 * Sega Saturn: minissf, ssf
 * Sega Dreamcast: dsf, spsd
-* Sharp X1 : s98
+* NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1: s98
 * Sony Playstation: psf, minipsf, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, vag, vpk, sng, vgs
 * Sony Playstation 3: aa3, adx, at3, genh, laac, msf, mtaf, sgd, ss2, vag, xvag, txtp, wem
@@ -69,6 +69,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * PC: fsb, his, imc
 * Various machines: vgm, vgz, adx, rak, tak, eam, at3, raw, wem, pcm
 * Various machines CD-DA: bin, bin/cue, iso/cue
+* ~~ZX Spectrum: ym~~
 
 The crossed out files are not available for the moment.
 
@@ -82,6 +83,7 @@ The crossed out files are not available for the moment.
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
 * http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
+* http://www.vgmpf.com/
 
 ## Help for dependencies installation:
 ### sc68 & info68

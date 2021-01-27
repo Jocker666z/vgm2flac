@@ -1,5 +1,10 @@
 # Changelog
-v0.06
+v0.07:
+* amiga - fix find files
+* C64/128 - implementation start
+* readme, various update
+
+v0.06:
 * support of files amiga : aam, core, cust, dw, gmc, mdat, mod, sa, sb
 * add check install of uade123 bin
 * support of PS3 file = txtp
