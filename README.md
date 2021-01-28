@@ -33,17 +33,17 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* vgm encoding in wav file
 	* peak normalisation to 0db & false stereo detection
 	* apply fade out if necessary
-	* remove audio silence at start & end
+	* remove audio silence at start, end and middle if more than 5s
 	* wav encoding in flac file
 
 ## Files supported :
 * 3DO : aif
 * Amiga: aam, core, cust, dw, gmc, mdat, mod, sa, sb
 * Atari ST: snd, sndh
+* Commodore C64/128: sid
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sfd, xwav
 * Microsoft Xbox 360: wem
-* NEC PC-6001, PC-6601, PC-8801, PC-9801: s98
 * ~~NEC PC-Engine/TurboGrafx-16: hes~~
 * Nintendo 3DS: mus, bcstm, wem, bcwav, fsb
 * Nintendo DS: 2sf, adx, mini2sf, sad

@@ -1,11 +1,15 @@
 # Changelog
 v0.07:
 * amiga - fix find files
-* C64/128 - implementation start
-* readme, various update
+* support of Commodore C64/128 files: sid
+* readme - various update
+* flac:
+	* fix remove silence at start & end
+	* now remove silence in middle fo files if > 5s
+* various - now impossible to launch convertion function if no files in associate array
 
 v0.06:
-* support of files amiga : aam, core, cust, dw, gmc, mdat, mod, sa, sb
+* support of amiga files: aam, core, cust, dw, gmc, mdat, mod, sa, sb
 * add check install of uade123 bin
 * support of PS3 file = txtp
 
