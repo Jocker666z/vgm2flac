@@ -26,7 +26,7 @@ ext_sox="bin|pcm|raw|tak"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav"
-ext_uade="aam|core|cust|dw|gmc|mdat|mod|sa|sb|sfx"
+ext_uade="aam\.|core\.|cust\.|dw\.|gmc\.|mdat\.|mod\.|sa\.|sb\.|sfx\."
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_sid="sid"
@@ -135,7 +135,7 @@ mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
 mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
-mapfile -t lst_uade < <(find "$PWD" -maxdepth 1 -type f | grep -E -- '['$ext_uade'][.]' | sort)
+mapfile -t lst_uade < <(find "$PWD" -maxdepth 1 -type f | grep -E -i -- ''$ext_uade'' | sort)
 mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_sid')$' 2>/dev/null | sort)
@@ -670,18 +670,20 @@ done
 loop_zxtune_sid() {
 for files in "${lst_zxtune_sid[@]}"; do
 	# Tag extract
+	set -x
+	tag_sid
+	set +x
+	exit
 	tag_questions
 	tag_album
 
 	# Wav loop
-	set -x
 	for sub_track in `seq -w 1 256`; do
 		# Extract WAV
-		"$zxtune123_bin" --wav filename="$sub_track".wav "$files"?#"$sub_track" && echo $? || echo $?
-		local zxtune123_result=$?
-		if [ $? != 0 ]; then
-			total_sub_track=$(( "$sub_track" - 1 ))
-			echo $total_sub_track
+		"$zxtune123_bin" --wav filename="$sub_track".wav "$files"?#"$sub_track"
+		# Break loop when fail & get number of total track at this point
+		if [ ! -f "$sub_track".wav ]; then
+			total_sub_track=$((10#"$sub_track" - 1))
 			break
 		fi
 	done
@@ -925,6 +927,21 @@ if [[ -z "$tag_game" && -z "$tag_machine" && -z "$tag_date" ]]; then
 	tag_game=$(cat "$vgm2flac_cache_tag" | grep -i -a game | sed 's/^.*=//' | head -1)
 	tag_machine=$(cat "$vgm2flac_cache_tag" | grep -i -a system | sed 's/^.*=//' | head -1)
 	tag_date=$(cat "$vgm2flac_cache_tag" | grep -i -a year | sed 's/^.*=//' | head -1)
+fi
+}
+tag_sid() {
+if [[ -z "$tag_artist" ]]; then
+	tag_artist=$(xxd -ps -s 0x36 -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
+fi
+if [ "$tag_artist" = "<?>" ]; then
+	tag_artist=""
+fi
+
+if [[ -z "$tag_game" ]]; then
+	tag_game=$(xxd -ps -s 0x0004Eh -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
+fi
+if [ "$tag_game" = "<?>" ]; then
+	tag_game=""
 fi
 }
 tag_nsf_extract() {
