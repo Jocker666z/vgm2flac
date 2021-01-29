@@ -7,11 +7,12 @@ Bash tool for vgm/chiptune encoding to flac
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`ffmpeg ffprobe sox bc bchunk xxd info68 sc68 uade vgm2wav vgmstream_cli vgm_tag zxtune123`
+`ffmpeg ffprobe sox bc bchunk xxd adplay info68 sc68 uade vgm2wav vgmstream_cli vgm_tag zxtune123`
 
 All these dependencies must installed properly on the system.
 
 * ffmpeg must be compiled with: --enable-libgme --enable-libopenmpt --enable-nonfree
+* adplay: https://github.com/adplug/adplay-unix
 * sc68 & info68:
 	* https://sourceforge.net/projects/sc68/
 	* Prefered version: https://github.com/Jocker666z/sc68
@@ -69,7 +70,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sony Playstation 4: wem
 * Sony PSP: at3
 * Panasonic 3DO: aifc, str
-* PC: fsb, his, imc
+* PC: hsq, fsb, his, imc, sdb, sqx
 * Various machines: vgm, vgz, adx, rak, tak, eam, at3, raw, wem, pcm
 * Various machines CD-DA: bin, bin/cue, iso/cue
 * ZX Spectrum: asc, psc, pt2, pt3, sqt, stc, stp

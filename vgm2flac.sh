@@ -18,6 +18,7 @@ nprocessor=$(nproc --all)																	# Set number of processor
 default_sox_fade_out="5"																	# Default fade out value in second
 
 # Extensions
+ext_adplay="hsq|sdb|sqx"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|iso"
 ext_ffmpeg="spc|xa"
@@ -35,6 +36,17 @@ ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 
 # Bin check and set variable
+adplay_bin() {
+local bin_name="adplay"
+local system_bin_location=$(which $bin_name)
+
+if test -n "$system_bin_location"; then
+	adplay_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
+fi
+}
 info68_bin() {
 local bin_name="info68"
 local system_bin_location=$(which $bin_name)
@@ -126,6 +138,7 @@ rm "$vgm2flac_cache_tag" &>/dev/null
 
 # Files array
 list_source_files() {
+mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort)
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort)
 mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg')$' 2>/dev/null | sort)
@@ -221,6 +234,52 @@ ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 1
 }
 
 # Convert loop
+loop_adplay() {				# PC (adlib)
+if (( "${#lst_adplay[@]}" )); then
+	# Tag
+	tag_machine="PC"
+	tag_questions
+	tag_album
+	
+	# Wav loop
+	for files in "${lst_adplay[@]}"; do
+		# Extract WAV
+		local file_name_base="${files%.*}"
+		local file_name="${file_name_base##*/}"
+		(
+		"$adplay_bin" "$files" --device "${file_name##*/}".wav --output=disk
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Generate wav array
+	list_temp_files
+
+	# Flac loop
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song=""
+		tag_song
+		# Peak normalisation to 0, false stereo detection 
+		wav_normalization_channel_test
+		# Remove silence
+		wav_remove_silent
+		# Add fade out
+		wav_fade_out
+		# Flac conversion
+		(
+		wav2flac
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+fi
+}
 loop_bchunk() {				# Various machines CDDA
 if (( "${#lst_bchunk_iso[@]}" )); then
 	if test -n "$bchunk"; then				# If bchunk="1" in list_source_files()
@@ -1171,6 +1230,7 @@ fi
 }
 
 # Bin check & set
+adplay_bin
 info68_bin
 sc68_bin
 uade123_bin
@@ -1184,6 +1244,7 @@ check_cache_directory
 list_source_files
 
 # Encoding/tag loop
+loop_adplay
 loop_bchunk
 loop_ffmpeg
 loop_sc68

@@ -1,4 +1,8 @@
 # Changelog
+v0.09:
+* add adplay in dependencies for decode PC adlib files
+* add support of PC adlib files in: hsq, sdb, sqx
+
 v0.08:
 * add support of Amstrad CPC and Atari ST files in: ym
 * add support of ZX Spectrum files in: asc, psc, pt2, pt3, sqt, stc, stp 
