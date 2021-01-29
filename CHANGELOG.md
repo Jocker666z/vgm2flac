@@ -1,4 +1,8 @@
 # Changelog
+v0.08:
+* add support of Amstrad CPC and Atari ST files in: ym
+* add support of ZX Spectrum files in: asc, psc, pt2, pt3, sqt, stc, stp 
+
 v0.07:
 * amiga - fix find files
 * support of Commodore C64/128 files: sid
@@ -6,7 +10,7 @@ v0.07:
 * flac:
 	* fix remove silence at start & end
 	* now remove silence in middle fo files if > 5s
-* various - now impossible to launch convertion function if no files in associate array
+* various - now impossible to launch encoding function if no files in associate array
 
 v0.06:
 * support of amiga files: aam, core, cust, dw, gmc, mdat, mod, sa, sb

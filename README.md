@@ -1,11 +1,13 @@
-# vgm2flac - Bash tool for vgm encoding to flac
+# vgm2flac
+
+Bash tool for vgm/chiptune encoding to flac
 
 ## Install & update
 
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`ffmpeg sox bc bchunk xxd info68 sc68 uade vgm2wav vgmstream_cli vgm_tag zxtune123`
+`ffmpeg ffprobe sox bc bchunk xxd info68 sc68 uade vgm2wav vgmstream_cli vgm_tag zxtune123`
 
 All these dependencies must installed properly on the system.
 
@@ -39,7 +41,8 @@ Simply launch vgm2flac command in directory with vgm files supported.
 ## Files supported :
 * 3DO : aif
 * Amiga: aam, core, cust, dw, gmc, mdat, mod, sa, sb
-* Atari ST: snd, sndh
+* Amstrad CPC: ym
+* Atari ST: snd, sndh, ym
 * Commodore C64/128: sid
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sfd, xwav
@@ -69,7 +72,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * PC: fsb, his, imc
 * Various machines: vgm, vgz, adx, rak, tak, eam, at3, raw, wem, pcm
 * Various machines CD-DA: bin, bin/cue, iso/cue
-* ~~ZX Spectrum: ym~~
+* ZX Spectrum: asc, psc, pt2, pt3, sqt, stc, stp
 
 The crossed out files are not available for the moment.
 

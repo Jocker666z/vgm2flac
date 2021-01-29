@@ -31,6 +31,8 @@ ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_sid="sid"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|ssf|usf"
+ext_zxtune_ym="ym"
+ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 
 # Bin check and set variable
 info68_bin() {
@@ -137,6 +139,8 @@ mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_sid')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort)
+mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort)
+mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort)
 
 # bin/cue clean
 if [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If cue = 1
@@ -783,6 +787,97 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 	wait
 fi
 }
+loop_zxtune_ym() {			# Amstrad CPC, Atari ST
+if (( "${#lst_zxtune_ym[@]}" )); then
+	# Tag
+	tag_questions
+	tag_album
+	
+	# Wav loop
+	for files in "${lst_zxtune_ym[@]}"; do
+		# Extract WAV
+		local file_name_base="${files%.*}"
+		local file_name="${file_name_base##*/}"
+		(
+		"$zxtune123_bin" --wav filename="${file_name##*/}".wav "$files"
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Generate wav array
+	list_temp_files
+
+	# Flac loop
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song=""
+		tag_song
+		# Peak normalisation to 0, false stereo detection 
+		wav_normalization_channel_test
+		# Remove silence
+		wav_remove_silent
+		# Add fade out
+		wav_fade_out
+		# Flac conversion
+		(
+		wav2flac
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+fi
+}
+loop_zxtune_zx_spectrum() {	# ZX Spectrum
+if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
+	# Tag
+	tag_machine="ZX Spectrum"
+	tag_questions
+	tag_album
+	
+	# Wav loop
+	for files in "${lst_zxtune_zx_spectrum[@]}"; do
+		# Extract WAV
+		local file_name_base="${files%.*}"
+		local file_name="${file_name_base##*/}"
+		(
+		"$zxtune123_bin" --wav filename="${file_name##*/}".wav "$files"
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Generate wav array
+	list_temp_files
+
+	# Flac loop
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song=""
+		tag_song
+		# Peak normalisation to 0, false stereo detection 
+		wav_normalization_channel_test
+		# Remove silence
+		wav_remove_silent
+		# Add fade out
+		wav_fade_out
+		# Flac conversion
+		(
+		wav2flac
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+fi
+}
 
 # Tag common
 tag_track() {
@@ -833,6 +928,7 @@ if test -z "$tag_song"; then
 	tag_song=$(basename "${files%.*}")
 fi
 }
+
 # Tag by files type
 tag_gbs_extract() {			# GB/GBC
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
@@ -1099,6 +1195,8 @@ loop_zxtune_gbs
 loop_zxtune_nsf
 loop_zxtune_sid
 loop_zxtune_xfs
+loop_zxtune_ym
+loop_zxtune_zx_spectrum
 
 # Clean
 list_temp_files
