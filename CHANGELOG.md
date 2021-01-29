@@ -1,4 +1,11 @@
 # Changelog
+v0.10:
+* add fluidsynth in dependencies for decode midi files
+* add support of PC files in: logg, mid
+* fix mkdir when tag_machine contain "/"
+* now check bin inside decoding loop, in order to be able to use the script even if not all dependencies are installed
+* add check core dependencies at start
+
 v0.09:
 * add adplay in dependencies for decode PC adlib files
 * add support of PC adlib files in: hsq, sdb, sqx

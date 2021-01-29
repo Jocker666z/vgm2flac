@@ -13,6 +13,7 @@ vgm2flac_cache="/home/$USER/.cache/vgm2flac"												# Cache directory
 vgm2flac_cache_tag="/home/$USER/.cache/vgm2flac/tag-$(date +%Y%m%s%N).info"					# Tag cache
 
 # Others
+core_dependency=(bc bchunk ffmpeg ffprobe sox xxd )
 ffmpeg_log_lvl="-hide_banner -loglevel panic -stats"										# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
 default_sox_fade_out="5"																	# Default fade out value in second
@@ -22,11 +23,12 @@ ext_adplay="hsq|sdb|sqx"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|iso"
 ext_ffmpeg="spc|xa"
+ext_fluidsynth="mid"
 ext_sc68="snd|sndh"
 ext_sox="bin|pcm|raw|tak"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
-ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav"
+ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|logg|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav"
 ext_uade="aam\.|core\.|cust\.|dw\.|gmc\.|mdat\.|mod\.|sa\.|sb\.|sfx\."
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
@@ -42,6 +44,17 @@ local system_bin_location=$(which $bin_name)
 
 if test -n "$system_bin_location"; then
 	adplay_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
+fi
+}
+fluidsynth_bin() {
+local bin_name="fluidsynth"
+local system_bin_location=$(which $bin_name)
+
+if test -n "$system_bin_location"; then
+	fluidsynth_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
 	exit
@@ -124,6 +137,23 @@ else
 	exit
 fi
 }
+common_bin() {
+n=0;
+for command in "${core_dependency[@]}"; do
+	if hash "$command" &>/dev/null
+	then
+		let c++
+	else
+		local command_fail+=("$command")
+		let n++
+	fi
+done
+if (( "${#command_fail[@]}" )); then
+	echo "vgm2flac break, the following dependencies are not installed:"
+	printf '  %s\n' "${command_fail[@]}"
+	exit
+fi
+}
 
 # Cache directory
 check_cache_directory() {
@@ -142,6 +172,7 @@ mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort)
 mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg')$' 2>/dev/null | sort)
+mapfile -t lst_fluidsynth < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_fluidsynth')$' 2>/dev/null | sort)
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
@@ -234,8 +265,11 @@ ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 1
 }
 
 # Convert loop
-loop_adplay() {				# PC (adlib)
+loop_adplay() {				# PC adlib
 if (( "${#lst_adplay[@]}" )); then
+	# Bin check & set
+	adplay_bin
+
 	# Tag
 	tag_machine="PC"
 	tag_questions
@@ -244,10 +278,8 @@ if (( "${#lst_adplay[@]}" )); then
 	# Wav loop
 	for files in "${lst_adplay[@]}"; do
 		# Extract WAV
-		local file_name_base="${files%.*}"
-		local file_name="${file_name_base##*/}"
 		(
-		"$adplay_bin" "$files" --device "${file_name##*/}".wav --output=disk
+		"$adplay_bin" "$files" --device "${files%.*}".wav --output=disk
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -354,8 +386,59 @@ if (( "${#lst_ffmpeg[@]}" )); then
 	done
 fi
 }
+loop_fluidsynth() {			# PC midi
+if (( "${#lst_fluidsynth[@]}" )); then
+	# Bin check & set
+	fluidsynth_bin
+
+	# Tag
+	tag_machine="PC"
+	tag_questions
+	tag_album
+	
+	# Wav loop
+	for files in "${lst_fluidsynth[@]}"; do
+		# Extract WAV
+		(
+		"$fluidsynth_bin" -F "${files%.*}".wav "$files"
+
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Generate wav array
+	list_temp_files
+
+	# Flac loop
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song=""
+		tag_song
+		# Peak normalisation to 0, false stereo detection 
+		wav_normalization_channel_test
+		# Remove silence
+		wav_remove_silent
+		# Add fade out
+		wav_fade_out
+		# Flac conversion
+		(
+		wav2flac
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+fi
+}
 loop_sc68() {				# Atari ST
 if (( "${#lst_sc68[@]}" )); then
+	# Bin check & set
+	info68_bin
+	sc68_bin
 	for files in "${lst_sc68[@]}"; do
 		# Tag extract
 		"$info68_bin" -A "$files" > "$vgm2flac_cache_tag"
@@ -448,6 +531,8 @@ fi
 }
 loop_uade() {				# Amiga
 if (( "${#lst_uade[@]}" )); then
+	# Bin check & set
+	uade123_bin
 	for files in "${lst_uade[@]}"; do
 		# Tag
 		tag_machine="Amiga"
@@ -508,6 +593,10 @@ fi
 }
 loop_vgm2wav() {			# Various machines
 if (( "${#lst_vgm2wav[@]}" )); then
+	# Bin check & set
+	vgm2wav_bin
+	vgm_tag_bin
+
 	# Wav loop
 	for files in "${lst_vgm2wav[@]}"; do
 		shopt -s nocasematch									# Set case insentive
@@ -572,6 +661,9 @@ fi
 }
 loop_vgmstream() {			# Various machines
 if (( "${#lst_vgmstream[@]}" )); then
+	# Bin check & set
+	vgmstream_cli_bin
+
 	for files in "${lst_vgmstream[@]}"; do
 		# Tag
 		tag_questions
@@ -607,6 +699,9 @@ fi
 }
 loop_zxtune_gbs() {			# GB/GBC
 if (( "${#lst_zxtune_gbs[@]}" )); then
+	# Bin check & set
+	zxtune123_bin
+
 	for gbs in "${lst_zxtune_gbs[@]}"; do
 
 		# Tag extract
@@ -683,6 +778,9 @@ fi
 }
 loop_zxtune_nsf() {			# NES
 if (( "${#lst_zxtune_nsf[@]}" )); then
+	# Bin check & set
+	zxtune123_bin
+
 	for nsf in "${lst_zxtune_nsf[@]}"; do
 		# Tag extract
 		tag_nsf_extract
@@ -756,6 +854,9 @@ fi
 }
 loop_zxtune_sid() {			# Commodore 64/128
 if (( "${#lst_zxtune_sid[@]}" )); then
+	# Bin check & set
+	zxtune123_bin
+
 	for files in "${lst_zxtune_sid[@]}"; do
 		# Tag extract
 		tag_sid
@@ -809,6 +910,9 @@ fi
 }
 loop_zxtune_xfs() {			# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
 if (( "${#lst_zxtune_xsf[@]}" )); then
+	# Bin check & set
+	zxtune123_bin
+
 	# Wav loop
 	for files in "${lst_zxtune_xsf[@]}"; do
 		# Extract WAV
@@ -848,6 +952,9 @@ fi
 }
 loop_zxtune_ym() {			# Amstrad CPC, Atari ST
 if (( "${#lst_zxtune_ym[@]}" )); then
+	# Bin check & set
+	zxtune123_bin
+
 	# Tag
 	tag_questions
 	tag_album
@@ -893,6 +1000,9 @@ fi
 }
 loop_zxtune_zx_spectrum() {	# ZX Spectrum
 if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
+	# Bin check & set
+	zxtune123_bin
+
 	# Tag
 	tag_machine="ZX Spectrum"
 	tag_questions
@@ -980,6 +1090,7 @@ fi
 }
 tag_album() {
 tag_album=$(echo $tag_album | sed s#/#-#g | sed s#:#-#g)				# Replace eventualy "/" & ":" in string
+tag_machine=$(echo $tag_machine | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
 tag_album="$tag_game ($tag_machine)"
 }
 tag_song() {
@@ -1230,14 +1341,7 @@ fi
 }
 
 # Bin check & set
-adplay_bin
-info68_bin
-sc68_bin
-uade123_bin
-vgm2wav_bin
-vgmstream_cli_bin
-vgm_tag_bin
-zxtune123_bin
+common_bin
 
 # Files source check & set
 check_cache_directory
@@ -1247,6 +1351,7 @@ list_source_files
 loop_adplay
 loop_bchunk
 loop_ffmpeg
+loop_fluidsynth
 loop_sc68
 loop_sox
 loop_uade
