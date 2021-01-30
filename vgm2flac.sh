@@ -22,13 +22,13 @@ default_sox_fade_out="5"																	# Default fade out value in second
 ext_adplay="hsq|sdb|sqx"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|iso"
-ext_ffmpeg="spc|xa"
+ext_ffmpeg="mod|spc|xa"
 ext_fluidsynth="mid"
 ext_sc68="snd|sndh"
 ext_sox="bin|pcm|raw|tak"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
-ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|logg|ktss|msf|mtaf|mib|mus|rak|raw|sad|sfd|sgd|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav"
+ext_vgmstream="aa3|adp|adpcm|ads|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|bik|bnk|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|logg|ktss|msf|mtaf|mib|mpf|mus|rak|raw|sad|sfd|sgd|smk|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav"
 ext_uade="aam\.|core\.|cust\.|dw\.|gmc\.|mdat\.|mod\.|sa\.|sb\.|sfx\."
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
@@ -293,7 +293,6 @@ if (( "${#lst_adplay[@]}" )); then
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
 		# Tag
-		tag_song=""
 		tag_song
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
@@ -345,12 +344,27 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 	fi
 fi
 }
-loop_ffmpeg() {				# SNES, PS1
+loop_ffmpeg() {				# SNES, PS1 xa, PC mod, CD-i xa
 if (( "${#lst_ffmpeg[@]}" )); then
 	for files in "${lst_ffmpeg[@]}"; do
 		shopt -s nocasematch									# Set case insentive
 		case "${files[@]##*.}" in
-			*spc)
+			*mod)												# PC ProTracker MOD
+				shopt -u nocasematch							# Set case sentive
+				# Tag
+				tag_questions
+				tag_album
+				tag_song
+				# Extract WAV
+				ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec pcm_s16le -ar 44100 -f wav "${files%.*}".wav
+				# Peak normalisation to 0, false stereo detection 
+				wav_normalization_channel_test
+				# Remove silence
+				wav_remove_silent
+				# Fade out
+				wav_fade_out
+			;;
+			*spc)												# SNES
 				shopt -u nocasematch							# Set case sentive
 				# Tag
 				tag_spc
@@ -365,25 +379,35 @@ if (( "${#lst_ffmpeg[@]}" )); then
 				# Fade out
 				imported_sox_fade_out="$spc_fading_second"
 				wav_fade_out
+				# Peak normalisation to 0, false stereo detection 
+				wav_normalization_channel_test
+				# Remove silence
+				wav_remove_silent
 			;;
-			*xa)
+			*xa)												# PS1, CD-i
 				shopt -u nocasematch							# Set case sentive
 				# Tag
 				tag_questions
 				tag_album
 				tag_song
 				# Extract WAV
-				ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec pcm_s16le -ar 37800 -f wav "${files%.*}".wav
+				ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec pcm_s16le -f wav "${files%.*}".wav
+				# Peak normalisation to 0, false stereo detection 
+				wav_normalization_channel_test
+				# Remove silence
+				wav_remove_silent
 			;;
 		esac
 
-		# Peak normalisation to 0, false stereo detection 
-		wav_normalization_channel_test
-		# Remove silence
-		wav_remove_silent
 		# Flac conversion
+		(
 		wav2flac
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
 	done
+	wait
 fi
 }
 loop_fluidsynth() {			# PC midi
@@ -415,7 +439,6 @@ if (( "${#lst_fluidsynth[@]}" )); then
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
 		# Tag
-		tag_song=""
 		tag_song
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
@@ -576,10 +599,10 @@ if (( "${#lst_uade[@]}" )); then
 
 			# Peak normalisation to 0, false stereo detection 
 			wav_normalization_channel_test
-			# Fade out
-			wav_fade_out
 			# Remove silence
 			wav_remove_silent
+			# Fade out
+			wav_fade_out
 			# Flac conversion
 			(
 			wav2flac
@@ -680,7 +703,6 @@ if (( "${#lst_vgmstream[@]}" )); then
 
 	for files in "${lst_vgmstream[@]}"; do
 		# Tag
-		tag_song=""
 		tag_song
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
@@ -979,7 +1001,6 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
 		# Tag
-		tag_song=""
 		tag_song
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
@@ -1028,7 +1049,6 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
 		# Tag
-		tag_song=""
 		tag_song
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
@@ -1094,9 +1114,7 @@ tag_machine=$(echo $tag_machine | sed s#/#-#g | sed s#:#-#g)			# Replace eventua
 tag_album="$tag_game ($tag_machine)"
 }
 tag_song() {
-if test -z "$tag_song"; then
-	tag_song=$(basename "${files%.*}")
-fi
+tag_song=$(basename "${files%.*}")
 }
 
 # Tag by files type

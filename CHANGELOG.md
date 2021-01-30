@@ -1,4 +1,13 @@
 # Changelog
+v0.11:
+* add support of PS2 files in: mpf (EALayer3, Electronic Arts SCHl) 
+* add support of PC files in: mod (PC ProTracker MOD), bnk (Custom Vorbis, Audiokinetic Wwise RIFF), smk (Smacker audio, RAD Game Tools SMACKER)
+* add support of Wii files in: brstm
+* add support of Switch files in: lopus
+* add support of Xbox 360, PC files in: bik (Bink Audio, RAD Game Tools Bink)
+* fix tag_song no regen
+* fix xa file type, remove fixed -ar for CD-i xa
+
 v0.10:
 * add fluidsynth in dependencies for decode midi files
 * add support of PC files in: logg, mid

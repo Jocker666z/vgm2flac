@@ -45,12 +45,13 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Amiga: aam, core, cust, dw, gmc, mdat, mod, sa, sb
 * Amstrad CPC: ym
 * Atari ST: snd, sndh, ym
+* Philips CD-i: xa
 * Commodore C64/128: sid
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sfd, xwav
-* Microsoft Xbox 360: wem
+* Microsoft Xbox 360: bik, wem
 * ~~NEC PC-Engine/TurboGrafx-16: hes~~
-* Nintendo 3DS: mus, bcstm, wem, bcwav, fsb
+* Nintendo 3DS: bcstm, wem, bcwav, fsb, mus, txtp
 * Nintendo DS: 2sf, adx, mini2sf, sad
 * Nintendo GB & GBC: gbs
 * Nintendo GBA: gsf, minigsf
@@ -58,8 +59,8 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo N64: usf, miniusf
 * Nintendo NES: nsf
 * Nintendo SNES: spc
-* Nintendo Switch: bfstm, bfwav, ktss
-* Nintendo Wii: ads, mus
+* Nintendo Switch: bfstm, bfwav, ktss, lopus
+* Nintendo Wii: ads, adx, brstm, mus
 * Sega Mark III/Master System: vgm, vgz
 * Sega Mega Drive/Genesis: vgm, vgz
 * Sega Saturn: minissf, ssf
@@ -71,7 +72,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sony Playstation 4: wem
 * Sony PSP: at3
 * Panasonic 3DO: aifc, str
-* PC: hsq, fsb, his, imc, logg, mid, sdb, sqx
+* PC: bik, bnk, hsq, fsb, his, imc, logg, mid, mod, sdb, smk, sqx, txtp
 * Various machines: vgm, vgz, adx, rak, tak, eam, at3, raw, wem, pcm
 * Various machines CD-DA: bin, bin/cue, iso/cue
 * ZX Spectrum: asc, psc, pt2, pt3, sqt, stc, stp
