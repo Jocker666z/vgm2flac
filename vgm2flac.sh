@@ -10,7 +10,7 @@
 vgm2flac_path="$( cd "$( dirname "$0" )" && pwd )"
 vgm2flac_cache="/home/$USER/.cache/vgm2flac"												# Cache directory
 vgm2flac_cache_tag="/home/$USER/.cache/vgm2flac/tag-$(date +%Y%m%s%N).info"					# Tag cache
-export PATH=$PATH:/home/$USER/.local/bin													# For case of launch vgm2flac outside a terminal
+export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script outside a terminal
 
 # Others
 core_dependency=(bc bchunk ffmpeg ffprobe sox xxd )
@@ -1348,6 +1348,7 @@ fi
 }
 mk_flac_directory() {
 if [ "${#lst_flac[@]}" -gt "0" ]; then											# If number of flac > 0
+	tag_date=$(echo $tag_date | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
 	local flac_directory="$tag_game ($tag_date) ($tag_machine)"
 	if [ ! -d "$VGM_DIR" ]; then
 		mkdir "$PWD/$flac_directory"
