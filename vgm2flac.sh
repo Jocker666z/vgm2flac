@@ -6,11 +6,11 @@
 # https://github.com/Jocker666z/vgm2flac
 #
 # licence : GNU GPL-2.0
-
 # Paths
 vgm2flac_path="$( cd "$( dirname "$0" )" && pwd )"
 vgm2flac_cache="/home/$USER/.cache/vgm2flac"												# Cache directory
 vgm2flac_cache_tag="/home/$USER/.cache/vgm2flac/tag-$(date +%Y%m%s%N).info"					# Tag cache
+export PATH=$PATH:/home/$USER/.local/bin													# For case of launch vgm2flac outside a terminal
 
 # Others
 core_dependency=(bc bchunk ffmpeg ffprobe sox xxd )
