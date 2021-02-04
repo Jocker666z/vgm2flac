@@ -1,4 +1,7 @@
 # Changelog
+v0.12:
+* add support of Xbox 360 file in: xwb (Xbox Media Audio 2, Microsoft XWB)
+
 v0.11:
 * add support of PS2 files in: mpf (EALayer3, Electronic Arts SCHl) 
 * add support of PC files in: mod (PC ProTracker MOD), bnk (Custom Vorbis, Audiokinetic Wwise RIFF), smk (Smacker audio, RAD Game Tools SMACKER)

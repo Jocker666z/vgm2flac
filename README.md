@@ -49,7 +49,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Commodore C64/128: sid
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sfd, xwav
-* Microsoft Xbox 360: bik, wem
+* Microsoft Xbox 360: bik, wem, xwb
 * ~~NEC PC-Engine/TurboGrafx-16: hes~~
 * Nintendo 3DS: bcstm, wem, bcwav, fsb, mus, txtp
 * Nintendo DS: 2sf, adx, mini2sf, sad
