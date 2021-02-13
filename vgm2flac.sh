@@ -666,7 +666,6 @@ if (( "${#lst_vgm2wav[@]}" )); then
 		esac
 		tag_questions
 		tag_album
-		tag_song
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
 		# Remove silence
@@ -1109,8 +1108,6 @@ if test -z "$tag_machine"; then
 fi
 }
 tag_album() {
-tag_album=$(echo $tag_album | sed s#/#-#g | sed s#:#-#g)				# Replace eventualy "/" & ":" in string
-tag_machine=$(echo $tag_machine | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
 tag_album="$tag_game ($tag_machine)"
 }
 tag_song() {
@@ -1121,10 +1118,10 @@ tag_song=$(basename "${files%.*}")
 tag_gbs_extract() {			# GB/GBC
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
 	local m3u_track_hex_test=$(cat "${gbs%.*}".m3u |  awk -F"," '{ print $2 }' | grep "$")
-	if [[ -z "$m3u_track_hex_test" ]]; then
+	if [[ -z "$m3u_track_hex_test" ]]; then													# Decimal track
 		cat "${gbs%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
 		| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
-	else
+	else																					# Hexadecimal track
 		cat "${gbs%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' \
 		| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+1; print}' \
 		| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
@@ -1165,10 +1162,10 @@ fi
 tag_nsf_extract() {			# NES
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
 	local m3u_track_hex_test=$(cat "${nsf%.*}".m3u |  awk -F"," '{ print $2 }' | grep "$")
-	if [[ -z "$m3u_track_hex_test" ]]; then
+	if [[ -z "$m3u_track_hex_test" ]]; then													# Decimal track
 		cat "${nsf%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
 		| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
-	else
+	else																					# Hexadecimal track
 		cat "${nsf%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' \
 		| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+1; print}' \
 		| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
@@ -1222,6 +1219,9 @@ tag_s98() {					# NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 
 strings "$files" > "$vgm2flac_cache_tag"
 
 tag_song=$(cat "$vgm2flac_cache_tag" | grep -i -a title | sed 's/^.*=//' | head -1)
+if [[ -z "$tag_song" ]]; then
+	tag_song
+fi
 
 tag_artist_backup="$tag_artist"
 tag_artist=$(cat "$vgm2flac_cache_tag" | grep -i -a artist | sed 's/^.*=//' | head -1)
@@ -1275,6 +1275,9 @@ tag_vgm() {					# Various machines
 "$vgm_tag_bin" -ShowTag8 "$files" > "$vgm2flac_cache_tag"
 
 tag_song=$(sed -n 's/Track Title:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+if [[ -z "$tag_song" ]]; then
+	tag_song
+fi
 
 tag_artist_backup="$tag_artist"
 tag_artist=$(sed -n 's/Composer:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
@@ -1346,15 +1349,17 @@ if [ "${#lst_wav[@]}" -gt "0" ]; then											# If number of wav > 0
 	esac
 fi
 }
-mk_flac_directory() {
-if [ "${#lst_flac[@]}" -gt "0" ]; then											# If number of flac > 0
+mk_target_directory() {
+if [ "${#lst_flac[@]}" -gt "0" ]; then								# If number of flac > 0
+	tag_game=$(echo $tag_game | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
+	tag_machine=$(echo $tag_machine | sed s#/#-#g | sed s#:#-#g)	# Replace eventualy "/" & ":" in string
 	tag_date=$(echo $tag_date | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
-	local flac_directory="$tag_game ($tag_date) ($tag_machine)"
+	local target_directory="$tag_game ($tag_date) ($tag_machine)"
 	if [ ! -d "$VGM_DIR" ]; then
-		mkdir "$PWD/$flac_directory"
+		mkdir "$PWD/$target_directory"
 	fi
 	for files in "${lst_flac[@]}"; do
-		mv "$files" "$PWD/$flac_directory"
+		mv "$files" "$PWD/$target_directory"
 	done
 fi
 }
@@ -1387,7 +1392,7 @@ loop_zxtune_zx_spectrum
 list_temp_files
 list_target_files
 tag_track
-mk_flac_directory
+mk_target_directory
 wav_remove
 clean_cache_directory
 
