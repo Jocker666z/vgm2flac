@@ -6,6 +6,7 @@
 # https://github.com/Jocker666z/vgm2flac
 #
 # licence : GNU GPL-2.0
+
 # Paths
 vgm2flac_path="$( cd "$( dirname "$0" )" && pwd )"
 vgm2flac_cache="/home/$USER/.cache/vgm2flac"												# Cache directory
@@ -29,7 +30,6 @@ ext_sox="bin|pcm|raw|tak"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_vgmstream="aa3|adp|adpcm|ads|adp|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|bik|bnk|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|logg|ktss|msf|mtaf|mib|mpf|mus|rak|raw|rsf|sad|sfd|sgd|smk|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav|xwb"
-ext_uade="aam\.|core\.|cust\.|dw\.|gmc\.|mdat\.|mod\.|sa\.|sb\.|sfx\."
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_sid="sid"
@@ -178,7 +178,7 @@ mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
 mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
-mapfile -t lst_uade < <(find "$PWD" -maxdepth 1 -type f | grep -E -i -- ''$ext_uade'' | sort)
+mapfile -t lst_uade < <(uade123 --scan "$PWD" | sort)
 mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_sid')$' 2>/dev/null | sort)

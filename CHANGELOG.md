@@ -1,6 +1,10 @@
 # Changelog
 v0.12:
+* add support of GameCube file in: adp (Nintendo DTK 4-bit ADPCM, Nintendo ADP raw), rsf (CCITT G.721 4-bit ADPCM, Retro Studios RSF)
 * add support of Xbox 360 file in: xwb (Xbox Media Audio 2, Microsoft XWB)
+* fix env bin by add export PATH=$PATH:/home/$USER/.local/bin
+* fix mkdir when tag_date contain "/"
+* chg uade scan file command by uade123 --scan "$PWD"
 
 v0.11:
 * add support of PS2 files in: mpf (EALayer3, Electronic Arts SCHl) 
