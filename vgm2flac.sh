@@ -370,7 +370,6 @@ if (( "${#lst_ffmpeg[@]}" )); then
 				tag_spc
 				tag_questions
 				tag_album
-				tag_song
 				# Calc duration/fading
 				local spc_fading_second=$(($spc_fading/1000))
 				local spc_duration_total=$(($spc_duration+$spc_fading_second))
@@ -954,7 +953,6 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 		tag_xfs
 		tag_questions
 		tag_album
-		tag_song
 
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
@@ -1254,6 +1252,9 @@ tag_spc() {					# SNES
 local id666_test=$(xxd -ps -s 0x00023h -l 1 "$files")	# Test ID666 here
 if [ "$id666_test" = "1a" ]; then						# 1a hex = 26 dec
 	tag_song=$(xxd -ps -s 0x0002Eh -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
+	if [[ -z "$tag_song" ]]; then
+		tag_song
+	fi
 
 	tag_artist_backup="$tag_artist"
 	tag_artist=$(xxd -ps -s 0x000B1h -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
@@ -1295,6 +1296,9 @@ tag_xfs() {					# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
 strings "$files" | awk '/TAG/{y=1;next}y' > "$vgm2flac_cache_tag"
 
 tag_song=$(cat "$vgm2flac_cache_tag" | grep -i -a title= | sed 's/^.*=//')
+if [[ -z "$tag_song" ]]; then
+	tag_song
+fi
 
 tag_artist_backup="$tag_artist"
 tag_artist=$(cat "$vgm2flac_cache_tag" | grep -i -a artist= | sed 's/^.*=//')
