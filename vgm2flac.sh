@@ -17,6 +17,8 @@ export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script
 core_dependency=(bc bchunk ffmpeg ffprobe sox xxd )
 ffmpeg_log_lvl="-hide_banner -loglevel panic -stats"										# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
+
+# Audio
 default_sox_fade_out="5"																	# Default fade out value in second
 
 # Extensions
@@ -29,7 +31,7 @@ ext_sc68="snd|sndh"
 ext_sox="bin|pcm|raw|tak"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
-ext_vgmstream="aa3|adp|adpcm|ads|adp|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|bik|bnk|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|logg|ktss|msf|mtaf|mib|mpf|mus|rak|raw|rsf|sad|sfd|sgd|smk|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav|xwb"
+ext_vgmstream="aa3|adp|adpcm|ads|adp|adx|aif|aifc|aix|ast|at3|bcstm|bcwav|bfstm|bfwav|bik|bnk|bwav|cfn|dsp|eam|fsb|genh|his|hps|imc|int|laac|logg|ktss|msf|mtaf|mib|mpf|mus|rak|raw|rsf|sad|sfd|sgd|smk|sng|spsd|str|ss2|thp|txtp|vag|vgs|vpk|wem|xvag|xwav|xwb"
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_sid="sid"
