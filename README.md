@@ -35,7 +35,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Final flac is always in 16bits with best compression level (ffmpeg option: -compression_level 12 -sample_fmt s16)
 * Encoding loop order:
 	* vgm encoding in wav file
-	* peak normalisation to 0db & false stereo detection
+	* peak normalisation to 0db & false stereo detection (md5 channel test)
 	* apply fade out if necessary
 	* remove audio silence at start, end and middle if more than 5s
 	* wav encoding in flac file
@@ -80,7 +80,6 @@ Simply launch vgm2flac command in directory with vgm files supported.
 The crossed out files are not available for the moment.
 
 ## Known error
-* zxtune123 in version higher than r4880 do a backend error
 * usf/miniusf decoding stuck = zxtune123 bug
 
 ## Holy reading
@@ -147,6 +146,6 @@ su -c "make install" -m "root"
 
 ```
 cd /home/$USER/.local/bin/
-wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r4880.tar.bz2
-tar -xf zxtune123_r4880.tar.bz2 && rm zxtune123_r4880.tar.bz2
+wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r4980.tar.bz2
+tar -xf zxtune123_r4980.tar.bz2 && rm zxtune123_r4980.tar.bz2
 ```
