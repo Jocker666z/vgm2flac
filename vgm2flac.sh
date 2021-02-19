@@ -1069,21 +1069,23 @@ fi
 
 # Tag common
 tag_track() {
-tag_track_count=()
-count=()
-for files in "${lst_flac[@]}"; do
-	tag_track_count=$(($count+1))
-	count=$tag_track_count
-	if [[ "${#tag_track_count}" -eq "1" ]] ; then				# if integer in one digit add 0
-		tag_track_count="0$tag_track_count" 
-	fi
-	ffmpeg $ffmpeg_log_lvl -i "$files" -c:v copy -c:a copy -metadata TRACKNUMBER="$tag_track_count" -metadata TRACK="$tag_track_count" "${files%.*}"-temp.flac
-	# If temp-file exist remove source and rename
-	if [[ -f "${files%.*}-temp.flac" && -s "${files%.*}-temp.flac" ]]; then
-		rm "$files" &>/dev/null
-		mv "${files%.*}"-temp.flac "$files" &>/dev/null
-	fi
-done
+if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If number of flac > 0
+	tag_track_count=()
+	count=()
+	for files in "${lst_flac[@]}"; do
+		tag_track_count=$(($count+1))
+		count=$tag_track_count
+		if [[ "${#tag_track_count}" -eq "1" ]] ; then						# if integer in one digit add 0
+			tag_track_count="0$tag_track_count" 
+		fi
+		ffmpeg $ffmpeg_log_lvl -i "$files" -c:v copy -c:a copy -metadata TRACKNUMBER="$tag_track_count" -metadata TRACK="$tag_track_count" "${files%.*}"-temp.flac
+		# If temp-file exist remove source and rename
+		if [[ -f "${files%.*}-temp.flac" && -s "${files%.*}-temp.flac" ]]; then
+			rm "$files" &>/dev/null
+			mv "${files%.*}"-temp.flac "$files" &>/dev/null
+		fi
+	done
+fi
 }
 tag_questions() {
 if test -z "$tag_game"; then
@@ -1356,10 +1358,10 @@ if [ "${#lst_wav[@]}" -gt "0" ]; then											# If number of wav > 0
 fi
 }
 mk_target_directory() {
-if [ "${#lst_flac[@]}" -gt "0" ]; then								# If number of flac > 0
-	tag_game=$(echo $tag_game | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
-	tag_machine=$(echo $tag_machine | sed s#/#-#g | sed s#:#-#g)	# Replace eventualy "/" & ":" in string
-	tag_date=$(echo $tag_date | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
+if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If number of flac > 0
+	tag_game=$(echo $tag_game | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
+	tag_machine=$(echo $tag_machine | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
+	tag_date=$(echo $tag_date | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
 	local target_directory="$tag_game ($tag_date) ($tag_machine)"
 	if [ ! -d "$VGM_DIR" ]; then
 		mkdir "$PWD/$target_directory"
