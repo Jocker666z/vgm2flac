@@ -1104,21 +1104,33 @@ if test -z "$tag_game"; then
 	echo "Please indicate the game title"
 	read -e -p " -> " tag_game
 	echo
+	if test -z "$tag_game"; then
+		tag_game="[unknown game]"
+	fi
 fi
 if test -z "$tag_artist"; then
-	echo "Please indicate the artist"
+	echo "Please indicate the artist (leave empty for [unknown])"
 	read -e -p " -> " tag_artist
 	echo
+	if test -z "$tag_artist"; then
+		tag_artist="[unknown]"
+	fi
 fi
 if test -z "$tag_date"; then
 	echo "Please indicate the release date"
 	read -e -p " -> " tag_date
 	echo
+	if test -z "$tag_date"; then
+		tag_date="[unknown date]"
+	fi
 fi
 if test -z "$tag_machine"; then
 	echo "Please indicate the release platform"
 	read -e -p " -> " tag_machine
 	echo
+	if test -z "$tag_machine"; then
+		tag_machine="[unknown machine]"
+	fi
 fi
 }
 tag_album() {
