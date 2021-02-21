@@ -178,9 +178,9 @@ mapfile -t lst_fluidsynth < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
+mapfile -t lst_uade_init < <(uade123 --scan "$PWD" 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
 mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
-mapfile -t lst_uade < <(uade123 --scan "$PWD" | sort)
 mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_sid')$' 2>/dev/null | sort)
@@ -554,65 +554,77 @@ if (( "${#lst_sox[@]}" )); then
 fi
 }
 loop_uade() {				# Amiga
-if (( "${#lst_uade[@]}" )); then
+if (( "${#lst_uade_init[@]}" )); then
 	# Bin check & set
 	uade123_bin
-	for files in "${lst_uade[@]}"; do
-		# Tag
-		tag_machine="Amiga"
-		tag_questions
-		tag_album
-
-		# Get total track
-		local total_sub_track=$(uade123 -g "$files" | grep "subsongs:" | awk '/^subsongs:/ { print $NF }')
-		# Total correction if 0
-		if [ "$total_sub_track" -eq "0" ]; then
-			total_sub_track="1"
+	# Test all files
+	lst_uade=()
+	for files in "${lst_uade_init[@]}"; do
+		uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
+		#local uade_test_result=$?
+		if [ "${#uade_test_result}" -gt "0" ]; then
+			lst_uade+=("$files")
 		fi
-		# Wav loop
-		for sub_track in `seq -w 1 $total_sub_track`; do
-			# Filename construction
-			if [ "$total_sub_track" -eq "1" ]; then
-				local file_name_base="${files##*/}"
-				local file_name="${file_name_base#*.}"
-			else
-				local file_name_base="${files##*/}"
-				local file_name="${file_name_base#*.}-$sub_track"
+	done
+	# Start
+	if (( "${#lst_uade[@]}" )); then
+		for files in "${lst_uade[@]}"; do
+			# Tag
+			tag_machine="Amiga"
+			tag_questions
+			tag_album
+
+			# Get total track
+			local total_sub_track=$("$uade123_bin" -g "$files" | grep "subsongs:" | awk '/^subsongs:/ { print $NF }')
+			# Total correction if 0
+			if [ "$total_sub_track" -eq "0" ]; then
+				total_sub_track="1"
 			fi
-			# Wav extract
-			(
-			"$uade123_bin" --one --silence-timeout 5 --panning 0.8 --subsong "$sub_track" "$files" -f "$file_name".wav
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
+			# Wav loop
+			for sub_track in `seq -w 1 $total_sub_track`; do
+				# Filename construction
+				if [ "$total_sub_track" -eq "1" ]; then
+					local file_name_base="${files##*/}"
+					local file_name="${file_name_base#*.}"
+				else
+					local file_name_base="${files##*/}"
+					local file_name="${file_name_base#*.}-$sub_track"
+				fi
+				# Wav extract
+				(
+				"$uade123_bin" --one --silence-timeout 5 --panning 0.8 --subsong "$sub_track" "$files" -f "$file_name".wav
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+					wait -n
+				fi
+			done
+			wait
+		done
+
+		# Generate wav array
+		list_temp_files
+
+		# Flac loop
+		for files in "${lst_wav[@]}"; do
+				# Tag
+				tag_song
+
+				# Peak normalisation to 0, false stereo detection 
+				wav_normalization_channel_test
+				# Remove silence
+				wav_remove_silent
+				# Fade out
+				wav_fade_out
+				# Flac conversion
+				(
+				wav2flac
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+					wait -n
+				fi
 		done
 		wait
-	done
-
-	# Generate wav array
-	list_temp_files
-
-	# Flac loop
-	for files in "${lst_wav[@]}"; do
-			# Tag
-			tag_song
-
-			# Peak normalisation to 0, false stereo detection 
-			wav_normalization_channel_test
-			# Remove silence
-			wav_remove_silent
-			# Fade out
-			wav_fade_out
-			# Flac conversion
-			(
-			wav2flac
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
-	done
-	wait
+	fi
 fi
 }
 loop_vgm2wav() {			# Various machines
