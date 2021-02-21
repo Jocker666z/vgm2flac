@@ -1,6 +1,6 @@
 # vgm2flac
 
-Bash tool for vgm/chiptune encoding to flac
+Bash tool for vgm/chiptune encoding to flac.
 
 ## Install & update
 
@@ -22,7 +22,7 @@ All these dependencies must installed properly on the system.
 * vgmtag: https://github.com/vgmrips/vgmtools
 * zxtune:
 	* https://zxtune.bitbucket.io/
-	* Prefered version: zxtune_r4880 https://github.com/Jocker666z/vgm2flac-dep
+	* Prefered version: https://github.com/Jocker666z/vgm2flac-dep
 * uade: https://gitlab.com/uade-music-player/uade
 
 Help is available at the bottom of the page for the installation of dependencies that are generally not present on the official repositories of the largest GNU/Linux distributions.
@@ -59,7 +59,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo N64: usf, miniusf
 * Nintendo NES: nsf
 * Nintendo SNES: spc
-* Nintendo Switch: bfstm, bfwav, ktss, lopus
+* Nintendo Switch: bfstm, bfwav, bwav, ktss, lopus
 * Nintendo Wii: ads, adx, brstm, mus
 * Sega Mark III/Master System: vgm, vgz
 * Sega Mega Drive/Genesis: vgm, vgz

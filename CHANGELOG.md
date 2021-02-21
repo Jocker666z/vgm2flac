@@ -1,4 +1,12 @@
 # Changelog
+v0.13:
+* add support of Nintendo Switch file in: bwav (Nintendo DSP 4-bit ADPCM, Nintendo BWAV)
+* add now if no tag input, default tag is "unknown"
+* fix tag_song for xfs, spc, vgm, vgz, s98 files
+* fix no threat inplace flac if no wav
+* fix now use vgmstream_cli for decode tak (sox fail)
+* fix uade123 --scan false positive, add another scan with -g option
+
 v0.12:
 * add support of GameCube file in: adp (Nintendo DTK 4-bit ADPCM, Nintendo ADP raw), rsf (CCITT G.721 4-bit ADPCM, Retro Studios RSF)
 * add support of Xbox 360 file in: xwb (Xbox Media Audio 2, Microsoft XWB)
