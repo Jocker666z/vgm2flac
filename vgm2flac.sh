@@ -651,7 +651,7 @@ if (( "${#lst_vgm2wav[@]}" )); then
 				shopt -u nocasematch							# Set case sentive
 				# Extract WAV
 				(
-				"$vgm2wav_bin" --loops 1 "$files" "${files%.*}".wav
+				"$vgm2wav_bin" "$files" "${files%.*}".wav
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -968,10 +968,20 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 		tag_questions
 		tag_album
 
+		# N64 test duration for fadeout
+		if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ]; then
+			local test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
+		fi
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
+		# Consider fade out if N64 files not have tag_length
+		if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ]; then
+			if [[ -z "$tag_length" ]]; then
+				wav_fade_out
+			fi
+		fi
 		# Flac conversion
 		(
 		wav2flac
@@ -1353,6 +1363,11 @@ elif [[ "${files##*.}" = "usf" || "${files##*.}" = "miniusf" ]]; then
 	tag_machine="N64"
 elif [[ "${files##*.}" = "dsf" ]]; then
 	tag_machine="Dreamcast"
+fi
+
+# N64, get tag lenght for test in loop, notag=notimepoint -> fadeout
+if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ]; then
+	tag_length=$(cat "$vgm2flac_cache_tag" | grep -i -a length= | sed 's/^.*=//')
 fi
 }
 
