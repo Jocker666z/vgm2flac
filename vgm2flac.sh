@@ -968,10 +968,6 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 		tag_questions
 		tag_album
 
-		# N64 test duration for fadeout
-		if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ]; then
-			local test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
-		fi
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
 		# Remove silence
