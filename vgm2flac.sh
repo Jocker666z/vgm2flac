@@ -24,7 +24,7 @@ default_sox_fade_out="5"																	# Default fade out value in second
 # Extensions
 ext_adplay="hsq|sdb|sqx"
 ext_bchunk_cue="cue"
-ext_bchunk_iso="bin|iso"
+ext_bchunk_iso="bin|img|iso"
 ext_ffmpeg="mod|spc|xa"
 ext_fluidsynth="mid"
 ext_sc68="snd|sndh"
