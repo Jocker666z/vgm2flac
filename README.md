@@ -43,13 +43,14 @@ Simply launch vgm2flac command in directory with vgm files supported.
 ## Files supported :
 * 3DO : aif
 * Amiga: aam, core, cust, dw, gmc, mdat, mod, sa, sb
-* Amstrad CPC: ym
+* Amstrad CPC: ay, ym
 * Atari ST: snd, sndh, ym
 * Philips CD-i: xa
 * Commodore C64/128: sid
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sfd, xwav
 * Microsoft Xbox 360: bik, wem, xwb
+* Mobile: acb, fsb, txtp
 * ~~NEC PC-Engine/TurboGrafx-16: hes~~
 * Nintendo 3DS: bcstm, wem, bcwav, fsb, mus, txtp
 * Nintendo DS: 2sf, adx, mini2sf, sad
@@ -59,8 +60,9 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo N64: usf, miniusf
 * Nintendo NES: nsf
 * Nintendo SNES: spc
-* Nintendo Switch: bfstm, bfwav, bwav, ktss, lopus
+* Nintendo Switch: bgm, bfstm, bfwav, bwav, hca, kno, ktss, lopus, wem
 * Nintendo Wii: ads, adx, brstm, mus
+* Sega Game Gear: vgm, vgz
 * Sega Mark III/Master System: vgm, vgz
 * Sega Mega Drive/Genesis: vgm, vgz
 * Sega Saturn: minissf, ssf
@@ -68,14 +70,16 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1: s98
 * Sony Playstation: psf, minipsf, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, vag, vpk, sng, vgs
-* Sony Playstation 3: aa3, adx, at3, genh, laac, msf, mtaf, sgd, ss2, vag, xvag, txtp, wem
+* Sony Playstation 3: aa3, adx, at3, genh, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem
 * Sony Playstation 4: wem
-* Sony PSP: at3
+* Sony PSP: at3, txtp
+* Playstation Vita: at9
 * Panasonic 3DO: aifc, str
-* PC: bik, bnk, hsq, fsb, his, imc, logg, mid, mod, sdb, smk, sqx, txtp
-* Various machines: vgm, vgz, adx, rak, tak, eam, at3, raw, wem, pcm
-* Various machines CD-DA: bin, bin/cue, iso/cue
-* ZX Spectrum: asc, psc, pt2, pt3, sqt, stc, stp
+* Philips CD-i: grn
+* PC: bik, bnk, hsq, fsb, his, imc, logg, mid, mod, sdb, smk, sqx, txtp, xwb
+* Various machines: vgm, vgz
+* Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
+* ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp
 
 The crossed out files are not available for the moment.
 
@@ -108,14 +112,6 @@ git clone https://github.com/ValleyBell/libvgm && cd libvgm
 mkdir build && cd build && cmake .. 
 make -j"$(nproc)"
 su -c "make install" -m "root"
-```
-
-### vgm_tag
-Build dependencies: `git build-essential`
-```
-git clone https://github.com/vgmrips/vgmtools && cd vgmtools
-make -j"$(nproc)"
-cp vgm_tag /home/$USER/.local/bin
 ```
 
 ### vgmstream_cli

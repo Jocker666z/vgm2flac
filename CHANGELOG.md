@@ -1,4 +1,15 @@
 # Changelog
+v0.14
+* add support of CD-DA files in: img/cue
+* add support of PlayStation Vita file in: at9 (ATRAC9, Adaptive Transform Acoustic Coding 9)
+* add support of Switch file in: hca (CRI HCA), kno (Opus, Koei Tecmo KTSS), lopus (Opus, Nintendo Switch OPUS), bgm (Opus, Nintendo Switch OPUS)
+* add support of Mobile file in: acb (CRI HCA)
+* add support of Philips CD-i file in: grn (CD-ROM XA 8-bit ADPCM, Sony XA)
+* add support of PS3 file in: idmsf, msadpcm (MPEG Layer III Audio)
+* add support of Amstrad CPC and ZX Spectrum file in: ay (AY-3-8910 audio chips)
+* fix ufs, miniufs, add fadout if track not timed
+* fix remove ufs, miniufs unused code
+
 v0.13:
 * add support of Nintendo Switch file in: bwav (Nintendo DSP 4-bit ADPCM, Nintendo BWAV)
 * add now if no tag input, default tag is "unknown"
