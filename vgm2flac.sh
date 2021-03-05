@@ -32,6 +32,7 @@ ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_vgmstream="aa3|acb|adp|adpcm|ads|adp|adx|aif|aifc|aix|ast|at3|at9|bcstm|bcwav|bfstm|bfwav|bik|bnk|bwav|cfn|dsp|eam|fsb|genh|grn|hca|his|hps|idmsf|imc|int|laac|logg|lopus|kno|ktss|mib|mpf|msadpcm|msf|mus|mtaf|rak|raw|rsf|sad|sfd|sgd|smk|sng|spsd|str|ss2|tak|thp|txtp|vag|vgs|vpk|wem|xvag|xwav|xwb"
+ext_zxtune_ay="ay"
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_sid="sid"
@@ -181,6 +182,7 @@ mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -i
 mapfile -t lst_uade_init < <(uade123 --scan "$PWD" 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
 mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
+mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_sid')$' 2>/dev/null | sort)
@@ -731,6 +733,64 @@ if (( "${#lst_vgmstream[@]}" )); then
 	wait
 fi
 }
+loop_zxtune_ay() {			# Amstrad CPC, ZX Spectrum
+if (( "${#lst_zxtune_ay[@]}" )); then
+	# Bin check & set
+	zxtune123_bin
+
+	for files in "${lst_zxtune_ay[@]}"; do
+		# Tag extract
+		"$zxtune123_bin" --null device=/dev/null "${files[0]}" > "$vgm2flac_cache_tag"
+		tag_ay
+		tag_questions
+		tag_album
+
+		# Wav loop by track
+		for sub_track in `seq -w 1 99`; do
+			# Extract WAV
+			"$zxtune123_bin" --wav filename="${files%.*}".wav "$files"?#"$sub_track" > "$vgm2flac_cache_tag"
+			# Break loop when fail
+			if [ ! -f "${files%.*}".wav ]; then
+				break
+			fi
+			# Tag
+			tag_ay
+			# Peak normalisation to 0, false stereo detection 
+			wav_normalization_channel_test
+			# Remove silence
+			wav_remove_silent
+			# Add fade out
+			wav_fade_out
+			# Flac conversion
+			wav2flac
+			# Clean
+			mv "${files%.*}".wav "$sub_track - $tag_song".wav
+			mv "${files%.*}".flac "$sub_track - $tag_song".flac
+		done
+
+		# Generate wav array
+		list_temp_files
+		# if no wav, try without subtrack
+		if [ "${#lst_wav[@]}" -eq 0 ]; then
+			# Extract WAV
+			"$zxtune123_bin" --wav filename="${files%.*}".wav "$files" > "$vgm2flac_cache_tag"
+			# Generate wav array
+			list_temp_files
+			# Tag
+			tag_ay
+			# Peak normalisation to 0, false stereo detection 
+			wav_normalization_channel_test
+			# Remove silence
+			wav_remove_silent
+			# Add fade out
+			wav_fade_out
+			# Flac conversion
+			wav2flac
+		fi
+
+	done
+fi
+}
 loop_zxtune_gbs() {			# GB/GBC
 if (( "${#lst_zxtune_gbs[@]}" )); then
 	# Bin check & set
@@ -1147,6 +1207,21 @@ tag_song=$(basename "${files%.*}")
 }
 
 # Tag by files type
+tag_ay() {					# Amstrad CPC, ZX Spectrum
+tag_song=$(sed -n 's/Title:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+if [[ -z "$tag_song" ]] || [ "$tag_song" = "?" ]; then
+	tag_song="[untitled]"
+fi
+
+tag_artist_backup="$tag_artist"
+tag_artist=$(sed -n 's/Author:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+if [[ -z "$tag_artist" ]]; then
+	tag_artist="$tag_artist_backup"
+elif [ "$tag_artist" = "?" ]; then
+	tag_artist=""
+fi
+
+}
 tag_gbs_extract() {			# GB/GBC
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
 	local m3u_track_hex_test=$(cat "${gbs%.*}".m3u |  awk -F"," '{ print $2 }' | grep "$")
@@ -1424,6 +1499,7 @@ loop_sox
 loop_uade
 loop_vgm2wav
 loop_vgmstream
+loop_zxtune_ay
 loop_zxtune_gbs
 loop_zxtune_nsf
 loop_zxtune_sid
