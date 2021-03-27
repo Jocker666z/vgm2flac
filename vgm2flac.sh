@@ -17,6 +17,7 @@ export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script
 core_dependency=(bc bchunk ffmpeg ffprobe sox xxd )
 ffmpeg_log_lvl="-hide_banner -loglevel panic -stats"										# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
+fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
 
 # Audio
 default_sox_fade_out="5"																	# Default fade out value in second
@@ -427,7 +428,7 @@ if (( "${#lst_fluidsynth[@]}" )); then
 	for files in "${lst_fluidsynth[@]}"; do
 		# Extract WAV
 		(
-		"$fluidsynth_bin" -F "${files%.*}".wav "$files"
+		"$fluidsynth_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files"
 
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
