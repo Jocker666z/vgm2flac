@@ -1,5 +1,12 @@
 # Changelog
-v0.14
+v0.15:
+* add soundfont parameter fluidsynth_soundfont="" has to be filled in at the beginning of the script
+* add support of PC, Vita, PS4 files in: sab (CRI HCA, Square-Enix SAB)
+* add support of munt emulator as Roland MT-32 decoder, for midi files.
+* chg fluidsynth now loop 2 times
+* add vgm_tag install help in readme
+
+v0.14:
 * add support of CD-DA files in: img/cue
 * add support of PlayStation Vita file in: at9 (ATRAC9, Adaptive Transform Acoustic Coding 9)
 * add support of Switch file in: hca (CRI HCA), kno (Opus, Koei Tecmo KTSS), lopus (Opus, Nintendo Switch OPUS), bgm (Opus, Nintendo Switch OPUS)

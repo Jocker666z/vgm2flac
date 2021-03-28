@@ -7,22 +7,21 @@ Bash tool for vgm/chiptune encoding to flac.
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`ffmpeg ffprobe sox bc bchunk xxd adplay fluidsynth info68 sc68 uade vgm2wav vgmstream_cli vgm_tag zxtune123`
+`ffmpeg ffprobe sox bc bchunk xxd adplay fluidsynth info68 munt sc68 uade vgm2wav vgmstream_cli vgm_tag zxtune123`
 
 All these dependencies must installed properly on the system.
 
 * ffmpeg must be compiled with: --enable-libgme --enable-libopenmpt --enable-nonfree
 * adplay: https://github.com/adplug/adplay-unix
 * fluidsynth: https://www.fluidsynth.org/
+* munt: https://github.com/munt/munt
 * sc68 & info68:
 	* https://sourceforge.net/projects/sc68/
 	* Prefered version: https://github.com/Jocker666z/sc68
 * vgm2wav: https://github.com/ValleyBell/libvgm
 * vgmstream_cli: https://github.com/losnoco/vgmstream
 * vgmtag: https://github.com/vgmrips/vgmtools
-* zxtune:
-	* https://zxtune.bitbucket.io/
-	* Prefered version: https://github.com/Jocker666z/vgm2flac-dep
+* zxtune: https://zxtune.bitbucket.io/
 * uade: https://gitlab.com/uade-music-player/uade
 
 Help is available at the bottom of the page for the installation of dependencies that are generally not present on the official repositories of the largest GNU/Linux distributions.
@@ -71,17 +70,28 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sony Playstation: psf, minipsf, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, vag, vpk, sng, vgs
 * Sony Playstation 3: aa3, adx, at3, genh, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem
-* Sony Playstation 4: wem
+* Sony Playstation 4: sab, wem
 * Sony PSP: at3, txtp
-* Playstation Vita: at9
+* Playstation Vita: at9, sab
 * Panasonic 3DO: aifc, str
 * Philips CD-i: grn
-* PC: bik, bnk, hsq, fsb, his, imc, logg, mid, mod, sdb, smk, sqx, txtp, xwb
+* PC: bik, bnk, hsq, fsb, his, imc, logg, mid, mod, sab, sdb, smk, sqx, txtp, xwb
 * Various machines: vgm, vgz
 * Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
 * ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp
 
 The crossed out files are not available for the moment.
+
+## Midi files
+### fluidsynth
+If you want to use a specific soundfont the parameter `fluidsynth_soundfont=""` has to be filled in at the beginning of the script.
+Recommended soundfont:
+* Roland MT-32 - MT-32-32K-v1-r65-Full-Hedsound.bz2 - https://www.hedsound.com/2019/06/mt32-cm64l-sf2-for-everyone.html
+* Roland SC-55 - Roland_SC-55_v3.7.tar.bz2 - https://archive.org/details/SC55EmperorGrieferus
+* Sound Blaster 16 - OPL-3_FM_128M.tar.bz2 - https://github.com/Mindwerks/opl3-soundfont
+* Shan's GM Soundfont - https://archive.org/details/SGM-V2.01
+### munt
+If you want to use munt Roland MT-32 emulator as decoder, you must filled parameter `munt_rom_path=""` with the ROM path of MT-32.
 
 ## Known error
 * usf/miniusf decoding stuck = zxtune123 bug
@@ -93,8 +103,18 @@ The crossed out files are not available for the moment.
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
 * http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
 * http://www.vgmpf.com/
+* https://wiki.archlinux.org/index.php/FluidSynth
 
 ## Help for dependencies installation:
+### munt
+Build dependencies: `git build-essential cmake libpulse-dev libasound2-dev libjack-jackd2-dev`
+```
+git clone https://github.com/munt/munt && cd munt
+mkdir build && cd build && cmake .. 
+make -j"$(nproc)"
+su -c "make install" -m "root"
+```
+
 ### sc68 & info68
 Build dependencies: `git build-essential autoconf libtool libtool-bin automake pkg-config libao-dev zlib1g-dev`
 ```
@@ -103,6 +123,14 @@ git clone https://github.com/Jocker666z/sc68 && cd sc68
 tools/svn-bootstrap.sh && ./configure LDFLAGS="-static"
 make -j"$(nproc)"
 su -c "make install" -m "root"
+```
+
+### vgm_tag
+Build dependencies: `git build-essential`
+```
+git clone https://github.com/vgmrips/vgmtools && cd vgmtools
+make -j"$(nproc)"
+cp vgm_tag /home/$USER/.local/bin
 ```
 
 ### vgm2wav

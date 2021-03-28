@@ -17,17 +17,18 @@ export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script
 core_dependency=(bc bchunk ffmpeg ffprobe sox xxd )
 ffmpeg_log_lvl="-hide_banner -loglevel panic -stats"										# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
-fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
 
 # Audio
 default_sox_fade_out="5"																	# Default fade out value in second
+fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
+munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
 
 # Extensions
 ext_adplay="hsq|sdb|sqx"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
 ext_ffmpeg="mod|spc|xa"
-ext_fluidsynth="mid"
+ext_midi="mid"
 ext_sc68="snd|sndh"
 ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
@@ -70,6 +71,20 @@ local system_bin_location=$(which $bin_name)
 
 if test -n "$system_bin_location"; then
 	info68_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
+fi
+}
+munt_bin() {
+local bin_name="mt32emu-smf2wav"
+local system_bin_location=$(which $bin_name)
+
+if test -n "$system_bin_location"; then
+	if [[ -z "$munt_rom_path" ]]; then
+		echo "Break, the variable (munt_rom_path) indicating the location of the Roland MT-32 ROM, must be filled in. See documentation."
+	fi
+	munt_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
 	exit
@@ -176,7 +191,7 @@ mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort)
 mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg')$' 2>/dev/null | sort)
-mapfile -t lst_fluidsynth < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_fluidsynth')$' 2>/dev/null | sort)
+mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort)
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
@@ -414,10 +429,30 @@ if (( "${#lst_ffmpeg[@]}" )); then
 	wait
 fi
 }
-loop_fluidsynth() {			# PC midi
-if (( "${#lst_fluidsynth[@]}" )); then
-	# Bin check & set
-	fluidsynth_bin
+loop_midi() {			# PC midi
+if (( "${#lst_midi[@]}" )); then
+	# Bin selection
+	echo
+	echo " Select midi software synthesizer:"
+	echo
+	echo "  [0]* > fluidsynth -> Use soundfont"
+	echo "  [1]  > munt       -> Use Roland MT-32, CM-32L, CM-64, LAPC-I emulator"
+	read -e -p "-> " midi_choice
+	case "$midi_choice" in
+		"0")
+			fluidsynth_bin
+			midi_bin="$fluidsynth_bin"
+		;;
+		"1")
+			munt_bin
+			midi_bin="$munt_bin"
+		;;
+		*)
+			fluidsynth_bin
+			midi_bin="$fluidsynth_bin"
+			midi_choice="0"
+		;;
+	esac
 
 	# Tag
 	tag_machine="PC"
@@ -425,11 +460,15 @@ if (( "${#lst_fluidsynth[@]}" )); then
 	tag_album
 	
 	# Wav loop
-	for files in "${lst_fluidsynth[@]}"; do
+	for files in "${lst_midi[@]}"; do
 		# Extract WAV
 		(
-		"$fluidsynth_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files"
-
+		if [[ "$midi_choice" = "0" ]]; then		# fluidsynth
+			"$midi_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" "$files"
+		elif [[ "$midi_choice" = "1" ]]; then	# munt
+			"$midi_bin" -m "$munt_rom_path" -r 1 --output-sample-format=1 -p 44100 --src-quality=3 --analog-output-mode=2 -f \
+				-o "${files%.*}".wav "$files"
+		fi
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -1494,7 +1533,7 @@ list_source_files
 loop_adplay
 loop_bchunk
 loop_ffmpeg
-loop_fluidsynth
+loop_midi
 loop_sc68
 loop_sox
 loop_uade
