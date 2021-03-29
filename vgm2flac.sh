@@ -24,7 +24,7 @@ fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth wi
 munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
 
 # Extensions
-ext_adplay="hsq|sdb|sqx"
+ext_adplay="hsq|imf|sdb|sqx|wlf"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
 ext_ffmpeg="mod|spc|xa"
@@ -1509,9 +1509,9 @@ fi
 }
 mk_target_directory() {
 if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If number of flac > 0
-	tag_game=$(echo $tag_game | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
+	tag_game=$(echo $tag_game | sed s#/#-#g | sed s#:# -#g)					# Replace eventualy "/" & ":" in string
 	tag_machine=$(echo $tag_machine | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
-	tag_date=$(echo $tag_date | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
+	tag_date=$(echo $tag_date | sed s#/#-#g | sed s#:# -#g)					# Replace eventualy "/" & ":" in string
 	local target_directory="$tag_game ($tag_date) ($tag_machine)"
 	if [ ! -d "$VGM_DIR" ]; then
 		mkdir "$PWD/$target_directory"
