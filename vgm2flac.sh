@@ -440,19 +440,39 @@ if (( "${#lst_midi[@]}" )); then
 	read -e -p "-> " midi_choice
 	case "$midi_choice" in
 		"0")
-			fluidsynth_bin
-			midi_bin="$fluidsynth_bin"
+			local fluidsynth_bin
+			local midi_bin="$fluidsynth_bin"
 		;;
 		"1")
 			munt_bin
-			midi_bin="$munt_bin"
+			local midi_bin="$munt_bin"
 		;;
 		*)
 			fluidsynth_bin
-			midi_bin="$fluidsynth_bin"
-			midi_choice="0"
+			local midi_bin="$fluidsynth_bin"
+			local midi_choice="0"
 		;;
 	esac
+
+	# Fluidsynth loop number question
+	if [[ "$midi_choice" = "0" ]]; then
+		echo " Number of audio loops:"
+		echo
+		echo "  [1]* > Once"
+		echo "  [2]  > Twice"
+		read -e -p "-> " midi_loop_nb
+		case "$midi_loop_nb" in
+			"1")
+				local fluidsynth_loop_nb="1"
+			;;
+			"2")
+				local fluidsynth_loop_nb="2"
+			;;
+			*)
+				local fluidsynth_loop_nb="1"
+			;;
+		esac
+	fi
 
 	# Tag
 	tag_machine="PC"
@@ -464,7 +484,11 @@ if (( "${#lst_midi[@]}" )); then
 		# Extract WAV
 		(
 		if [[ "$midi_choice" = "0" ]]; then		# fluidsynth
-			"$midi_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" "$files"
+			if [[ "$fluidsynth_loop_nb" = "1" ]]; then			# 1 loop
+				"$midi_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files"
+			elif [[ "$fluidsynth_loop_nb" = "2" ]]; then		# 2 loops
+				"$midi_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" "$files"
+			fi
 		elif [[ "$midi_choice" = "1" ]]; then	# munt
 			"$midi_bin" -m "$munt_rom_path" -r 1 --output-sample-format=1 -p 44100 --src-quality=3 --analog-output-mode=2 -f \
 				-o "${files%.*}".wav "$files"
