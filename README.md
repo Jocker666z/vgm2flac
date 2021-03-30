@@ -86,10 +86,12 @@ The crossed out files are not available for the moment.
 ### fluidsynth
 If you want to use a specific soundfont the parameter `fluidsynth_soundfont=""` has to be filled in at the beginning of the script.
 Recommended soundfont:
-* Roland MT-32 - MT-32-32K-v1-r65-Full-Hedsound.bz2 - https://www.hedsound.com/2019/06/mt32-cm64l-sf2-for-everyone.html
-* Roland SC-55 - Roland_SC-55_v3.7.tar.bz2 - https://archive.org/details/SC55EmperorGrieferus
-* Sound Blaster 16 - OPL-3_FM_128M.tar.bz2 - https://github.com/Mindwerks/opl3-soundfont
-* Shan's GM Soundfont - https://archive.org/details/SGM-V2.01
+* Roland MT-32 - https://www.hedsound.com/2019/06/mt32-cm64l-sf2-for-everyone.html
+* Roland SC-55 (EmperorGrieferus version) - https://drive.google.com/file/d/1G53wKnIBMONgOVx0gCOWrBlJaXsyaKml/view
+* Sound Blaster 16 - https://github.com/Mindwerks/opl3-soundfont
+* SGM-V2.01 (Shan's GM soundfont) - https://archive.org/details/SGM-V2.01
+* Tyroland (Yamaha Tyros 4 + the JV-1010 Soundfont) - https://musical-artifacts.com/artifacts/1305
+* WeedsGM3 (Rich ¥Weeds¥ Nagel's soundfont) - https://github.com/octylFractal/MidiEditor/raw/master/WeedsGM3.sf2
 ### munt
 If you want to use munt Roland MT-32 emulator as decoder, you must filled parameter `munt_rom_path=""` with the ROM path of MT-32.
 
