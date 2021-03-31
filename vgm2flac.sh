@@ -292,6 +292,7 @@ if (( "${#lst_adplay[@]}" )); then
 
 	# Tag
 	tag_machine="PC"
+	tag_pc_sound_module="Adlib"
 	tag_questions
 	tag_album
 	
@@ -429,7 +430,7 @@ if (( "${#lst_ffmpeg[@]}" )); then
 	wait
 fi
 }
-loop_midi() {			# PC midi
+loop_midi() {				# PC midi
 if (( "${#lst_midi[@]}" )); then
 	# Bin selection
 	echo
@@ -442,10 +443,12 @@ if (( "${#lst_midi[@]}" )); then
 		"0")
 			local fluidsynth_bin
 			local midi_bin="$fluidsynth_bin"
+			tag_pc_sound_module="Soundfont"
 		;;
 		"1")
 			munt_bin
 			local midi_bin="$munt_bin"
+			tag_pc_sound_module="Roland MT-32"
 		;;
 		*)
 			fluidsynth_bin
@@ -1264,7 +1267,11 @@ if test -z "$tag_machine"; then
 fi
 }
 tag_album() {
-tag_album="$tag_game ($tag_machine)"
+if [[ -z "$tag_pc_sound_module" ]]; then
+	tag_album="$tag_game ($tag_machine)"
+else
+	tag_album="$tag_game ($tag_machine) ($tag_pc_sound_module)"
+fi
 }
 tag_song() {
 tag_song=$(basename "${files%.*}")
@@ -1533,10 +1540,14 @@ fi
 }
 mk_target_directory() {
 if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If number of flac > 0
-	tag_game=$(echo $tag_game | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
-	tag_machine=$(echo $tag_machine | sed s#/#-#g | sed s#:#-#g)			# Replace eventualy "/" & ":" in string
-	tag_date=$(echo $tag_date | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
-	local target_directory="$tag_game ($tag_date) ($tag_machine)"
+	local tag_game=$(echo $tag_game | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
+	local tag_machine=$(echo $tag_machine | sed s#/#-#g | sed s#:#-#g)				# Replace eventualy "/" & ":" in string
+	local tag_date=$(echo $tag_date | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
+	if [[ -z "$tag_pc_sound_module" ]]; then
+		local target_directory="$tag_game ($tag_date) ($tag_machine)"
+	else
+		local target_directory="$tag_game ($tag_date) ($tag_machine) ($tag_pc_sound_module)"
+	fi
 	if [ ! -d "$VGM_DIR" ]; then
 		mkdir "$PWD/$target_directory"
 	fi
