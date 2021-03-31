@@ -195,7 +195,7 @@ mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
-mapfile -t lst_uade_init < <(uade123 --scan "$PWD" 2>/dev/null | sort)
+mapfile -t lst_uade_init < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
 mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort)
@@ -653,11 +653,9 @@ if (( "${#lst_uade_init[@]}" )); then
 			for sub_track in `seq -w 1 $total_sub_track`; do
 				# Filename construction
 				if [ "$total_sub_track" -eq "1" ]; then
-					local file_name_base="${files##*/}"
-					local file_name="${file_name_base#*.}"
+					local file_name="$files"
 				else
-					local file_name_base="${files##*/}"
-					local file_name="${file_name_base#*.}-$sub_track"
+					local file_name="${files}-$sub_track"
 				fi
 				# Wav extract
 				(
@@ -1575,7 +1573,7 @@ list_source_files
 # Encoding/tag loop
 loop_adplay
 loop_bchunk
-loop_ffmpeg
+#loop_ffmpeg
 loop_midi
 loop_sc68
 loop_sox
