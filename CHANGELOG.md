@@ -1,4 +1,14 @@
 # Changelog
+v0.16:
+* add support of PC (adlib) files in: imf, wlf (id Music Format)
+* add question to user for choice number of loop made by fluidsynth, 1 ou 2
+* add tag for PC sound module (example: Adlib) in album and directory name
+* fix Amiga - separation of the main loop, in this loop all files are tested which can lead to a double encoding (example: mod file)
+* chg get Amiga file list simplification
+* fix if the amiga file names have an extension, the renaming is now correct
+* chg now vgmstream loop no longer takes file extensions into account, but tests them all
+* chg in documentation list of file supported become list of files tested
+
 v0.15:
 * add soundfont parameter fluidsynth_soundfont="" has to be filled in at the beginning of the script
 * add support of PC, Vita, PS4 files in: sab (CRI HCA, Square-Enix SAB)

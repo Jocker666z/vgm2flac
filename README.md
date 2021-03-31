@@ -39,7 +39,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* remove audio silence at start, end and middle if more than 5s
 	* wav encoding in flac file
 
-## Files supported :
+## Files tested :
 * 3DO : aif
 * Amiga: aam, core, cust, dw, gmc, mdat, mod, sa, sb
 * Amstrad CPC: ay, ym
@@ -75,7 +75,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Playstation Vita: at9, sab
 * Panasonic 3DO: aifc, str
 * Philips CD-i: grn
-* PC: bik, bnk, hsq, fsb, his, imc, logg, mid, mod, sab, sdb, smk, sqx, txtp, xwb
+* PC: bik, bnk, hsq, fsb, his, imc, imf, logg, mid, mod, sab, sdb, smk, sqx, txtp, wlf, xwb
 * Various machines: vgm, vgz
 * Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
 * ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp
@@ -85,7 +85,8 @@ The crossed out files are not available for the moment.
 ## Midi files
 ### fluidsynth
 If you want to use a specific soundfont the parameter `fluidsynth_soundfont=""` has to be filled in at the beginning of the script.
-Recommended soundfont:
+
+Recommended soundfonts:
 * Roland MT-32 - https://www.hedsound.com/2019/06/mt32-cm64l-sf2-for-everyone.html
 * Roland SC-55 (EmperorGrieferus version) - https://drive.google.com/file/d/1G53wKnIBMONgOVx0gCOWrBlJaXsyaKml/view
 * Sound Blaster 16 - https://github.com/Mindwerks/opl3-soundfont

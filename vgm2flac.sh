@@ -33,7 +33,6 @@ ext_sc68="snd|sndh"
 ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
-ext_vgmstream="aa3|acb|adp|adpcm|ads|adp|adx|aif|aifc|aix|ast|at3|at9|bcstm|bcwav|bfstm|bfwav|bik|bnk|bwav|cfn|dsp|eam|fsb|genh|grn|hca|his|hps|idmsf|imc|int|laac|logg|lopus|kno|ktss|mib|mpf|msadpcm|msf|mus|mtaf|rak|raw|rsf|sab|sad|sfd|sgd|smk|sng|spsd|str|ss2|tak|thp|txtp|vag|vgs|vpk|wem|xvag|xwav|xwb"
 ext_zxtune_ay="ay"
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
@@ -188,6 +187,7 @@ rm "$vgm2flac_cache_tag" &>/dev/null
 # Files array
 list_source_files() {
 mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort)
+mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort)
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort)
 mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg')$' 2>/dev/null | sort)
@@ -195,9 +195,8 @@ mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
-mapfile -t lst_uade_init < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
-mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
+#mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
@@ -623,14 +622,13 @@ if (( "${#lst_sox[@]}" )); then
 fi
 }
 loop_uade() {				# Amiga
-if (( "${#lst_uade_init[@]}" )); then
+if (( "${#lst_all_files[@]}" )); then
 	# Bin check & set
 	uade123_bin
 	# Test all files
 	lst_uade=()
-	for files in "${lst_uade_init[@]}"; do
-		uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
-		#local uade_test_result=$?
+	for files in "${lst_all_files[@]}"; do
+		local uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
 		if [ "${#uade_test_result}" -gt "0" ]; then
 			lst_uade+=("$files")
 		fi
@@ -762,9 +760,16 @@ if (( "${#lst_vgm2wav[@]}" )); then
 fi
 }
 loop_vgmstream() {			# Various machines
-if (( "${#lst_vgmstream[@]}" )); then
+if (( "${#lst_all_files[@]}" )); then
 	# Bin check & set
 	vgmstream_cli_bin
+
+	for files in "${lst_all_files[@]}"; do
+		local vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+		if [ "${#vgmstream_test_result}" -gt "0" ]; then
+			lst_vgmstream+=("$files")
+		fi
+	done
 
 	for files in "${lst_vgmstream[@]}"; do
 		# Tag
@@ -1554,7 +1559,7 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 	done
 fi
 }
-end_function() {
+end_functions() {
 list_temp_files
 list_target_files
 tag_track
@@ -1573,7 +1578,7 @@ list_source_files
 # Encoding/tag loop
 loop_adplay
 loop_bchunk
-#loop_ffmpeg
+loop_ffmpeg
 loop_midi
 loop_sc68
 loop_sox
@@ -1587,9 +1592,16 @@ loop_zxtune_xfs
 loop_zxtune_ym
 loop_zxtune_zx_spectrum
 # Clean
-end_function
+end_functions
 
 # Amiga - separation of the main loop, in this loop all files are tested which can lead to a double encoding (example: mod file)
 loop_uade
-end_function
+# Clean
+end_functions
+
+# vgmstream (various) - separation of the main loop, in this loop all files are tested which can lead to a double encoding
+loop_vgmstream
+# Clean
+end_functions
+
 exit
