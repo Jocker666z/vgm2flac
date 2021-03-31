@@ -1556,6 +1556,14 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 	done
 fi
 }
+end_function() {
+list_temp_files
+list_target_files
+tag_track
+mk_target_directory
+wav_remove
+clean_cache_directory
+}
 
 # Bin check & set
 common_bin
@@ -1571,7 +1579,6 @@ loop_ffmpeg
 loop_midi
 loop_sc68
 loop_sox
-loop_uade
 loop_vgm2wav
 loop_vgmstream
 loop_zxtune_ay
@@ -1581,13 +1588,10 @@ loop_zxtune_sid
 loop_zxtune_xfs
 loop_zxtune_ym
 loop_zxtune_zx_spectrum
-
 # Clean
-list_temp_files
-list_target_files
-tag_track
-mk_target_directory
-wav_remove
-clean_cache_directory
+end_function
 
+# Amiga - separation of the main loop, in this loop all files are tested which can lead to a double encoding (example: mod file)
+loop_uade
+end_function
 exit
