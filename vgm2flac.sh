@@ -1583,7 +1583,6 @@ loop_midi
 loop_sc68
 loop_sox
 loop_vgm2wav
-loop_vgmstream
 loop_zxtune_ay
 loop_zxtune_gbs
 loop_zxtune_nsf
