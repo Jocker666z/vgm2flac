@@ -548,7 +548,7 @@ if (( "${#lst_sc68[@]}" )); then
 		for sub_track in `seq -w 1 $total_sub_track`; do
 			# Extract WAV
 			local track_name=$(basename "${files%.*}")
-			"$sc68_bin" -c -t "$sub_track" "$files" > "$sub_track".raw
+			"$sc68_bin" -l 2 -c -t "$sub_track" "$files" > "$sub_track".raw
 			sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$sub_track - $track_name".wav
 			rm "$sub_track".raw
 		done
@@ -766,7 +766,7 @@ if (( "${#lst_all_files[@]}" )); then
 
 	for files in "${lst_all_files[@]}"; do
 		local vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-		if [ "${#vgmstream_test_result}" -gt "0" ]; then
+		if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${files[@]##*.,,}" = "txth" ]]; then
 			lst_vgmstream+=("$files")
 		fi
 	done
@@ -775,9 +775,19 @@ if (( "${#lst_all_files[@]}" )); then
 		# Tag
 		tag_questions
 		tag_album
+		# Get total track
+		local total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
 		# Extract WAV
 		(
-		"$vgmstream_cli_bin" -o "${files%.*}".wav "$files"
+		if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
+			"$vgmstream_cli_bin" -o "${files%.*}".wav "$files"
+		else
+			# Multi track loop
+			for sub_track in `seq -w 1 $total_sub_track`; do
+				# Extract WAV
+				"$vgmstream_cli_bin" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
+			done
+		fi
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -785,7 +795,11 @@ if (( "${#lst_all_files[@]}" )); then
 	done
 	wait
 
-	for files in "${lst_vgmstream[@]}"; do
+	# Generate wav array
+	list_temp_files
+
+	# Flac loop
+	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
 		# Peak normalisation to 0, false stereo detection 
