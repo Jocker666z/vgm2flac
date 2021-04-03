@@ -14,14 +14,26 @@ vgm2flac_cache_tag="/home/$USER/.cache/vgm2flac/tag-$(date +%Y%m%s%N).info"					
 export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script outside a terminal
 
 # Others
-core_dependency=(bc bchunk ffmpeg ffprobe sox xxd )
+core_dependency=(bc bchunk ffmpeg ffprobe sox xxd)
 ffmpeg_log_lvl="-hide_banner -loglevel panic -stats"										# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
 
-# Audio
-default_sox_fade_out="5"																	# Default fade out value in second
+# Output
+default_wav_fade_out="5"																	# Default fade out value in second
+default_wav_bit_depth="pcm_s16le"															# Wav bit depth must be pcm_s16le, pcm_s24le or pcm_s32le
+default_flac_bit_depth="s16"																# Flac bit depth must be s16 or s32
+default_peakdb_norm="1"																		# Peak db normalization option, this value is written as positive but is used in negative, e.g. 4 = -4
+# Midi
 fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
 munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
+# sc68
+sc68_loops="2"
+# vgm2wav
+vgm2wav_samplerate="44100"																	# Sample rate in Hz
+vgm2wav_bit_depth="16"																		# Bit depth must be 16 or 24
+vgm2wav_loops="2"
+# zxtune_sid
+zxtune_duration_without_loop="15"															# Track duration is second that does not trigger a music loop 
 
 # Extensions
 ext_adplay="hsq|imf|sdb|sqx|wlf"
@@ -58,6 +70,12 @@ local bin_name="fluidsynth"
 local system_bin_location=$(which $bin_name)
 
 if test -n "$system_bin_location"; then
+	if [[ -z "$fluidsynth_soundfont" ]]; then
+		echo "Warning, the variable (fluidsynth_soundfont) indicating the location of the soundfont to use is not filled in, the result can be disgusting. See documentation."
+	elif ! [[ -f "$fluidsynth_soundfont" ]]; then
+		echo "Break, the variable (fluidsynth_soundfont) not indicating a file. See documentation."
+		exit
+	fi
 	fluidsynth_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -81,7 +99,11 @@ local system_bin_location=$(which $bin_name)
 
 if test -n "$system_bin_location"; then
 	if [[ -z "$munt_rom_path" ]]; then
-		echo "Break, the variable (munt_rom_path) indicating the location of the Roland MT-32 ROM, must be filled in. See documentation."
+		echo "Break, the variable (munt_rom_path) indicating the location of the Roland MT-32 ROM must be filled in. See documentation."
+		exit
+	elif ! [[ -d "$munt_rom_path" ]]; then
+		echo "Break, the variable (munt_rom_path) not indicating a directory. See documentation."
+		exit
 	fi
 	munt_bin="$system_bin_location"
 else
@@ -196,7 +218,6 @@ mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -i
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
-#mapfile -t lst_vgmstream < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgmstream')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
@@ -246,7 +267,7 @@ if [[ "$test_duration" -gt 10 ]] ; then
 	local duration=$(soxi -d "${files%.*}".wav)
 	local sox_fade_in="0:0.0"
 	if [[ -z "$imported_sox_fade_out" ]]; then
-		local sox_fade_out="0:$default_sox_fade_out"
+		local sox_fade_out="0:$default_wav_fade_out"
 	else
 		local sox_fade_out="0:$imported_sox_fade_out"
 	fi
@@ -258,8 +279,8 @@ fi
 wav_normalization_channel_test() {
 # Test Volume, set normalization variable
 local testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
-if [[ $testdb = *"-"* ]]; then
-	local db=$(echo "$testdb" | cut -c2-)dB
+if [[ "$testdb" = *"-"* ]] || [[ "$testdb" = "0.0" ]]; then
+	local db=$(echo "$testdb" | cut -c2- | awk -v var="$default_peakdb_norm" '{print $1-var}')dB
 	afilter="-af volume=$db"
 else
 	afilter=""
@@ -275,12 +296,12 @@ else
 fi
 
 # Encoding Wav
-ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec pcm_s16le -f wav temp-out.wav
+ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec "$default_wav_bit_depth" -f wav temp-out.wav
 rm "${files%.*}".wav &>/dev/null
 mv temp-out.wav "${files%.*}".wav &>/dev/null
 }
 wav2flac() {
-ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 12 -sample_fmt s16 -metadata title="$tag_song" -metadata album="$tag_album" -metadata artist="$tag_artist" -metadata date="$tag_date" "${files%.*}".flac
+ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 12 -sample_fmt "$default_flac_bit_depth" -metadata title="$tag_song" -metadata album="$tag_album" -metadata artist="$tag_artist" -metadata date="$tag_date" "${files%.*}".flac
 }
 
 # Convert loop
@@ -440,7 +461,7 @@ if (( "${#lst_midi[@]}" )); then
 	read -e -p "-> " midi_choice
 	case "$midi_choice" in
 		"0")
-			local fluidsynth_bin
+			fluidsynth_bin
 			local midi_bin="$fluidsynth_bin"
 			tag_pc_sound_module="Soundfont"
 		;;
@@ -548,7 +569,7 @@ if (( "${#lst_sc68[@]}" )); then
 		for sub_track in `seq -w 1 $total_sub_track`; do
 			# Extract WAV
 			local track_name=$(basename "${files%.*}")
-			"$sc68_bin" -l 2 -c -t "$sub_track" "$files" > "$sub_track".raw
+			"$sc68_bin" -l "$sc68_loops" -c -t "$sub_track" "$files" > "$sub_track".raw
 			sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$sub_track - $track_name".wav
 			rm "$sub_track".raw
 		done
@@ -642,22 +663,20 @@ if (( "${#lst_all_files[@]}" )); then
 			tag_album
 
 			# Get total track
-			local total_sub_track=$("$uade123_bin" -g "$files" | grep "subsongs:" | awk '/^subsongs:/ { print $NF }')
-			# Total correction if 0
-			if [ "$total_sub_track" -eq "0" ]; then
-				total_sub_track="1"
-			fi
+			local total_track=$("$uade123_bin" -g "$files" | grep "subsongs:" | awk '/^subsongs:/ { print $NF }')
+			local current_track=$("$uade123_bin" -g "$files" | grep "subsongs:" | awk '/^subsongs:/ { print $3 }')
+			local diff_track=$(( current_track - total_track ))
 			# Wav loop
-			for sub_track in `seq -w 1 $total_sub_track`; do
+			for sub_track in `seq -w $current_track $total_track`; do
 				# Filename construction
-				if [ "$total_sub_track" -eq "1" ]; then
+				if [ "$diff_track" -eq "0" ]; then
 					local file_name="$files"
 				else
 					local file_name="${files}-$sub_track"
 				fi
 				# Wav extract
 				(
-				"$uade123_bin" --one --silence-timeout 5 --panning 0.8 --subsong "$sub_track" "$files" -f "$file_name".wav
+				"$uade123_bin" --force-led=0 --one --silence-timeout 5 --panning 0.8 --subsong "$sub_track" "$files" -f "$file_name".wav
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -665,7 +684,6 @@ if (( "${#lst_all_files[@]}" )); then
 			done
 			wait
 		done
-
 		# Generate wav array
 		list_temp_files
 
@@ -706,7 +724,8 @@ if (( "${#lst_vgm2wav[@]}" )); then
 				shopt -u nocasematch							# Set case sentive
 				# Extract WAV
 				(
-				"$vgm2wav_bin" "$files" "${files%.*}".wav
+				"$vgm2wav_bin" --samplerate "$vgm2wav_samplerate" --bps "$vgm2wav_bit_depth" --loops "$vgm2wav_loops" \
+				"$files" "${files%.*}".wav
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -716,7 +735,8 @@ if (( "${#lst_vgm2wav[@]}" )); then
 				shopt -u nocasematch							# Set case sentive
 				# Extract WAV
 				(
-				"$vgm2wav_bin" "$files" "${files%.*}".wav
+				"$vgm2wav_bin" --samplerate "$vgm2wav_samplerate" --bps "$vgm2wav_bit_depth" --loops "$vgm2wav_loops" \
+				"$files" "${files%.*}".wav
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -762,12 +782,15 @@ fi
 loop_vgmstream() {			# Various machines
 if (( "${#lst_all_files[@]}" )); then
 	# Bin check & set
+	unset lst_wav
 	vgmstream_cli_bin
 
 	for files in "${lst_all_files[@]}"; do
-		local vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-		if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${files[@]##*.,,}" = "txth" ]]; then
-			lst_vgmstream+=("$files")
+		if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
+			local vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+			if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${files[@]##*.,,}" = "txth" ]]; then
+				lst_vgmstream+=("$files")
+			fi
 		fi
 	done
 
@@ -778,25 +801,31 @@ if (( "${#lst_all_files[@]}" )); then
 		# Get total track
 		local total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
 		# Extract WAV
-		(
+		#(
 		if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
-			"$vgmstream_cli_bin" -o "${files%.*}".wav "$files"
+			if ! compgen -G "$files*.wav" > /dev/null; then			# No extraction if wav present
+				"$vgmstream_cli_bin" -o "${files%.*}".wav "$files"
+				lst_wav+=("${files%.*}".wav)
+			fi
 		else
 			# Multi track loop
 			for sub_track in `seq -w 1 $total_sub_track`; do
 				# Extract WAV
-				"$vgmstream_cli_bin" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
+				if ! compgen -G "$files*.wav" > /dev/null; then			# No extraction if wav present
+					"$vgmstream_cli_bin" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
+					lst_wav+=("${files%.*}"-"$sub_track".wav)
+				fi
 			done
 		fi
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
+		#) &
+		#if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			#wait -n
+		#fi
 	done
-	wait
+	#wait
 
 	# Generate wav array
-	list_temp_files
+	#list_temp_files
 
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
@@ -1041,11 +1070,32 @@ if (( "${#lst_zxtune_sid[@]}" )); then
 		tag_questions
 		tag_album
 		tag_song
+		stty igncr									# Disable the enter key
 
 		# Wav loop by track
 		for sub_track in `seq -w 1 99`; do
 			# Extract WAV
-			"$zxtune123_bin" --wav filename="$sub_track - $tag_song".wav "$files"?#"$sub_track"
+			"$zxtune123_bin" --wav filename="$sub_track - $tag_song"0.wav "$files"?#"$sub_track"
+
+			# 2 loops contruction
+			local test_duration=$(ffprobe -i "$sub_track - $tag_song"0.wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
+			if [[ "$test_duration" -gt "$zxtune_duration_without_loop" ]] ; then
+				# copy another wav if duration > 15s
+				cp "$sub_track - $tag_song"0.wav "$sub_track - $tag_song"1.wav &>/dev/null
+				# make clean loop without silence
+				sox "$sub_track - $tag_song"0.wav temp-out0.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
+				sox "$sub_track - $tag_song"1.wav temp-out1.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
+				rm "$sub_track - $tag_song"0.wav "$sub_track - $tag_song"1.wav &>/dev/null
+				mv temp-out0.wav "$sub_track - $tag_song"0.wav &>/dev/null
+				mv temp-out1.wav "$sub_track - $tag_song"1.wav &>/dev/null
+				# Concatenate loops
+				sox "$sub_track - $tag_song"0.wav "$sub_track - $tag_song"1.wav "$sub_track - $tag_song".wav
+				# Clean temp files
+				rm "$sub_track - $tag_song"0.wav "$sub_track - $tag_song"1.wav &>/dev/null
+			else
+				mv "$sub_track - $tag_song"0.wav "$sub_track - $tag_song".wav &>/dev/null
+			fi
+
 			# Break loop when fail
 			if [ ! -f "$sub_track - $tag_song".wav ]; then
 				break
@@ -1058,7 +1108,26 @@ if (( "${#lst_zxtune_sid[@]}" )); then
 		# if no wav, try without subtrack
 		if [ "${#lst_wav[@]}" -eq 0 ]; then
 			# Extract WAV
-			"$zxtune123_bin" --wav filename="$tag_song".wav "$files"
+			"$zxtune123_bin" --wav filename="$tag_song"0.wav "$files"
+
+			# 2 loops contruction
+			local test_duration=$(ffprobe -i "$tag_song"0.wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
+			if [[ "$test_duration" -gt "$zxtune_duration_without_loop" ]] ; then
+				# copy another wav if duration > 15s
+				cp "$tag_song"0.wav "$tag_song"1.wav &>/dev/null
+				# make clean loop without silence
+				sox "$tag_song"0.wav temp-out0.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
+				sox "$tag_song"1.wav temp-out1.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
+				rm "$tag_song"0.wav "$tag_song"1.wav &>/dev/null
+				mv temp-out0.wav "$tag_song"0.wav &>/dev/null
+				mv temp-out1.wav "$tag_song"1.wav &>/dev/null
+				# Concatenate loops
+				sox "$tag_song"0.wav "$tag_song"1.wav "$tag_song".wav
+				# Clean temp files
+				rm "$tag_song"0.wav "$tag_song"1.wav &>/dev/null
+			else
+				mv "$tag_song"0.wav "$tag_song".wav &>/dev/null
+			fi
 			# Generate wav array
 			list_temp_files
 		fi
@@ -1084,6 +1153,7 @@ if (( "${#lst_zxtune_sid[@]}" )); then
 		wait
 
 	done
+	stty -igncr									# Enable the enter key
 fi
 }
 loop_zxtune_xfs() {			# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
@@ -1604,17 +1674,8 @@ loop_zxtune_sid
 loop_zxtune_xfs
 loop_zxtune_ym
 loop_zxtune_zx_spectrum
-# Clean
-end_functions
-
-# Amiga - separation of the main loop, in this loop all files are tested which can lead to a double encoding (example: mod file)
 loop_uade
-# Clean
-end_functions
-
-# vgmstream (various) - separation of the main loop, in this loop all files are tested which can lead to a double encoding
 loop_vgmstream
-# Clean
 end_functions
 
 exit

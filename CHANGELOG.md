@@ -1,4 +1,20 @@
 # Changelog
+v0.17:
+* fix vgmstream double function launch
+* chg Atari ST files now loop 2 times
+* add support of vgmstream files contains multi stream
+* add now exit if munt rom path variable is empty
+* add now exit if munt rom path variable is not a directory
+* add warning if fluidsynth soundfont variable is empty
+* add now exit if fluidsynth soundfont variable is not a file
+* add some quality option in variable at start of script
+* add sid file now have 2 loops if duration > 15s
+* fix amiga subtrack counter
+* fix exclude wav & flac from vgmstream loop
+* fix exclude files already converted from vgmstream loop
+* add peak db value in variable at start of script
+* chg peak db value to -1db, to prevent audio saturation
+
 v0.16:
 * add support of PC (adlib) files in: imf, wlf (id Music Format)
 * add question to user for choice number of loop made by fluidsynth, 1 ou 2

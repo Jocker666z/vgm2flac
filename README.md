@@ -31,7 +31,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 * If possible, encoding is done in parallel.
 * If available, the tags are always implemented in the final file.
-* Final flac is always in 16bits with best compression level (ffmpeg option: -compression_level 12 -sample_fmt s16)
+* Final FLAC default quality is: 16 bits with best compression level
 * Encoding loop order:
 	* vgm encoding in wav file
 	* peak normalisation to 0db & false stereo detection (md5 channel test)
@@ -41,7 +41,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 ## Files tested :
 * 3DO : aif
-* Amiga: aam, core, cust, dw, gmc, mdat, mod, sa, sb
+* Amiga: 8svx, aam, core, cust, dw, gmc, mcr, mdat, mod, sa, sb, sfx, xm
 * Amstrad CPC: ay, ym
 * Atari ST: snd, sndh, ym
 * Philips CD-i: xa
