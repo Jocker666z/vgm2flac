@@ -261,7 +261,7 @@ mapfile -t lst_flac < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 list_flac_validation() {
 if ! [[ "${#lst_flac[@]}" = "0" ]]; then
 	for i in "${!lst_flac[@]}"; do
-		local flac_test=$(soxi "${lst_wav[i]}" 2>/dev/null)
+		local flac_test=$(soxi "${lst_flac[i]}" 2>/dev/null)
 		if [ -z "$flac_test" ]; then
 			lst_flac_in_error+=( "${lst_flac[i]}" )
 		fi
