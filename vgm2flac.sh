@@ -49,7 +49,7 @@ ext_zxtune_ay="ay"
 ext_zxtune_gbs="gbs"
 ext_zxtune_nsf="nsf"
 ext_zxtune_sid="sid"
-ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|ssf|usf"
+ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 
@@ -195,6 +195,20 @@ if (( "${#command_fail[@]}" )); then
 fi
 }
 
+# Messages
+display_separator() {
+echo "--------------------------------------------------------------"
+}
+display_flac_in_error() {
+if ! [[ "${#lst_flac_in_error[@]}" = "0" ]]; then
+	display_separator
+	echo
+	echo "FLAC file(s) in error:"
+	printf ' %s\n' "${lst_flac_in_error[@]}"
+	echo
+fi
+}
+
 # Cache directory
 check_cache_directory() {
 if [ ! -d "$vgm2flac_cache" ]; then
@@ -238,11 +252,21 @@ elif [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If bin > 1 - sox use
 	unset lst_bchunk_iso
 fi
 }
-list_temp_files() {
+list_wav_files() {
 mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort)
 }
-list_target_files() {
+list_flac_files() {
 mapfile -t lst_flac < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('flac')$' 2>/dev/null | sort)
+}
+list_flac_validation() {
+if ! [[ "${#lst_flac[@]}" = "0" ]]; then
+	for i in "${!lst_flac[@]}"; do
+		local flac_test=$(soxi "${lst_wav[i]}" 2>/dev/null)
+		if [ -z "$flac_test" ]; then
+			lst_flac_in_error+=( "${lst_flac[i]}" )
+		fi
+	done
+fi
 }
 
 # Audio treatment
@@ -329,7 +353,7 @@ if (( "${#lst_adplay[@]}" )); then
 	wait
 
 	# Generate wav array
-	list_temp_files
+	list_wav_files
 
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
@@ -364,7 +388,7 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 		# Remove data track
 		rm -- "$track_name"-Track-*.iso
 		# Populate wav array
-		list_temp_files
+		list_wav_files
 		# Flac loop
 		for files in "${lst_wav[@]}"; do
 			# Tag
@@ -524,7 +548,7 @@ if (( "${#lst_midi[@]}" )); then
 	wait
 
 	# Generate wav array
-	list_temp_files
+	list_wav_files
 
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
@@ -577,7 +601,7 @@ if (( "${#lst_sc68[@]}" )); then
 		# Add lead 0 at filename
 		rename_add_lead_zero
 		# Generate wav array
-		list_temp_files
+		list_wav_files
 
 		# Flac loop
 		for files in "${lst_wav[@]}"; do
@@ -685,7 +709,7 @@ if (( "${#lst_all_files[@]}" )); then
 			wait
 		done
 		# Generate wav array
-		list_temp_files
+		list_wav_files
 
 		# Flac loop
 		for files in "${lst_wav[@]}"; do
@@ -788,8 +812,10 @@ if (( "${#lst_all_files[@]}" )); then
 	for files in "${lst_all_files[@]}"; do
 		if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
 			local vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-			if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${files[@]##*.,,}" = "txth" ]]; then
-				lst_vgmstream+=("$files")
+			if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${files[@]##*.,,}" = "txth" ]]; then	# If vgmstream ok add to array
+				if ! compgen -G "$files*.wav" > /dev/null; then											# If no wav already output ok add to array
+					lst_vgmstream+=("$files")
+				fi
 			fi
 		fi
 	done
@@ -800,32 +826,31 @@ if (( "${#lst_all_files[@]}" )); then
 		tag_album
 		# Get total track
 		local total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
-		# Extract WAV
-		#(
+		# Record output name
 		if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
-			if ! compgen -G "$files*.wav" > /dev/null; then			# No extraction if wav present
-				"$vgmstream_cli_bin" -o "${files%.*}".wav "$files"
-				lst_wav+=("${files%.*}".wav)
-			fi
+			lst_wav+=("${files%.*}".wav)
 		else
-			# Multi track loop
-			for sub_track in `seq -w 1 $total_sub_track`; do
-				# Extract WAV
-				if ! compgen -G "$files*.wav" > /dev/null; then			# No extraction if wav present
-					"$vgmstream_cli_bin" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
-					lst_wav+=("${files%.*}"-"$sub_track".wav)
-				fi
-			done
+			lst_wav+=("${files%.*}"-"$sub_track".wav)
 		fi
-		#) &
-		#if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			#wait -n
-		#fi
+		# Extract WAV
+		(
+			if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
+				"$vgmstream_cli_bin" -o "${files%.*}".wav "$files"
+			else
+				# Multi track loop
+				for sub_track in `seq -w 1 $total_sub_track`; do
+					"$vgmstream_cli_bin" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
+				done
+			fi
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
 	done
-	#wait
+	wait
 
 	# Generate wav array
-	#list_temp_files
+	#list_wav_files
 
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
@@ -882,13 +907,13 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 		done
 
 		# Generate wav array
-		list_temp_files
+		list_wav_files
 		# if no wav, try without subtrack
 		if [ "${#lst_wav[@]}" -eq 0 ]; then
 			# Extract WAV
 			"$zxtune123_bin" --wav filename="${files%.*}".wav "$files" > "$vgm2flac_cache_tag"
 			# Generate wav array
-			list_temp_files
+			list_wav_files
 			# Tag
 			tag_ay
 			# Peak normalisation to 0, false stereo detection 
@@ -1103,7 +1128,7 @@ if (( "${#lst_zxtune_sid[@]}" )); then
 		done
 
 		# Generate wav array
-		list_temp_files
+		list_wav_files
 
 		# if no wav, try without subtrack
 		if [ "${#lst_wav[@]}" -eq 0 ]; then
@@ -1129,7 +1154,7 @@ if (( "${#lst_zxtune_sid[@]}" )); then
 				mv "$tag_song"0.wav "$tag_song".wav &>/dev/null
 			fi
 			# Generate wav array
-			list_temp_files
+			list_wav_files
 		fi
 
 		# Flac loop
@@ -1166,8 +1191,10 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 		# Extract WAV
 		local file_name_base="${files%.*}"
 		local file_name="${file_name_base##*/}"
+		local file_name_random=$(( RANDOM % 10000 ))
 		(
-		"$zxtune123_bin" --wav filename="${file_name##*/}".wav "$files"
+		"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files" \
+			&& mv output-"$file_name_random".wav "${file_name##*/}".wav
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -1227,7 +1254,7 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	wait
 
 	# Generate wav array
-	list_temp_files
+	list_wav_files
 
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
@@ -1275,7 +1302,7 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 	wait
 
 	# Generate wav array
-	list_temp_files
+	list_wav_files
 
 	# Flac loop
 	for files in "${lst_wav[@]}"; do
@@ -1578,11 +1605,11 @@ if [[ -z "$tag_game" && -z "$tag_date" ]]; then
 	tag_date=$(cat "$vgm2flac_cache_tag" | grep -i -a year= | sed 's/^.*=//')
 fi
 
-if [[ "${files##*.}" = "psf" || "${files##*.}" = "minipfs" ]]; then
+if [[ "${files##*.}" = "psf" || "${files##*.}" = "minipsf" ]]; then
 	tag_machine="PS1"
-elif [[ "${files##*.}" = "psf2" || "${files##*.}" = "minipfs2" ]]; then
+elif [[ "${files##*.}" = "psf2" || "${files##*.}" = "minipsf2" ]]; then
 	tag_machine="PS2"
-elif [[ "${files##*.}" = "2sf" || "${files##*.}" = "mini2sf" ]]; then
+elif [[ "${files##*.}" = "2sf" || "${files##*.}" = "mini2sf" || "${files##*.}" = "minincsf" || "${files##*.}" = "ncsf" ]]; then
 	tag_machine="DS"
 elif [[ "${files##*.}" = "ssf" || "${files##*.}" = "minissf" ]]; then
 	tag_machine="Saturn"
@@ -1603,7 +1630,7 @@ fi
 # Temp clean & target filename/directory structure
 rename_add_lead_zero() {
 # Populate wav array
-list_temp_files
+list_wav_files
 if [ "${#lst_wav[@]}" -gt "0" ]; then											# If number of wav > 0
 	for files in "${lst_wav[@]}"; do
 		local number=$(echo $files | sed 's/[^0-9]*//g')
@@ -1625,6 +1652,13 @@ if [ "${#lst_wav[@]}" -gt "0" ]; then											# If number of wav > 0
 	esac
 fi
 }
+flac_corrupted_remove() {
+if [ "${#lst_flac_in_error[@]}" -gt "0" ]; then											# If number of flac corrupted > 0
+	for files in "${lst_flac_in_error[@]}"; do
+		rm -f "$files" 2>/dev/null
+	done
+fi
+}
 mk_target_directory() {
 if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If number of flac > 0
 	local tag_game=$(echo $tag_game | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
@@ -1644,12 +1678,15 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 fi
 }
 end_functions() {
-list_temp_files
-list_target_files
+list_wav_files
+list_flac_files
+list_flac_validation
 tag_track
 mk_target_directory
-wav_remove
 clean_cache_directory
+display_flac_in_error
+wav_remove
+flac_corrupted_remove
 }
 
 # Bin check & set

@@ -1,4 +1,11 @@
 # Changelog
+v0.18:
+* add support of Nintendo DS files in minincsf, ncsf. Need zxtune r4990 for decode.
+* fix zxtune loop, now filename with quote converted (random filename output trick)
+* chg re-enable vgmstream parallel enconding
+* add flac validation and message to user if corrupted (at end of processing)
+* fix tag machine for file in minipsf & minipsf2
+
 v0.17:
 * fix vgmstream double function launch
 * chg Atari ST files now loop 2 times

@@ -34,7 +34,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Final FLAC default quality is: 16 bits with best compression level
 * Encoding loop order:
 	* vgm encoding in wav file
-	* peak normalisation to 0db & false stereo detection (md5 channel test)
+	* peak normalisation to -1db & false stereo detection (md5 channel test)
 	* apply fade out if necessary
 	* remove audio silence at start, end and middle if more than 5s
 	* wav encoding in flac file
@@ -52,7 +52,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Mobile: acb, fsb, txtp
 * ~~NEC PC-Engine/TurboGrafx-16: hes~~
 * Nintendo 3DS: bcstm, wem, bcwav, fsb, mus, txtp
-* Nintendo DS: 2sf, adx, mini2sf, sad
+* Nintendo DS: 2sf, adx, mini2sf, minincsf, ncsf, sad
 * Nintendo GB & GBC: gbs
 * Nintendo GBA: gsf, minigsf
 * Nintendo GameCube: adx, cfn, dsp, hps, adp, thp, mus
@@ -173,6 +173,6 @@ su -c "make install" -m "root"
 
 ```
 cd /home/$USER/.local/bin/
-wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r4980.tar.bz2
-tar -xf zxtune123_r4980.tar.bz2 && rm zxtune123_r4980.tar.bz2
+wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r4990.tar.bz2
+tar -xf zxtune123_r4990.tar.bz2 && rm zxtune123_r4990.tar.bz2
 ```
