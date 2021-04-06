@@ -50,7 +50,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Microsoft Xbox: aix, mus, sfd, xwav
 * Microsoft Xbox 360: bik, wem, xwb
 * Mobile: acb, fsb, txtp
-* ~~NEC PC-Engine/TurboGrafx-16: hes~~
+* NEC PC-Engine/TurboGrafx-16: hes
 * Nintendo 3DS: bcstm, wem, bcwav, fsb, mus, txtp
 * Nintendo DS: 2sf, adx, mini2sf, minincsf, ncsf, sad
 * Nintendo GB & GBC: gbs
@@ -80,8 +80,6 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
 * ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp
 
-The crossed out files are not available for the moment.
-
 ## Midi files
 ### fluidsynth
 If you want to use a specific soundfont the parameter `fluidsynth_soundfont=""` has to be filled in at the beginning of the script.
@@ -101,6 +99,7 @@ If you want to use munt Roland MT-32 emulator as decoder, you must filled parame
 
 ## Holy reading
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
+* HES spec: http://www.purose.net/befis/download/nezplug/hesspec.txt
 * NSF spec: https://wiki.nesdev.com/w/index.php/NSF
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt

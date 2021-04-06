@@ -1,8 +1,15 @@
 # Changelog
+v0.19:
+* fix miss target file for flac validation
+* fix false positive hexa in NSF & GBS m3u
+* fix multiple error in NSF/m3u & GBS/m3u loop
+* add support of NEC PC-Engine/TurboGrafx-16 files in: hes (with or without m3u) (ffmpeg+libgme decode)
+* chg Nintendo Game Boy files (gbs) now decode by ffmpeg+libgme
+
 v0.18:
 * add support of Nintendo DS files in minincsf, ncsf. Need zxtune r4990 for decode.
 * fix zxtune loop, now filename with quote converted (random filename output trick)
-* chg re-enable vgmstream parallel enconding
+* chg re-enable vgmstream parallel encoding
 * add flac validation and message to user if corrupted (at end of processing)
 * fix tag machine for file in minipsf & minipsf2
 
