@@ -1,4 +1,14 @@
 # Changelog
+v0.20:
+* chg massive bash syntax fixes
+* add optimize hes & gbs loop
+* add in script option for set number or loop for sid files, value must be 1 or 2
+* fix gbs & nsf tag hexdump now done, even if no m3u file
+* add fade out in vgmstream loop, if his files present
+* chg improvement of the flac directory name
+* chg improvement of the tag album
+* chg xfs files now tag question before encoding
+
 v0.19:
 * fix miss target file for flac validation
 * fix false positive hexa in NSF & GBS m3u

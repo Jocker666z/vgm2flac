@@ -107,6 +107,9 @@ If you want to use munt Roland MT-32 emulator as decoder, you must filled parame
 * http://www.vgmpf.com/
 * https://wiki.archlinux.org/index.php/FluidSynth
 
+## TODO
+* ay & nsf files: use ffmpeg to decode
+
 ## Help for dependencies installation:
 ### munt
 Build dependencies: `git build-essential cmake libpulse-dev libasound2-dev libjack-jackd2-dev`
