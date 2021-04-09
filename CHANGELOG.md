@@ -1,4 +1,15 @@
 # Changelog
+v0.21:
+* add nsf/gb/hes with m3u, now remove "\" in m3u files
+* chg merge nsf/gbs/hes tag loop
+* fix now end function, activated only if final flac loop started
+* add option for reduce tempo to simulate 50hz, can be activated with arguments variables -p/--pal
+* add arguments variables
+* chg increase precision for remove silence at end
+* add nsfplay to dependency
+* chg nsfplay now decode nsf files
+* add support of Nintendo NES files in: nsfe
+
 v0.20:
 * chg massive bash syntax fixes
 * add optimize hes & gbs loop

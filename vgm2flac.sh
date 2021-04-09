@@ -27,15 +27,11 @@ sc68_loops="1"
 # Commodore 64/128
 sid_loops="1"																				# sid file loop file number, value must be 1 or 2
 sid_duration_without_loop="15"																# Track duration is second that does not trigger a music loop 
-# Game Boy
-gbs_default_max_duration="360"																# In second
+# Game Boy, NES, PC-Engine
+xxs_default_max_duration="360"																# In second
 # Midi
 fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
 munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
-# NES
-nsf_default_max_duration="180"																# In second
-# PC-Engine
-hes_default_max_duration="180"																# In second
 # vgm2wav
 vgm2wav_samplerate="44100"																	# Sample rate in Hz
 vgm2wav_bit_depth="16"																		# Bit depth must be 16 or 24
@@ -49,6 +45,8 @@ ext_ffmpeg="mod|spc|xa"
 ext_ffmpeg_gbs="gbs"
 ext_ffmpeg_hes="hes"
 ext_midi="mid"
+ext_nsfplay_nsf="nsf"
+ext_nsfplay_nsfe="nsfe"
 ext_sc68="snd|sndh"
 ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
@@ -122,6 +120,18 @@ else
 	exit
 fi
 }
+nsfplay_bin() {
+local bin_name="nsf2wav"
+local system_bin_location
+system_bin_location=$(which $bin_name)
+
+if test -n "$system_bin_location"; then
+	nsfplay_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
+fi
+}
 sc68_bin() {
 local bin_name="sc68"
 local system_bin_location
@@ -129,18 +139,6 @@ system_bin_location=$(which $bin_name)
 
 if test -n "$system_bin_location"; then
 	sc68_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-uade123_bin() {
-local bin_name="uade123"
-local system_bin_location
-system_bin_location=$(which $bin_name)
-
-if test -n "$system_bin_location"; then
-	uade123_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
 	exit
@@ -182,6 +180,18 @@ else
 	exit
 fi
 }
+uade123_bin() {
+local bin_name="uade123"
+local system_bin_location
+system_bin_location=$(which $bin_name)
+
+if test -n "$system_bin_location"; then
+	uade123_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
+fi
+}
 zxtune123_bin() {
 local bin_name="zxtune123"
 local system_bin_location
@@ -213,6 +223,18 @@ fi
 }
 
 # Messages
+cmd_usage() {
+cat <<- EOF
+vgm2flac - GNU GPL-2.0 Copyright - <https://github.com/Jocker666z/vgm2flac>
+Bash tool for vgm/chiptune encoding to flac 
+
+Usage: vgm2flac [options]
+                          Without option treat current directory.
+  -h|--help               Display this help.
+  -p|--pal                Force the tempo reduction to simulate 50hz.
+
+EOF
+}
 display_separator() {
 echo "--------------------------------------------------------------"
 }
@@ -248,11 +270,12 @@ mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort)
 mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort)
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
+mapfile -t lst_nsfplay_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsf')$' 2>/dev/null | sort)
+mapfile -t lst_nsfplay_nsfe < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsfe')$' 2>/dev/null | sort)
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort)
-mapfile -t lst_zxtune_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_nsf')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_sid')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort)
@@ -283,6 +306,8 @@ if ! [[ "${#lst_flac[@]}" = "0" ]]; then
 		flac_test=$(soxi "${lst_flac[i]}" 2>/dev/null)
 		if [ -z "$flac_test" ]; then
 			lst_flac_in_error+=( "${lst_flac[i]}" )
+		else
+			lst_flac_validated+=( "${lst_flac[i]}" )
 		fi
 	done
 fi
@@ -290,8 +315,10 @@ fi
 
 # Audio treatment
 wav_remove_silent() {
-# Remove silence from audio files while leaving gaps, if audio during more than 10s
+# Local variable
 local test_duration
+
+# Remove silence from audio files while leaving gaps, if audio during more than 10s
 test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
 if [[ "$test_duration" -gt 10 ]] ; then
 	# Remove silence at start & end
@@ -299,14 +326,16 @@ if [[ "$test_duration" -gt 10 ]] ; then
 	rm "${files%.*}".wav &>/dev/null
 	mv temp-out.wav "${files%.*}".wav &>/dev/null
 	# Remove silence > 5s
-	sox "${files%.*}".wav temp-out.wav silence -l 1 0.1 0.01% -1 5.0 0.01%
+	sox "${files%.*}".wav temp-out.wav silence -l 1 0.1 0.01% -1 1.0 0.01%
 	rm "${files%.*}".wav &>/dev/null
 	mv temp-out.wav "${files%.*}".wav &>/dev/null
 fi
 }
 wav_remove_empty() {
-# Remove wav empty
+# Local variable
 local test_empty_wav
+
+# Remove wav empty
 for files in "${lst_wav[@]}"; do
 	test_empty_wav=$(sox "$files" -n stat 2>&1 | grep "Maximum amplitude:" | awk '{print $3}')
 	if [[ "$test_empty_wav" = "0.000000" ]]; then
@@ -315,10 +344,12 @@ for files in "${lst_wav[@]}"; do
 done
 }
 wav_fade_out() {
-# Out fade, if audio during more than 10s
+# Local variables
 local test_duration
 local duration
 local sox_fade_in
+
+# Out fade, if audio during more than 10s
 test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
 if [[ "$test_duration" -gt 10 ]] ; then
 	duration=$(soxi -d "${files%.*}".wav)
@@ -334,9 +365,16 @@ if [[ "$test_duration" -gt 10 ]] ; then
 fi
 }
 wav_normalization_channel_test() {
-# Test Volume, set normalization variable
+# Local variables
 local testdb
 local db
+local left_md5
+local right_md5
+
+# For active end functions
+flac_loop_activated="1"
+
+# Test Volume, set normalization variable
 testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
 if [[ "$testdb" = *"-"* ]] || [[ "$testdb" = "0.0" ]]; then
 	db=$(echo "$testdb" | cut -c2- | awk -v var="$default_peakdb_norm" '{print $1-var}')dB
@@ -346,8 +384,6 @@ else
 fi
 
 # Channel test mono or stereo
-local left_md5
-local right_md5
 left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
 right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
 if [ "$left_md5" = "$right_md5" ]; then
@@ -361,13 +397,19 @@ ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec "$defa
 rm "${files%.*}".wav &>/dev/null
 mv temp-out.wav "${files%.*}".wav &>/dev/null
 }
-wav2flac() {
-local tag_date_formated
-if [[ "$tag_date" = "NULL" ]]; then
-	tag_date_formated=""
-else
-	tag_date_formated="$tag_date"
+flac_force_pal_tempo() {
+if [[ "$flac_force_pal" = "1" ]]; then
+	# In case of audio speed is to high, reduce tempo to simulate 50hz
+	# 60hz - 50hz = 83.333333333% of orginal speed
+	for i in "${lst_flac_validated[@]}"; do
+		sox "$files" temp-out.flac tempo 0.83333333333
+		rm "$files".wav &>/dev/null
+		mv temp-out.flac "$files" &>/dev/null
+	done
 fi
+}
+wav2flac() {
+# Enconding final flac
 ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 12 -sample_fmt "$default_flac_bit_depth" -metadata title="$tag_song" -metadata album="$tag_album" -metadata artist="$tag_artist" -metadata date="$tag_date_formated" "${files%.*}".flac
 }
 
@@ -534,7 +576,6 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 	local total_sub_track
 
 	for gbs in "${lst_ffmpeg_gbs[@]}"; do
-
 		# Tags
 		tag_gbs_extract
 		tag_machine="Game Boy"
@@ -548,10 +589,10 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 		# Wav loop
 		for sub_track in $(seq -w 0 "$total_sub_track"); do
 			# Tag
-			gbs_track=$((10#"$sub_track"))
-			tag_gbs
+			xxs_track=$((10#"$sub_track"))
+			tag_xxs_loop
 			(
-			ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$gbs" -t $gbs_duration_second -channel_layout mono -acodec pcm_s16le -ar 44100 \
+			ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$gbs" -t $xxs_duration_second -channel_layout mono -acodec pcm_s16le -ar 44100 \
 				-f wav "$sub_track - $tag_song".wav
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
@@ -563,22 +604,21 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 		# Flac loop
 		for sub_track in $(seq -w 0 "$total_sub_track"); do
 			# Tag
-			gbs_track=$((10#"$sub_track"))
-			tag_gbs
+			xxs_track=$((10#"$sub_track"))
+			tag_xxs_loop
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
 				# Peak normalisation to 0, false stereo detection 
 				wav_normalization_channel_test
 				# Fade out
-				imported_sox_fade_out="$gbs_fading_second"
+				imported_sox_fade_out="$xxs_fading_second"
 				wav_fade_out
 				# Remove silence
 				wav_remove_silent
 				# Flac conversion
 				(
 				wav2flac
-				exit
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -609,11 +649,11 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 		# Wav loop
 		for sub_track in $(seq -w 0 "$total_sub_track"); do
 			# Tag
-			hes_track=$((10#"$sub_track"))
-			tag_hes
+			xxs_track=$((10#"$sub_track"))
+			tag_xxs_loop
 			# Extract WAV
 			(
-			ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$hes" -t $hes_duration_second -acodec pcm_s16le -ar 44100 \
+			ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$hes" -t $xxs_duration_second -acodec pcm_s16le -ar 44100 \
 				-f wav "$sub_track - $tag_song".wav
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
@@ -628,15 +668,15 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 
 		for sub_track in $(seq -w 0 "$total_sub_track"); do
 			# Tag
-			hes_track=$((10#"$sub_track"))
-			tag_hes
+			xxs_track=$((10#"$sub_track"))
+			tag_xxs_loop
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
 				# Peak normalisation to 0, false stereo detection 
 				wav_normalization_channel_test
 				# Fade out
-				imported_sox_fade_out="$hes_fading_second"
+				imported_sox_fade_out="$xxs_fading_second"
 				wav_fade_out
 				# Remove silence
 				wav_remove_silent
@@ -650,6 +690,126 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 			fi
 		done
 		wait
+	done
+fi
+}
+loop_nsfplay_nsf() {		# NES
+if (( "${#lst_nsfplay_nsf[@]}" )); then
+	# Bin check & set
+	nsfplay_bin
+
+	# Local variables
+	local file_total_track
+	local total_sub_track
+
+	for nsf in "${lst_nsfplay_nsf[@]}"; do
+		# Tags
+		tag_nsf_extract
+		tag_machine="NES"
+		tag_questions
+		tag_album
+
+		# Get total track
+		file_total_track=$(xxd -ps -s 0x006 -l 1 "$nsf" | awk -Wposix '{printf("%d\n","0x" $1)}')	# Hex to decimal
+		total_sub_track="$file_total_track"
+
+		# Wav loop
+		for sub_track in $(seq -w 1 "$total_sub_track"); do
+			# Tag
+			xxs_track=$((10#"$sub_track"))
+			tag_xxs_loop
+			(
+			"$nsfplay_bin" --fade_ms="$xxs_fading_msecond" --length_ms="$xxs_duration_msecond" --samplerate=44100 --quiet \
+				--track="$sub_track" "$nsf" "$sub_track - $tag_song".wav
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		done
+		wait
+
+		# Flac loop
+		for sub_track in $(seq -w 0 "$total_sub_track"); do
+			# Tag
+			xxs_track=$((10#"$sub_track"))
+			tag_xxs_loop
+			# File variable for next function
+			files="$sub_track - $tag_song.wav"
+			if [ -f "$files" ]; then
+				# Peak normalisation to 0, false stereo detection 
+				wav_normalization_channel_test
+				# Remove silence
+				wav_remove_silent
+				# Flac conversion
+				(
+				wav2flac
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+					wait -n
+				fi
+			fi
+		done
+		wait
+
+	done
+fi
+}
+loop_nsfplay_nsfe() {		# NES
+if (( "${#lst_nsfplay_nsfe[@]}" )); then
+	# Bin check & set
+	nsfplay_bin
+
+	# Local variables
+	local file_total_track
+	local total_sub_track
+
+	for nsfe in "${lst_nsfplay_nsfe[@]}"; do
+		# Tags
+		tag_nsfe
+		tag_machine="NES"
+		tag_questions
+		tag_album
+
+		# Get total track
+		file_total_track=$("$nsfplay_bin" "$nsfe" | grep "Track " | wc -l)
+		total_sub_track="$file_total_track"
+
+		# Wav loop
+		for sub_track in $(seq -w 1 "$total_sub_track"); do
+			# Tag
+			tag_nsfe
+			(
+			"$nsfplay_bin" --length_ms="$nsfplay_default_max_duration" --samplerate=44100 --quiet \
+				--track="$sub_track" "$nsfe" "$sub_track - $tag_song".wav
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		done
+		wait
+
+		# Flac loop
+		for sub_track in $(seq -w 0 "$total_sub_track"); do
+			# Tag
+			tag_nsfe
+			# File variable for next function
+			files="$sub_track - $tag_song.wav"
+			if [ -f "$files" ]; then
+				# Peak normalisation to 0, false stereo detection 
+				wav_normalization_channel_test
+				# Remove silence
+				wav_remove_silent
+				# Flac conversion
+				(
+				wav2flac
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+					wait -n
+				fi
+			fi
+		done
+		wait
+
 	done
 fi
 }
@@ -1144,65 +1304,6 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 	done
 fi
 }
-loop_zxtune_nsf() {			# NES
-if (( "${#lst_zxtune_nsf[@]}" )); then
-	# Bin check & set
-	zxtune123_bin
-
-	# Local variables
-	local file_total_track
-	local total_sub_track
-
-	for nsf in "${lst_zxtune_nsf[@]}"; do
-		# Tag extract
-		tag_nsf_extract
-		tag_machine="NES"
-		tag_questions
-		tag_album
-
-		# Get total track
-		file_total_track=$(xxd -ps -s 0x006 -l 1 "$nsf" | awk -Wposix '{printf("%d\n","0x" $1)}')	# Hex to decimal
-		total_sub_track="$file_total_track"
-
-		# Wav loop
-		for sub_track in $(seq -w 1 "$total_sub_track"); do
-			# Extract WAV
-			"$zxtune123_bin" --core-options plugins.default_duration="$nsf_default_max_duration" --wav filename="$sub_track".wav "$nsf"?#"$sub_track"
-
-			# Tag
-			nsf_track=$((10#"$sub_track"))
-			tag_nsf
-
-			# Duration change if different to 180s
-			if [[ "$nsf_duration_second" != "180" ]]; then
-				ffmpeg $ffmpeg_log_lvl -y -i "$sub_track".wav -t $nsf_duration_second -acodec pcm_s16le -ar 44100 -f wav "$sub_track - $tag_song".wav
-				rm "$sub_track".wav &>/dev/null
-			else
-				# no duration modification, rename
-				mv "$sub_track".wav "$sub_track - $tag_song".wav
-			fi
-
-			# File variable for next function
-			files="$sub_track - $tag_song.wav"
-			# Peak normalisation to 0, false stereo detection 
-			wav_normalization_channel_test
-			# Fade out
-			imported_sox_fade_out="$nsf_fading_second"
-			wav_fade_out
-			# Remove silence
-			wav_remove_silent
-			# Flac conversion
-			(
-			wav2flac
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
-		done
-		wait
-	done
-fi
-}
 loop_zxtune_sid() {			# Commodore 64/128
 if (( "${#lst_zxtune_sid[@]}" )); then
 	# Bin check & set
@@ -1518,6 +1619,7 @@ if test -z "$tag_date"; then
 	echo
 	if test -z "$tag_date"; then
 		tag_date="NULL"
+		tag_date_formated=""
 	fi
 fi
 if test -z "$tag_machine"; then
@@ -1550,6 +1652,95 @@ tag_song=$(basename "${files%.*}")
 }
 
 # Tag by files type
+tag_m3u_clean_extract() {
+# Local variable
+local m3u_track_hex_test
+
+m3u_track_hex_test=$(cat "$m3u_file" |  awk -F"," '{ print $2 }' | grep -F -e "$")
+if [[ -z "$m3u_track_hex_test" ]]; then													# Decimal track
+	cat "$m3u_file" | sed '/^#/d' | sed 's/\\//g' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
+	| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
+else																					# Hexadecimal track
+	cat "$m3u_file" | sed '/^#/d' | sed 's/\\//g' | uniq | sed -r '/^\s*$/d' \
+	| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+0; print}' \
+	| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
+fi
+}
+tag_xxs_loop() {			# Game Boy (gbs), NES (nsf), PC-Enginge (HES)
+if [ "${#lst_m3u[@]}" -gt "0" ]; then
+
+	# Local variables
+	local tag_track_test
+	local xxs_duration
+	local xxs_duration_format
+	local xxs_fading
+	local xxs_fading_format
+
+	# Prevent track start at 0 in m3u
+	tag_track_test=$(cat "$vgm2flac_cache_tag" | head -1 | awk -F"," '{ print $2 }')
+
+	tag_song=$(cat "$vgm2flac_cache_tag" | awk -v var=$xxs_track -F',' '$2 == var { print $0 }' | awk -F"," '{ print $3 }')
+	if [[ -z "$tag_song" ]]; then
+		tag_song="[untitled]"
+	fi
+
+	# Get fade out and duration
+	xxs_duration=$(cat "$vgm2flac_cache_tag" | grep ",$xxs_track," \
+					| awk -F"," '{ print $4 }' | tr -d '[:space:]' \
+					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')					# Total duration in ?:m:s
+	if [[ -n "$xxs_duration" ]]; then
+		xxs_duration_format=$(echo "$xxs_duration"| grep -o ":" | wc -l)
+		if [[ "$xxs_duration_format" = "2" ]]; then										# IF duration is in this format = h:m:s
+			xxs_duration=$(echo "$xxs_duration" | awk -F":" '{ print ($2":"$3) }')
+		elif [[ "$xxs_duration_format" = "0" && -n "$xxs_duration" ]]; then				# IF duration is in this format = s
+			xxs_duration=$(echo "$xxs_duration" | sed 's/^/00:/')
+		fi
+		xxs_duration_second=$(echo "$xxs_duration" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')	# Total duration in s
+		# Duration value
+		xxs_duration_second=$(($xxs_duration_second+1))															# Total duration in s + 1s
+		xxs_duration_msecond=$(($xxs_duration_second*1000))														# Total duration in ms
+	else
+		# Duration value
+		xxs_duration_second="$xxs_default_max_duration"
+		xxs_duration_msecond=$(($xxs_default_max_duration*1000))
+	fi
+
+	# Fade out
+	xxs_fading=$(cat "$vgm2flac_cache_tag" | grep ",$xxs_track," \
+				| awk -F"," '{ print $(NF) }' | tr -d '[:space:]' \
+				| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')						# Fade out duration in ?:m:s
+	if [[ -n "$xxs_fading" ]]; then
+		xxs_fading_format=$(echo "$xxs_fading"| grep -o ":" | wc -l)
+		if [[ "$xxs_fading_format" = "2" ]]; then										# IF duration is in this format = h:m:s
+			xxs_fading=$(echo "$xxs_fading" | awk -F":" '{ print ($2":"$3) }')
+		elif [[ "$xxs_fading_format" = "0" && -n "$xxs_fading" ]]; then					# IF duration is in this format = s
+			xxs_fading=$(echo "$xxs_fading" | sed 's/^/00:/')
+		fi
+		# Fading value
+		xxs_fading_second=$(echo "$xxs_fading" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')			# Fade out duration in s
+		xxs_fading_msecond=$(($xxs_fading_second*1000))																# Fade out duration in ms
+	fi
+
+	# nsfplay fading correction if empty (.nsf apply only)
+	if [[ "$xxs_fading_second" = 0 && "xxs_duration_second" -gt "10" ]] ; then
+		xxs_fading_msecond=$(($default_wav_fade_out*1000))
+	fi
+
+	# Prevent incoherence duration between fade out and total duration
+	if [[ "$xxs_fading_second" -ge "xxs_duration_second" ]] ; then
+		unset xxs_fading_second
+		xxs_fading_msecond="0"
+	fi
+
+else
+	tag_song="[untitled]"
+	xxs_duration_second="$xss_default_max_duration"
+
+	# nsfplay duration & fading s to ms
+	xxs_duration_msecond=$(($xxs_default_max_duration*1000))
+	xxs_fading_msecond=$(($default_wav_fade_out*1000))
+fi
+}
 tag_ay() {					# Amstrad CPC, ZX Spectrum
 # Tag extract
 tag_song=$(sed -n 's/Title:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
@@ -1567,236 +1758,64 @@ fi
 
 }
 tag_gbs_extract() {			# GB/GBC		- Tag extraction & m3u cleaning
-# Local variable
-local m3u_track_hex_test
-
 # Tag extract by hexdump
 tag_game=$(xxd -ps -s 0x10 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 tag_artist=$(xxd -ps -s 0x30 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 
 # If m3u
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
+	m3u_file="${gbs%.*}.m3u"
 	m3u_track_hex_test=$(cat "${gbs%.*}".m3u |  awk -F"," '{ print $2 }' | grep -F -e "$")
-	tag_date=$(cat "${gbs%.*}".m3u | grep "@DATE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
-	if [[ -z "$m3u_track_hex_test" ]]; then													# Decimal track
-		cat "${gbs%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
-		| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
-	else																					# Hexadecimal track
-		cat "${gbs%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' \
-		| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+0; print}' \
-		| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
-	fi
-fi
-}
-tag_gbs() {					# GB/GBC
-if [ "${#lst_m3u[@]}" -gt "0" ]; then
-	# Local variables
-	local tag_track_test
-	local gbs_duration
-	local gbs_duration_format
-	local gbs_fading
-	local gbs_fading_format
-
-	# Prevent track start at 0 in m3u
-	tag_track_test=$(cat "$vgm2flac_cache_tag" | head -1 | awk -F"," '{ print $2 }')
-
-	tag_song=$(cat "$vgm2flac_cache_tag" | awk -v var=$gbs_track -F',' '$2 == var { print $0 }' | awk -F"," '{ print $3 }')
-	if [[ -z "$tag_song" ]]; then
-		tag_song="[untitled]"
-	fi
-
-	# Get fade out and duration
-	gbs_duration=$(cat "$vgm2flac_cache_tag" | grep ",$gbs_track," \
-					| awk -F"," '{ print $4 }' | tr -d '[:space:]' \
-					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')				# Total duration in ?:m:s
-	if [[ -n "$gbs_duration" ]]; then
-		gbs_duration_format=$(echo "$gbs_duration"| grep -o ":" | wc -l)
-		if [[ "$gbs_duration_format" = "2" ]]; then										# IF duration is in this format = h:m:s
-			gbs_duration=$(echo "$gbs_duration" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$gbs_duration_format" = "0" && -n "$gbs_duration" ]]; then				# IF duration is in this format = s
-			gbs_duration=$(echo "$gbs_duration" | sed 's/^/00:/')
-		fi
-		gbs_duration_second=$(echo "$gbs_duration" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')	# Total duration in s
-	else
-		gbs_duration_second="$gbs_default_max_duration"
-	fi
-
-	# Fade out
-	gbs_fading=$(cat "$vgm2flac_cache_tag" | grep ",$gbs_track," \
-				| awk -F"," '{ print $(NF) }' | tr -d '[:space:]' \
-				| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')					# Fade out duration in ?:m:s
-	if [[ -n "$gbs_fading" ]]; then
-		gbs_fading_format=$(echo "$gbs_fading"| grep -o ":" | wc -l)
-		if [[ "$gbs_fading_format" = "2" ]]; then										# IF duration is in this format = h:m:s
-			gbs_fading=$(echo "$gbs_fading" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$gbs_fading_format" = "0" && -n "$gbs_fading" ]]; then					# IF duration is in this format = s
-			gbs_fading=$(echo "$gbs_fading" | sed 's/^/00:/')
-		fi
-		gbs_fading_second=$(echo "$gbs_fading" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')			# Fade out duration in s
-		if [[ "$gbs_fading_second" -ge "gbs_duration_second" ]] ; then												# Prevent incoherence duration between fade out and total duration
-			unset gbs_fading_second
-		fi
-	fi
-
-else
-	tag_song="[untitled]"
-	gbs_duration_second="$gbs_default_max_duration"
+	tag_m3u_clean_extract
 fi
 }
 tag_hes_extract() {			# PC Engine		- Tag extraction & m3u cleaning
-# Local variable
-local m3u_track_hex_test
-
 # If m3u
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
-	m3u_track_hex_test=$(cat "${hes%.*}".m3u |  awk -F"," '{ print $2 }' | grep -F -e "$")
+	m3u_file="${hes%.*}.m3u"
 	tag_game=$(cat "${hes%.*}".m3u | grep "@TITLE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
 	tag_artist=$(cat "${hes%.*}".m3u | grep "@COMPOSER" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
 	tag_date=$(cat "${hes%.*}".m3u | grep "@DATE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
-	if [[ -z "$m3u_track_hex_test" ]]; then													# Decimal track
-		cat "${hes%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
-		| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
-	else																					# Hexadecimal track
-		cat "${hes%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' \
-		| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+0; print}' \
-		| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
-	fi
-fi
-}
-tag_hes() {					# PC Engine
-if [ "${#lst_m3u[@]}" -gt "0" ]; then
-	# Local variables
-	local tag_track_test
-	local hes_duration
-	local hes_duration_format
-	local hes_fading
-	local hes_fading_format
-	
-	# Prevent track start at 0 in m3u
-	tag_track_test=$(cat "$vgm2flac_cache_tag" | head -1 | awk -F"," '{ print $2 }')
-
-	tag_song=$(cat "$vgm2flac_cache_tag" | awk -v var=$hes_track -F',' '$2 == var { print $0 }' | awk -F"," '{ print $3 }')
-	if [[ -z "$tag_song" ]]; then
-		tag_song="[untitled]"
-	fi
-
-	# Get duration
-	hes_duration=$(cat "$vgm2flac_cache_tag" | grep ",$hes_track," \
-					| awk -F"," '{ print $4 }' | tr -d '[:space:]' \
-					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')				# Total duration in ?:m:s
-	if [[ -n "$hes_duration" ]]; then
-		hes_duration_format=$(echo "$hes_duration"| grep -o ":" | wc -l)
-		if [[ "$hes_duration_format" = "2" ]]; then										# IF duration is in this format = h:m:s
-			hes_duration=$(echo "$hes_duration" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$hes_duration_format" = "0" && -n "$hes_duration" ]]; then				# IF duration is in this format = s
-			hes_duration=$(echo "$hes_duration" | sed 's/^/00:/')
-		fi
-		hes_duration_second=$(echo "$hes_duration" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')		# Total duration in s
-	else
-		hes_duration_second="$hes_default_max_duration"
-	fi
-
-	# Fade out
-	hes_fading=$(cat "$vgm2flac_cache_tag" | grep ",$hes_track," \
-				| awk -F"," '{ print $(NF) }' | tr -d '[:space:]' \
-				| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')					# Fade out duration in ?:m:s
-	if [[ -n "$hes_fading" ]]; then
-		hes_fading_format=$(echo "$hes_fading"| grep -o ":" | wc -l)
-		if [[ "$hes_fading_format" = "2" ]]; then										# IF duration is in this format = h:m:s
-			hes_fading=$(echo "$hes_fading" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$hes_fading_format" = "0" && -n "$hes_fading" ]]; then					# IF duration is in this format = s
-			hes_fading=$(echo "$hes_fading" | sed 's/^/00:/')
-		fi
-		hes_fading_second=$(echo "$hes_fading" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')		# Fade out duration in s
-		if [[ "$hes_fading_second" -ge "$hes_duration_second" ]] ; then											# Prevent incoherence duration between fade out and total duration
-			unset hes_fading_second
-		fi
-	fi
-
-else
-	tag_song="[untitled]"
-	hes_duration_second="$hes_default_max_duration"
+	tag_m3u_clean_extract
 fi
 }
 tag_nsf_extract() {			# NES			- Tag extraction & m3u cleaning
-# Local variable
-local m3u_track_hex_test
-
 # Tag extract by hexdump
 tag_game=$(xxd -ps -s 0x00E -l 32 "$nsf" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 tag_artist=$(xxd -ps -s 0x02E -l 32 "$nsf" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 
 # If m3u
 if [ "${#lst_m3u[@]}" -gt "0" ]; then
-	local m3u_track_hex_test
-	m3u_track_hex_test=$(cat "${nsf%.*}".m3u |  awk -F"," '{ print $2 }' | grep -F -e "$")
-	if [[ -z "$m3u_track_hex_test" ]]; then													# Decimal track
-		cat "${nsf%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
-		| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
-	else																					# Hexadecimal track
-		cat "${nsf%.*}".m3u | sed '/^#/d' | uniq | sed -r '/^\s*$/d' \
-		| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+0; print}' \
-		| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
-	fi
+	m3u_file="${nsf%.*}.m3u"
+	tag_m3u_clean_extract
 fi
 }
-tag_nsf() {					# NES
-if [ "${#lst_m3u[@]}" -gt "0" ]; then
-	# Local variables
-	local tag_track_test
-	local nsf_duration
-	local nfs_duration_format
-	local nsf_fading
-	local nsf_fading_format
+tag_nsfe() {				# NES
+# Local variable
+local nsfplay_sub_track
 
-	# Prevent track start at 0 in m3u
-	tag_track_test=$(cat "$vgm2flac_cache_tag" | head -1 | awk -F"," '{ print $2 }')
-	if [[ "$tag_track_test" = "0" ]]; then
-		nsf_track=$(("$nsf_track"-1))
-	fi
+# Tag extract
+"$nsfplay_bin" "$nsfe" > "$vgm2flac_cache_tag"
 
-	tag_song=$(cat "$vgm2flac_cache_tag" | grep ",$nsf_track," | awk -F"," '{ print $3 }')
-	if [[ -z "$tag_song" ]]; then
-		tag_song="[untitled]"
-	fi
+nsfplay_sub_track="${sub_track}:"
 
-	# Get duration
-	nsf_duration=$(cat "$vgm2flac_cache_tag" | grep ",$nsf_track," \
-					| awk -F"," '{ print $4 }' | tr -d '[:space:]' \
-					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')				# Total duration in ?:m:s
-	if [[ -n "$nsf_duration" ]]; then
-		nfs_duration_format=$(echo "$nsf_duration"| grep -o ":" | wc -l)
-		if [[ "$nfs_duration_format" = "2" ]]; then										# IF duration is in this format = h:m:s
-			nsf_duration=$(echo "$nsf_duration" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$nfs_duration_format" = "0" && -n "$nsf_duration" ]]; then				# IF duration is in this format = s
-			nsf_duration=$(echo "$nsf_duration" | sed 's/^/00:/')
-		fi
-		nsf_duration_second=$(echo "$nsf_duration" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')	# Total duration in s
-	else
-		nsf_duration_second="$nsf_default_max_duration"
-	fi
-
-	# Fade out
-	nsf_fading=$(cat "$vgm2flac_cache_tag" | grep ",$nsf_track," \
-				| awk -F"," '{ print $(NF) }' | tr -d '[:space:]' \
-				| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')					# Fade out duration in ?:m:s
-	if [[ -n "$nsf_fading" ]]; then
-		nsf_fading_format=$(echo "$nsf_fading"| grep -o ":" | wc -l)
-		if [[ "$nsf_fading_format" = "2" ]]; then										# IF duration is in this format = h:m:s
-			nsf_fading=$(echo "$nsf_fading" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$nsf_fading_format" = "0" && -n "$nsf_fading" ]]; then					# IF duration is in this format = s
-			nsf_fading=$(echo "$nsf_fading" | sed 's/^/00:/')
-		fi
-		nsf_fading_second=$(echo "$nsf_fading" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')		# Fade out duration in s
-		if [[ "$nsf_fading_second" -ge "$nsf_duration_second" ]] ; then											# Prevent incoherence duration between fade out and total duration
-			nsf_fading_second
-		fi
-	fi
-
-else
+tag_song=$(cat "$vgm2flac_cache_tag" | grep "$nsfplay_sub_track" | sed -n "s/$nsfplay_sub_track/&\n/;s/.*\n//p" | awk '{$1=$1}1')
+if [[ -z "$tag_song" ]]; then
 	tag_song="[untitled]"
-	nsf_duration_second="$nsf_default_max_duration"
 fi
+
+tag_artist_backup="$tag_artist"
+tag_artist=$(sed -n 's/Artist:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+if [[ -z "$tag_artist" ]]; then
+	tag_artist="$tag_artist_backup"
+fi
+
+if [[ -z "$tag_game" ]]; then
+	tag_game=$(sed -n 's/Title:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+fi
+
+# Set max duration s to ms
+nsfplay_default_max_duration=$(($xxs_default_max_duration*1000))
 }
 tag_s98() {					# NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1
 # Tag extract
@@ -1996,16 +2015,38 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 fi
 }
 end_functions() {
-list_wav_files
-list_flac_files
-list_flac_validation
-tag_track
-mk_target_directory
-clean_cache_directory
-display_flac_in_error
-wav_remove
-flac_corrupted_remove
+if [[ "$flac_loop_activated" = "1" ]]; then
+	list_wav_files
+	list_flac_files
+	list_flac_validation
+	flac_force_pal_tempo
+	tag_track
+	mk_target_directory
+	clean_cache_directory
+	display_flac_in_error
+	wav_remove
+	flac_corrupted_remove
+fi
 }
+
+# Arguments variables
+while [[ $# -gt 0 ]]; do
+	key="$1"
+	case "$key" in
+	-h|--help)																# Help
+		cmd_usage
+		exit
+	;;
+	-p|--pal)
+		flac_force_pal="1"													# Set pal mode
+	;;
+	*)
+		cmd_usage
+		exit
+	;;
+esac
+shift
+done
 
 # Bin check & set
 common_bin
@@ -2021,11 +2062,12 @@ loop_ffmpeg
 loop_ffmpeg_gbs
 loop_ffmpeg_hes
 loop_midi
+loop_nsfplay_nsf
+loop_nsfplay_nsfe
 loop_sc68
 loop_sox
 loop_vgm2wav
 loop_zxtune_ay
-loop_zxtune_nsf
 loop_zxtune_sid
 loop_zxtune_xfs
 loop_zxtune_ym

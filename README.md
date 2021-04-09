@@ -15,9 +15,10 @@ All these dependencies must installed properly on the system.
 * adplay: https://github.com/adplug/adplay-unix
 * fluidsynth: https://www.fluidsynth.org/
 * munt: https://github.com/munt/munt
+* nsfplay: https://github.com/bbbradsmith/nsfplay
 * sc68 & info68:
-	* https://sourceforge.net/projects/sc68/
-	* Prefered version: https://github.com/Jocker666z/sc68
+	* original source: https://sourceforge.net/projects/sc68/
+	* prefered version: https://github.com/Jocker666z/sc68
 * vgm2wav: https://github.com/ValleyBell/libvgm
 * vgmstream_cli: https://github.com/losnoco/vgmstream
 * vgmtag: https://github.com/vgmrips/vgmtools
@@ -39,7 +40,10 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* remove audio silence at start, end and middle if more than 5s
 	* wav encoding in flac file
 
-## Files tested :
+### Arguments options
+* -p/--pal: force the tempo reduction to simulate 50hz (sox tempo command), affects all output flac.
+
+## Files tested
 * 3DO : aif
 * Amiga: 8svx, aam, core, cust, dw, gmc, mcr, mdat, mod, sa, sb, sfx, xm
 * Amstrad CPC: ay, ym
@@ -57,7 +61,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo GBA: gsf, minigsf
 * Nintendo GameCube: adx, cfn, dsp, hps, adp, thp, mus
 * Nintendo N64: usf, miniusf
-* Nintendo NES: nsf
+* Nintendo NES: nsf, nsfe
 * Nintendo SNES: spc
 * Nintendo Switch: bgm, bfstm, bfwav, bwav, hca, kno, ktss, lopus, wem
 * Nintendo Wii: ads, adx, brstm, mus
@@ -65,10 +69,10 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sega Mark III/Master System: vgm, vgz
 * Sega Mega Drive/Genesis: vgm, vgz
 * Sega Saturn: minissf, ssf
-* Sega Dreamcast: dsf, spsd
+* Sega Dreamcast: adx, dsf, spsd
 * NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1: s98
 * Sony Playstation: psf, minipsf, xa, vag
-* Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, vag, vpk, sng, vgs
+* Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, svag, vag, vpk, sng, vgs
 * Sony Playstation 3: aa3, adx, at3, genh, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem
 * Sony Playstation 4: sab, wem
 * Sony PSP: at3, txtp
@@ -100,7 +104,10 @@ If you want to use munt Roland MT-32 emulator as decoder, you must filled parame
 ## Holy reading
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
 * HES spec: http://www.purose.net/befis/download/nezplug/hesspec.txt
+* KSS spec: https://ocremix.org/info/KSS_Format_Specification
 * NSF spec: https://wiki.nesdev.com/w/index.php/NSF
+* NSFe spec: https://wiki.nesdev.com/w/index.php/NSFe
+* SGC spec: https://ocremix.org/info/SGC_Format_Specification
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
 * http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
@@ -108,7 +115,7 @@ If you want to use munt Roland MT-32 emulator as decoder, you must filled parame
 * https://wiki.archlinux.org/index.php/FluidSynth
 
 ## TODO
-* ay & nsf files: use ffmpeg to decode
+* ay files: use ffmpeg to decode
 
 ## Help for dependencies installation:
 ### munt
@@ -118,6 +125,13 @@ git clone https://github.com/munt/munt && cd munt
 mkdir build && cd build && cmake .. 
 make -j"$(nproc)"
 su -c "make install" -m "root"
+```
+### nsfplay 
+Build dependencies: `git build-essential`
+```
+git clone https://github.com/bbbradsmith/nsfplay && cd nsfplay/contrib
+make -j"$(nproc)"
+cp nsf2wav /home/$USER/.local/bin
 ```
 
 ### sc68 & info68
