@@ -1,4 +1,14 @@
 # Changelog
+v0.22:
+* fix regression, date now record in flac
+* fix xfs tag, the presence of a line break does not make the title tag disappear anymore
+* chg flac track tag now support until 999 tracks with lead zero
+* fix if SNES spc have no timing tag (or not an integer), now default duration is set
+* fix SNES spc no more use silence detection remove function
+* chg still increase precision for remove silence function
+* chg silence remove in middle of track desactivate for now
+* add arguments variables: --no_fade_out, --no_normalization, --no_remove_silence
+
 v0.21:
 * add nsf/gb/hes with m3u, now remove "\" in m3u files
 * chg merge nsf/gbs/hes tag loop

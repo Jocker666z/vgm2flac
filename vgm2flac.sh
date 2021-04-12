@@ -18,7 +18,7 @@ ffmpeg_log_lvl="-hide_banner -loglevel panic -stats"										# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
 
 # Output
-default_wav_fade_out="5"																	# Default fade out value in second, apply to all file during more than 10s
+default_wav_fade_out="6"																	# Default fade out value in second, apply to all file during more than 10s
 default_wav_bit_depth="pcm_s16le"															# Wav bit depth must be pcm_s16le, pcm_s24le or pcm_s32le
 default_flac_bit_depth="s16"																# Flac bit depth must be s16 or s32
 default_peakdb_norm="1"																		# Peak db normalization option, this value is written as positive but is used in negative, e.g. 4 = -4
@@ -32,6 +32,8 @@ xxs_default_max_duration="360"																# In second
 # Midi
 fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
 munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
+# SNES
+spc_default_duration="180"																	# In second
 # vgm2wav
 vgm2wav_samplerate="44100"																	# Sample rate in Hz
 vgm2wav_bit_depth="16"																		# Bit depth must be 16 or 24
@@ -231,7 +233,10 @@ Bash tool for vgm/chiptune encoding to flac
 Usage: vgm2flac [options]
                           Without option treat current directory.
   -h|--help               Display this help.
-  -p|--pal                Force the tempo reduction to simulate 50hz.
+  --no_fade_out           Force no fade out.
+  --no_normalization      Force no peak db normalization.
+  --no_remove_silence     Force no remove silence at start & end of track.
+  --pal                   Force the tempo reduction to simulate 50hz.
 
 EOF
 }
@@ -315,87 +320,99 @@ fi
 
 # Audio treatment
 wav_remove_silent() {
-# Local variable
-local test_duration
+if ! [[ "$no_remove_silence" = "1" ]]; then
 
-# Remove silence from audio files while leaving gaps, if audio during more than 10s
-test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
-if [[ "$test_duration" -gt 10 ]] ; then
-	# Remove silence at start & end
-	sox "${files%.*}".wav temp-out.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
-	rm "${files%.*}".wav &>/dev/null
-	mv temp-out.wav "${files%.*}".wav &>/dev/null
-	# Remove silence > 5s
-	sox "${files%.*}".wav temp-out.wav silence -l 1 0.1 0.01% -1 1.0 0.01%
-	rm "${files%.*}".wav &>/dev/null
-	mv temp-out.wav "${files%.*}".wav &>/dev/null
+	# Local variable
+	local test_duration
+
+	# Remove silence from audio files while leaving gaps, if audio during more than 10s
+	test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
+	if [[ "$test_duration" -gt 10 ]]; then
+		# Remove silence at start & end
+		sox "${files%.*}".wav temp-out.wav silence 1 0.2 -85d reverse silence 1 0.2 -85d reverse
+		rm "${files%.*}".wav &>/dev/null
+		mv temp-out.wav "${files%.*}".wav &>/dev/null
+		# Remove silence > 5s
+		#sox "${files%.*}".wav temp-out.wav silence -l 1 0.1 0.01% -1 5.0 0.01%
+		#rm "${files%.*}".wav &>/dev/null
+		#mv temp-out.wav "${files%.*}".wav &>/dev/null
+	fi
+
 fi
 }
 wav_remove_empty() {
-# Local variable
-local test_empty_wav
+	# Local variable
+	local test_empty_wav
 
-# Remove wav empty
-for files in "${lst_wav[@]}"; do
-	test_empty_wav=$(sox "$files" -n stat 2>&1 | grep "Maximum amplitude:" | awk '{print $3}')
-	if [[ "$test_empty_wav" = "0.000000" ]]; then
-		rm "$files"
-	fi
-done
+	# Remove wav empty
+	for files in "${lst_wav[@]}"; do
+		test_empty_wav=$(sox "$files" -n stat 2>&1 | grep "Maximum amplitude:" | awk '{print $3}')
+		if [[ "$test_empty_wav" = "0.000000" ]]; then
+			rm "$files"
+		fi
+	done
 }
 wav_fade_out() {
-# Local variables
-local test_duration
-local duration
-local sox_fade_in
+if ! [[ "$no_fade_out" = "1" ]]; then
 
-# Out fade, if audio during more than 10s
-test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
-if [[ "$test_duration" -gt 10 ]] ; then
-	duration=$(soxi -d "${files%.*}".wav)
-	sox_fade_in="0:0.0"
-	if [[ -z "$imported_sox_fade_out" ]]; then
-		local sox_fade_out="0:$default_wav_fade_out"
-	else
-		local sox_fade_out="0:$imported_sox_fade_out"
+	# Local variables
+	local test_duration
+	local duration
+	local sox_fade_in
+
+	# Out fade, if audio during more than 10s
+	test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
+	if [[ "$test_duration" -gt 10 ]] ; then
+		duration=$(soxi -d "${files%.*}".wav)
+		sox_fade_in="0:0.0"
+		if [[ -z "$imported_sox_fade_out" ]]; then
+			local sox_fade_out="0:$default_wav_fade_out"
+		else
+			local sox_fade_out="0:$imported_sox_fade_out"
+		fi
+		sox "${files%.*}".wav temp-out.wav fade t "$sox_fade_in" "$duration" "$sox_fade_out"
+		rm "${files%.*}".wav &>/dev/null
+		mv temp-out.wav "${files%.*}".wav &>/dev/null
 	fi
-	sox "${files%.*}".wav temp-out.wav fade t "$sox_fade_in" "$duration" "$sox_fade_out"
-	rm "${files%.*}".wav &>/dev/null
-	mv temp-out.wav "${files%.*}".wav &>/dev/null
+
 fi
 }
 wav_normalization_channel_test() {
-# Local variables
-local testdb
-local db
-local left_md5
-local right_md5
-
 # For active end functions
 flac_loop_activated="1"
 
-# Test Volume, set normalization variable
-testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
-if [[ "$testdb" = *"-"* ]] || [[ "$testdb" = "0.0" ]]; then
-	db=$(echo "$testdb" | cut -c2- | awk -v var="$default_peakdb_norm" '{print $1-var}')dB
-	afilter="-af volume=$db"
-else
-	afilter=""
-fi
+if ! [[ "$no_normalization" = "1" ]]; then
 
-# Channel test mono or stereo
-left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
-right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
-if [ "$left_md5" = "$right_md5" ]; then
-	confchan="-channel_layout mono"
-else
-	confchan=""
-fi
+	# Local variables
+	local testdb
+	local db
+	local left_md5
+	local right_md5
 
-# Encoding Wav
-ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec "$default_wav_bit_depth" -f wav temp-out.wav
-rm "${files%.*}".wav &>/dev/null
-mv temp-out.wav "${files%.*}".wav &>/dev/null
+	# Test Volume, set normalization variable
+	testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
+	if [[ "$testdb" = *"-"* ]] || [[ "$testdb" = "0.0" ]]; then
+		db=$(echo "$testdb" | cut -c2- | awk -v var="$default_peakdb_norm" '{print $1-var}')dB
+		afilter="-af volume=$db"
+	else
+		afilter=""
+	fi
+
+	# Channel test mono or stereo
+	left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
+	right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
+	if [ "$left_md5" = "$right_md5" ]; then
+		confchan="-channel_layout mono"
+	else
+		confchan=""
+	fi
+
+	# Encoding Wav
+	ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec "$default_wav_bit_depth" -f wav temp-out.wav
+	rm "${files%.*}".wav &>/dev/null
+	mv temp-out.wav "${files%.*}".wav &>/dev/null
+
+fi
 }
 flac_force_pal_tempo() {
 if [[ "$flac_force_pal" = "1" ]]; then
@@ -883,7 +900,7 @@ if (( "${#lst_midi[@]}" )); then
 			fi
 		elif [[ "$midi_choice" = "1" ]]; then	# munt
 			"$midi_bin" -m "$munt_rom_path" -r 1 --output-sample-format=1 -p 44100 --src-quality=3 --analog-output-mode=2 -f \
-				-o "${files%.*}".wav "$files"
+				--record-max-end-silence=1000 -o "${files%.*}".wav "$files"
 		fi
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
@@ -916,7 +933,7 @@ if (( "${#lst_midi[@]}" )); then
 	wait
 fi
 }
-loop_sc68() {				# Atari ST
+loop_sc68() {				# Atari ST (YM2149)
 if (( "${#lst_sc68[@]}" )); then
 	# Bin check & set
 	info68_bin
@@ -1583,9 +1600,20 @@ local count
 	for files in "${lst_flac[@]}"; do
 		tag_track_count=$(($count+1))
 		count="$tag_track_count"
-		if [[ "${#tag_track_count}" -eq "1" ]] ; then						# if integer in one digit add 0
-			tag_track_count="0$tag_track_count" 
+
+		# Add lead zero if necessary
+		if [ "${#lst_flac[@]}" -lt "100" ]; then
+			if [[ "${#tag_track_count}" -eq "1" ]] ; then				# if integer in one digit
+				local tag_track_count="0$tag_track_count" 
+			fi
+		elif [ "${#lst_flac[@]}" -ge "100" ]; then
+			if [[ "${#tag_track_count}" -eq "1" ]] ; then				# if integer in one digit
+				local tag_track_count="00$tag_track_count"
+			elif [[ "${#tag_track_count}" -eq "2" ]] ; then				# if integer in two digit
+				local tag_track_count="0$tag_track_count"
+			fi
 		fi
+
 		ffmpeg $ffmpeg_log_lvl -i "$files" -c:v copy -c:a copy -metadata TRACKNUMBER="$tag_track_count" \
 			-metadata TRACK="$tag_track_count" "${files%.*}"-temp.flac
 		# If temp-file exist remove source and rename
@@ -1621,6 +1649,10 @@ if test -z "$tag_date"; then
 		tag_date="NULL"
 		tag_date_formated=""
 	fi
+elif [[ "$tag_date" = "NULL" ]]; then
+	tag_date_formated=""
+else
+	tag_date_formated="$tag_date"
 fi
 if test -z "$tag_machine"; then
 	echo "Please indicate the release platform"
@@ -1722,12 +1754,12 @@ if [ "${#lst_m3u[@]}" -gt "0" ]; then
 	fi
 
 	# nsfplay fading correction if empty (.nsf apply only)
-	if [[ "$xxs_fading_second" = 0 && "xxs_duration_second" -gt "10" ]] ; then
+	if [[ "$xxs_fading_second" = 0 && "xxs_duration_second" -gt "10" ]]; then
 		xxs_fading_msecond=$(($default_wav_fade_out*1000))
 	fi
 
 	# Prevent incoherence duration between fade out and total duration
-	if [[ "$xxs_fading_second" -ge "xxs_duration_second" ]] ; then
+	if [[ "$xxs_fading_second" -ge "xxs_duration_second" ]]; then
 		unset xxs_fading_second
 		xxs_fading_msecond="0"
 	fi
@@ -1875,8 +1907,24 @@ if [ "$id666_test" = "1a" ]; then						# 1a hex = 26 dec
 	if [[ -z "$tag_game" ]]; then
 		tag_game=$(xxd -ps -s 0x0004Eh -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 	fi
-	spc_duration=$(xxd -ps -s 0x000A9h -l 3 "$files" | xxd -r -p | tr -d '\0')
-	spc_fading=$(xxd -ps -s 0x000ACh -l 5 "$files" | xxd -r -p | tr -d '\0')
+	spc_duration=$(xxd -ps -s 0x000A9h -l 3 "$files" | xxd -r -p | tr -d '\0')	# In s
+	spc_fading=$(xxd -ps -s 0x000ACh -l 5 "$files" | xxd -r -p | tr -d '\0')	# In ms
+
+	# Duration correction if empty, or not an integer
+	if [[ -z "$spc_duration" ]] || ! [[ "$spc_duration" =~ ^[0-9]*$ ]]; then
+		spc_duration="$spc_default_duration"
+	fi
+
+	# Fading correction if empty, or not an integer
+	if [[ -z "$spc_fading" ]] || ! [[ "$spc_fading" =~ ^[0-9]*$ ]]; then
+		spc_fading=$(($default_wav_fade_out*1000))
+	fi
+
+	# Prevent incoherence duration between fade out and total duration
+	if [[ "$spc_duration" -ge "spc_fading" ]]; then
+		spc_fading="0"
+	fi
+
 fi
 if [[ -z "$tag_machine" ]]; then
 	tag_machine="SNES"
@@ -1905,7 +1953,7 @@ fi
 }
 tag_xfs() {					# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
 # Tag extract
-strings "$files" | awk '/TAG/{y=1;next}y' > "$vgm2flac_cache_tag"
+strings "$files" | sed -n '/TAG/,$p' > "$vgm2flac_cache_tag"
 
 tag_song=$(cat "$vgm2flac_cache_tag" | grep -i -a title= | sed 's/^.*=//')
 if [[ -z "$tag_song" ]]; then
@@ -2037,8 +2085,17 @@ while [[ $# -gt 0 ]]; do
 		cmd_usage
 		exit
 	;;
-	-p|--pal)
+	---pal)
 		flac_force_pal="1"													# Set pal mode
+	;;
+	--no_fade_out)
+		no_fade_out="1"														# Set force no fade out
+	;;
+	--no_normalization)
+		no_normalization="1"												# Set force no peak db norm. & channel test
+	;;
+	--no_remove_silence)
+		no_remove_silence="1"												# Set force no remove silence
 	;;
 	*)
 		cmd_usage

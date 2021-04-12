@@ -7,9 +7,9 @@ Bash tool for vgm/chiptune encoding to flac.
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`ffmpeg ffprobe sox bc bchunk xxd adplay fluidsynth info68 munt sc68 uade vgm2wav vgmstream_cli vgm_tag zxtune123`
+`bc adplay bc bchunk ffmpeg ffprobe fluidsynth info68 munt nsfplay sc68 sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
 
-All these dependencies must installed properly on the system.
+You will be able to run the vgm2flac even if it is missing, the script will warn you if a dependency is not met.
 
 * ffmpeg must be compiled with: --enable-libgme --enable-libopenmpt --enable-nonfree
 * adplay: https://github.com/adplug/adplay-unix
@@ -37,11 +37,15 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* vgm encoding in wav file
 	* peak normalisation to -1db & false stereo detection (md5 channel test)
 	* apply fade out if necessary
-	* remove audio silence at start, end and middle if more than 5s
+	* remove audio silence at start & end
 	* wav encoding in flac file
 
 ### Arguments options
-* -p/--pal: force the tempo reduction to simulate 50hz (sox tempo command), affects all output flac.
+* -h|--help: Display this help.
+* --no_fade_out: Force no fade out.
+* --no_normalization: Force no peak db normalization.
+* --no_remove_silence: Force no remove silence at start & end of track.
+* --pal: Force the tempo reduction to simulate 50hz.
 
 ## Files tested
 * 3DO : aif
@@ -71,13 +75,13 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sega Saturn: minissf, ssf
 * Sega Dreamcast: adx, dsf, spsd
 * NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1: s98
-* Sony Playstation: psf, minipsf, xa, vag
+* Sony Playstation: psf, minipsf, pona, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, svag, vag, vpk, sng, vgs
 * Sony Playstation 3: aa3, adx, at3, genh, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem
 * Sony Playstation 4: sab, wem
 * Sony PSP: at3, txtp
 * Playstation Vita: at9, sab
-* Panasonic 3DO: aifc, str
+* Panasonic 3DO: aifc, pona, str
 * Philips CD-i: grn
 * PC: bik, bnk, hsq, fsb, his, imc, imf, logg, mid, mod, sab, sdb, smk, sqx, txtp, wlf, xwb
 * Various machines: vgm, vgz
