@@ -1,4 +1,10 @@
 # Changelog
+v0.23:
+* add vgmstream force end-to-end looping with variable vgmstream_force_looping
+* add --no_flac in cmd argument
+* fix if nsf/m3u have no fading, wav extract now work
+
+
 v0.22:
 * fix regression, date now record in flac
 * fix xfs tag, the presence of a line break does not make the title tag disappear anymore

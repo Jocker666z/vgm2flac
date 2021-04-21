@@ -43,6 +43,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 ### Arguments options
 * -h|--help: Display this help.
 * --no_fade_out: Force no fade out.
+* --no_flac: Force output wav temp. files only.
 * --no_normalization: Force no peak db normalization.
 * --no_remove_silence: Force no remove silence at start & end of track.
 * --pal: Force the tempo reduction to simulate 50hz.
@@ -55,7 +56,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Philips CD-i: xa
 * Commodore C64/128: sid
 * Fujitsu FM-7, FM Towns: s98
-* Microsoft Xbox: aix, mus, sfd, xwav
+* Microsoft Xbox: aix, mus, sndsn, sfd, xwav
 * Microsoft Xbox 360: bik, wem, xwb
 * Mobile: acb, fsb, txtp
 * NEC PC-Engine/TurboGrafx-16: hes
@@ -73,17 +74,17 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sega Mark III/Master System: vgm, vgz
 * Sega Mega Drive/Genesis: vgm, vgz
 * Sega Saturn: minissf, ssf
-* Sega Dreamcast: adx, dsf, spsd
+* Sega Dreamcast: adx, dsf, spsd, str
 * NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1: s98
 * Sony Playstation: psf, minipsf, pona, xa, vag
-* Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, svag, vag, vpk, sng, vgs
+* Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, sps, svag, vag, vpk, sng, vgs
 * Sony Playstation 3: aa3, adx, at3, genh, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem
 * Sony Playstation 4: sab, wem
 * Sony PSP: at3, txtp
 * Playstation Vita: at9, sab
 * Panasonic 3DO: aifc, pona, str
 * Philips CD-i: grn
-* PC: bik, bnk, hsq, fsb, his, imc, imf, logg, mid, mod, sab, sdb, smk, sqx, txtp, wlf, xwb
+* PC: bik, bnk, hsq, fsb, his, imc, imf, logg, mid, mod, sab, sdb, snds, smk, sqx, txtp, wem, wlf, xwb
 * Various machines: vgm, vgz
 * Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
 * ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp

@@ -38,6 +38,9 @@ spc_default_duration="180"																	# In second
 vgm2wav_samplerate="44100"																	# Sample rate in Hz
 vgm2wav_bit_depth="16"																		# Bit depth must be 16 or 24
 vgm2wav_loops="2"
+# vgmstream
+vgmstream_force_looping=""																	# force end-to-end looping with value "1", if empty no force
+
 
 # Extensions
 ext_adplay="hsq|imf|sdb|sqx|wlf"
@@ -234,6 +237,7 @@ Usage: vgm2flac [options]
                           Without option treat current directory.
   -h|--help               Display this help.
   --no_fade_out           Force no fade out.
+  --no_flac               Force output wav temp. files only.
   --no_normalization      Force no peak db normalization.
   --no_remove_silence     Force no remove silence at start & end of track.
   --pal                   Force the tempo reduction to simulate 50hz.
@@ -420,14 +424,16 @@ if [[ "$flac_force_pal" = "1" ]]; then
 	# 60hz - 50hz = 83.333333333% of orginal speed
 	for i in "${lst_flac_validated[@]}"; do
 		sox "$files" temp-out.flac tempo 0.83333333333
-		rm "$files".wav &>/dev/null
+		rm "$files".flac &>/dev/null
 		mv temp-out.flac "$files" &>/dev/null
 	done
 fi
 }
 wav2flac() {
-# Enconding final flac
-ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 12 -sample_fmt "$default_flac_bit_depth" -metadata title="$tag_song" -metadata album="$tag_album" -metadata artist="$tag_artist" -metadata date="$tag_date_formated" "${files%.*}".flac
+if ! [[ "$no_flac" = "1" ]]; then
+	# Enconding final flac
+	ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 12 -sample_fmt "$default_flac_bit_depth" -metadata title="$tag_song" -metadata album="$tag_album" -metadata artist="$tag_artist" -metadata date="$tag_date_formated" "${files%.*}".flac
+fi
 }
 
 # Convert loop
@@ -1225,13 +1231,24 @@ if (( "${#lst_all_files[@]}" )); then
 		fi
 		# Extract WAV
 		(
-			if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
-				"$vgmstream_cli_bin" -o "${files%.*}".wav "$files"
+			if [[ "$vgmstream_force_looping" = "1" ]]; then
+				if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
+					"$vgmstream_cli_bin" -e -o "${files%.*}".wav "$files"
+				else
+					# Multi track loop
+					for sub_track in $(seq -w 1 "$total_sub_track"); do
+						"$vgmstream_cli_bin" -e -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
+					done
+				fi
 			else
-				# Multi track loop
-				for sub_track in $(seq -w 1 "$total_sub_track"); do
-					"$vgmstream_cli_bin" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
-				done
+				if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
+					"$vgmstream_cli_bin" -o "${files%.*}".wav "$files"
+				else
+					# Multi track loop
+					for sub_track in $(seq -w 1 "$total_sub_track"); do
+						"$vgmstream_cli_bin" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
+					done
+				fi
 			fi
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
@@ -1244,10 +1261,10 @@ if (( "${#lst_all_files[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation to 0, false stereo detection 
-		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
+		# Peak normalisation to 0, false stereo detection 
+		wav_normalization_channel_test
 		# Fade out, vgmstream fade out default off, special case for files: his
 		if [[ "$force_fade_out" = "1" ]]; then
 			wav_fade_out
@@ -1625,41 +1642,43 @@ local count
 fi
 }
 tag_questions() {
-if test -z "$tag_game"; then
-	echo "Please indicate the game title (leave empty for [unknown])"
-	read -r -e -p " -> " tag_game
-	echo
+if ! [[ "$no_flac" = "1" ]]; then
 	if test -z "$tag_game"; then
-		tag_game="unknown"
+		echo "Please indicate the game title (leave empty for [unknown])"
+		read -r -e -p " -> " tag_game
+		echo
+		if test -z "$tag_game"; then
+			tag_game="unknown"
+		fi
 	fi
-fi
-if test -z "$tag_artist"; then
-	echo "Please indicate the artist (leave empty for [unknown])"
-	read -r -e -p " -> " tag_artist
-	echo
 	if test -z "$tag_artist"; then
-		tag_artist="unknown"
+		echo "Please indicate the artist (leave empty for [unknown])"
+		read -r -e -p " -> " tag_artist
+		echo
+		if test -z "$tag_artist"; then
+			tag_artist="unknown"
+		fi
 	fi
-fi
-if test -z "$tag_date"; then
-	echo "Please indicate the release date"
-	read -r -e -p " -> " tag_date
-	echo
 	if test -z "$tag_date"; then
-		tag_date="NULL"
+		echo "Please indicate the release date"
+		read -r -e -p " -> " tag_date
+		echo
+		if test -z "$tag_date"; then
+			tag_date="NULL"
+			tag_date_formated=""
+		fi
+	elif [[ "$tag_date" = "NULL" ]]; then
 		tag_date_formated=""
+	else
+		tag_date_formated="$tag_date"
 	fi
-elif [[ "$tag_date" = "NULL" ]]; then
-	tag_date_formated=""
-else
-	tag_date_formated="$tag_date"
-fi
-if test -z "$tag_machine"; then
-	echo "Please indicate the release platform"
-	read -r -e -p " -> " tag_machine
-	echo
 	if test -z "$tag_machine"; then
-		tag_machine="NULL"
+		echo "Please indicate the release platform"
+		read -r -e -p " -> " tag_machine
+		echo
+		if test -z "$tag_machine"; then
+			tag_machine="NULL"
+		fi
 	fi
 fi
 }
@@ -1722,9 +1741,9 @@ if [ "${#lst_m3u[@]}" -gt "0" ]; then
 					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')					# Total duration in ?:m:s
 	if [[ -n "$xxs_duration" ]]; then
 		xxs_duration_format=$(echo "$xxs_duration"| grep -o ":" | wc -l)
-		if [[ "$xxs_duration_format" = "2" ]]; then										# IF duration is in this format = h:m:s
+		if [[ "$xxs_duration_format" = "2" ]]; then										# If duration is in this format = h:m:s
 			xxs_duration=$(echo "$xxs_duration" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$xxs_duration_format" = "0" && -n "$xxs_duration" ]]; then				# IF duration is in this format = s
+		elif [[ "$xxs_duration_format" = "0" && -n "$xxs_duration" ]]; then				# If duration is in this format = s
 			xxs_duration=$(echo "$xxs_duration" | sed 's/^/00:/')
 		fi
 		xxs_duration_second=$(echo "$xxs_duration" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')	# Total duration in s
@@ -1743,14 +1762,16 @@ if [ "${#lst_m3u[@]}" -gt "0" ]; then
 				| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')						# Fade out duration in ?:m:s
 	if [[ -n "$xxs_fading" ]]; then
 		xxs_fading_format=$(echo "$xxs_fading"| grep -o ":" | wc -l)
-		if [[ "$xxs_fading_format" = "2" ]]; then										# IF duration is in this format = h:m:s
+		if [[ "$xxs_fading_format" = "2" ]]; then										# If duration is in this format = h:m:s
 			xxs_fading=$(echo "$xxs_fading" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$xxs_fading_format" = "0" && -n "$xxs_fading" ]]; then					# IF duration is in this format = s
+		elif [[ "$xxs_fading_format" = "0" && -n "$xxs_fading" ]]; then					# If duration is in this format = s
 			xxs_fading=$(echo "$xxs_fading" | sed 's/^/00:/')
 		fi
 		# Fading value
 		xxs_fading_second=$(echo "$xxs_fading" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')			# Fade out duration in s
 		xxs_fading_msecond=$(($xxs_fading_second*1000))																# Fade out duration in ms
+	else
+		xxs_fading_second="0"
 	fi
 
 	# nsfplay fading correction if empty (.nsf apply only)
@@ -2063,17 +2084,21 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 fi
 }
 end_functions() {
-if [[ "$flac_loop_activated" = "1" ]]; then
-	list_wav_files
-	list_flac_files
-	list_flac_validation
-	flac_force_pal_tempo
-	tag_track
-	mk_target_directory
+if [[ "$no_flac" = "1" ]]; then
 	clean_cache_directory
-	display_flac_in_error
-	wav_remove
-	flac_corrupted_remove
+else
+	if [[ "$flac_loop_activated" = "1" ]]; then
+		list_wav_files
+		list_flac_files
+		list_flac_validation
+		flac_force_pal_tempo
+		tag_track
+		mk_target_directory
+		clean_cache_directory
+		display_flac_in_error
+		wav_remove
+		flac_corrupted_remove
+	fi
 fi
 }
 
@@ -2090,6 +2115,9 @@ while [[ $# -gt 0 ]]; do
 	;;
 	--no_fade_out)
 		no_fade_out="1"														# Set force no fade out
+	;;
+	--no_flac)
+		no_flac="1"															# Set force wav temp. files only
 	;;
 	--no_normalization)
 		no_normalization="1"												# Set force no peak db norm. & channel test
