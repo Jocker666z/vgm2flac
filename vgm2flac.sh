@@ -312,8 +312,9 @@ list_flac_validation() {
 if ! [[ "${#lst_flac[@]}" = "0" ]]; then
 	local flac_test
 	for i in "${!lst_flac[@]}"; do
-		flac_test=$(soxi "${lst_flac[i]}" 2>/dev/null)
-		if [ -z "$flac_test" ]; then
+		flac_error_test=$(soxi "${lst_flac[i]}" 2>/dev/null)
+		flac_empty_test=$(sox "${lst_flac[i]}" -n stat 2>&1 | grep "Maximum amplitude:" | awk '{print $3}')
+		if [ -z "$flac_error_test" ] || [[ "$flac_empty_test" = "0.000000" ]]; then
 			lst_flac_in_error+=( "${lst_flac[i]}" )
 		else
 			lst_flac_validated+=( "${lst_flac[i]}" )
@@ -331,15 +332,13 @@ if ! [[ "$no_remove_silence" = "1" ]]; then
 
 	# Remove silence from audio files while leaving gaps, if audio during more than 10s
 	test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
-	if [[ "$test_duration" -gt 10 ]]; then
-		# Remove silence at start & end
-		sox "${files%.*}".wav temp-out.wav silence 1 0.2 -85d reverse silence 1 0.2 -85d reverse
-		rm "${files%.*}".wav &>/dev/null
-		mv temp-out.wav "${files%.*}".wav &>/dev/null
-		# Remove silence > 5s
-		#sox "${files%.*}".wav temp-out.wav silence -l 1 0.1 0.01% -1 5.0 0.01%
-		#rm "${files%.*}".wav &>/dev/null
-		#mv temp-out.wav "${files%.*}".wav &>/dev/null
+	if ! [[ "$test_duration" = "N/A" ]]; then			 # If not a bad file
+		if [[ "$test_duration" -gt 10 ]]; then
+			# Remove silence at start & end
+			sox "${files%.*}".wav temp-out.wav silence 1 0.2 -85d reverse silence 1 0.2 -85d reverse
+			rm "${files%.*}".wav &>/dev/null
+			mv temp-out.wav "${files%.*}".wav &>/dev/null
+		fi
 	fi
 
 fi
@@ -352,7 +351,7 @@ wav_remove_empty() {
 	for files in "${lst_wav[@]}"; do
 		test_empty_wav=$(sox "$files" -n stat 2>&1 | grep "Maximum amplitude:" | awk '{print $3}')
 		if [[ "$test_empty_wav" = "0.000000" ]]; then
-			rm "$files"
+			rm "$files" &>/dev/null
 		fi
 	done
 }
@@ -366,17 +365,19 @@ if ! [[ "$no_fade_out" = "1" ]]; then
 
 	# Out fade, if audio during more than 10s
 	test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
-	if [[ "$test_duration" -gt 10 ]] ; then
-		duration=$(soxi -d "${files%.*}".wav)
-		sox_fade_in="0:0.0"
-		if [[ -z "$imported_sox_fade_out" ]]; then
-			local sox_fade_out="0:$default_wav_fade_out"
-		else
-			local sox_fade_out="0:$imported_sox_fade_out"
+	if ! [[ "$test_duration" = "N/A" ]]; then			 # If not a bad file
+		if [[ "$test_duration" -gt 10 ]]; then
+			duration=$(soxi -d "${files%.*}".wav)
+			sox_fade_in="0:0.0"
+			if [[ -z "$imported_sox_fade_out" ]]; then
+				local sox_fade_out="0:$default_wav_fade_out"
+			else
+				local sox_fade_out="0:$imported_sox_fade_out"
+			fi
+			sox "${files%.*}".wav temp-out.wav fade t "$sox_fade_in" "$duration" "$sox_fade_out"
+			rm "${files%.*}".wav &>/dev/null
+			mv temp-out.wav "${files%.*}".wav &>/dev/null
 		fi
-		sox "${files%.*}".wav temp-out.wav fade t "$sox_fade_in" "$duration" "$sox_fade_out"
-		rm "${files%.*}".wav &>/dev/null
-		mv temp-out.wav "${files%.*}".wav &>/dev/null
 	fi
 
 fi
@@ -389,13 +390,17 @@ if ! [[ "$no_normalization" = "1" ]]; then
 
 	# Local variables
 	local testdb
+	local positive_testdb
 	local db
 	local left_md5
 	local right_md5
 
 	# Test Volume, set normalization variable
 	testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
-	if [[ "$testdb" = *"-"* ]] || [[ "$testdb" = "0.0" ]]; then
+	if [[ "$testdb" = *"-"* ]]; then
+		positive_testdb=$(echo "$TestDB" | cut -c2-)
+	fi
+	if [[ "$testdb" = *"-"* ]] && (( $(echo "$positive_testdb > $default_peakdb_norm" | bc -l) )); then
 		db=$(echo "$testdb" | cut -c2- | awk -v var="$default_peakdb_norm" '{print $1-var}')dB
 		afilter="-af volume=$db"
 	else
@@ -501,7 +506,7 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 		bchunk -w "${lst_bchunk_iso[0]}" "${lst_bchunk_cue[0]}" "$track_name"-Track-
 	
 		# Remove data track
-		rm -- "$track_name"-Track-*.iso
+		rm -- "$track_name"-Track-*.iso &>/dev/null
 
 		# Populate wav array
 		list_wav_files
@@ -2038,7 +2043,7 @@ if [ "${#lst_wav[@]}" -gt "0" ]; then											# If number of wav > 0
 	case $qarm in
 		"Y"|"y")
 			for files in "${lst_wav[@]}"; do
-				rm -f "$files" 2>/dev/null
+				rm -f "$files" &>/dev/null
 			done
 		;;
 	esac
@@ -2047,7 +2052,7 @@ fi
 flac_corrupted_remove() {
 if [ "${#lst_flac_in_error[@]}" -gt "0" ]; then											# If number of flac corrupted > 0
 	for files in "${lst_flac_in_error[@]}"; do
-		rm -f "$files" 2>/dev/null
+		rm -f "$files" &>/dev/null
 	done
 fi
 }
@@ -2076,10 +2081,10 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 
 	# Create target dir & mv
 	if [ ! -d "$PWD/$target_directory" ]; then
-		mkdir "$PWD/$target_directory"
+		mkdir "$PWD/$target_directory" &>/dev/null
 	fi
 	for files in "${lst_flac[@]}"; do
-		mv "$files" "$PWD/$target_directory"
+		mv "$files" "$PWD/$target_directory" &>/dev/null
 	done
 fi
 }
@@ -2091,13 +2096,13 @@ else
 		list_wav_files
 		list_flac_files
 		list_flac_validation
+		flac_corrupted_remove
 		flac_force_pal_tempo
 		tag_track
 		mk_target_directory
 		clean_cache_directory
 		display_flac_in_error
 		wav_remove
-		flac_corrupted_remove
 	fi
 fi
 }

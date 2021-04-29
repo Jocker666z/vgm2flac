@@ -1,9 +1,14 @@
 # Changelog
+v0.24:
+* fix now if wav not valid, no more error appear in sox loop
+* chg now flac validation is do with double check for prevent false positive. check 1: no soxi error, check 2: maximum amplitude must > 0
+* fix redirection of various no blocking error to null
+* chg now the normalization is only applied to files that have a value lower than the default
+
 v0.23:
 * add vgmstream force end-to-end looping with variable vgmstream_force_looping
 * add --no_flac in cmd argument
 * fix if nsf/m3u have no fading, wav extract now work
-
 
 v0.22:
 * fix regression, date now record in flac
