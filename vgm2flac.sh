@@ -398,14 +398,16 @@ if ! [[ "$no_normalization" = "1" ]]; then
 	# Test Volume, set normalization variable
 	testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
 	if [[ "$testdb" = *"-"* ]]; then
-		positive_testdb=$(echo "$TestDB" | cut -c2-)
+		positive_testdb=$(echo "$testdb" | cut -c2-)
 	fi
 	if [[ "$testdb" = *"-"* ]] && (( $(echo "$positive_testdb > $default_peakdb_norm" | bc -l) )); then
-		db=$(echo "$testdb" | cut -c2- | awk -v var="$default_peakdb_norm" '{print $1-var}')dB
+		db="$(echo "$testdb" | cut -c2- | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
 		afilter="-af volume=$db"
 	else
 		afilter=""
 	fi
+	echo "$positive_testdb $default_peakdb_norm"
+	echo "$positive_testdb > $default_peakdb_norm" | bc -l
 
 	# Channel test mono or stereo
 	left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
@@ -1199,7 +1201,7 @@ if (( "${#lst_all_files[@]}" )); then
 	# Bin check & set
 	unset lst_wav
 	vgmstream_cli_bin
-	
+
 	# Local variables
 	local vgmstream_test_result
 	local total_sub_track
@@ -1226,6 +1228,7 @@ if (( "${#lst_all_files[@]}" )); then
 		# Tag
 		tag_questions
 		tag_album
+
 		# Get total track
 		total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
 		# Record output name
