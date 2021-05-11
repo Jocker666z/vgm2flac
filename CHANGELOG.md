@@ -1,4 +1,11 @@
 # Changelog
+v0.25:
+* fix regression in normalization
+* chg improve of bash code
+* fix vgmstream, add case insensitive for txth & txtp test
+* add vgmstream, ignore multitrack with txtp files
+* add vgmstream, vgmstream_loops variable, default is 1
+
 v0.24:
 * fix now if wav not valid, no more error appear in sox loop
 * chg now flac validation is do with double check for prevent false positive. check 1: no soxi error, check 2: maximum amplitude must > 0

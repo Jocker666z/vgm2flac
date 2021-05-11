@@ -50,7 +50,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 ## Files tested
 * 3DO : aif
-* Amiga: 8svx, aam, core, cust, dw, gmc, mcr, mdat, mod, sa, sb, sfx, xm
+* Amiga: 8svx, aam, core, cust, dw, gmc, mcr, mdat, mod, sa, sb, scumm, sfx, xm
 * Amstrad CPC: ay, ym
 * Atari ST: snd, sndh, ym
 * Philips CD-i: xa
@@ -58,7 +58,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sndsn, sfd, xwav
 * Microsoft Xbox 360: bik, wem, xwb
-* Mobile: acb, fsb, txtp
+* Mobile: acb/awb, fsb, txtp
 * NEC PC-Engine/TurboGrafx-16: hes
 * Nintendo 3DS: bcstm, wem, bcwav, fsb, mus, txtp
 * Nintendo DS: 2sf, adx, mini2sf, minincsf, ncsf, sad
@@ -68,7 +68,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo N64: usf, miniusf
 * Nintendo NES: nsf, nsfe
 * Nintendo SNES: spc
-* Nintendo Switch: bgm, bfstm, bfwav, bwav, hca, kno, ktss, lopus, wem
+* Nintendo Switch: acb/awb, adx, bgm, bfstm, bfwav, bwav, hca, kno, ktss, lopus, wem
 * Nintendo Wii: ads, adx, brstm, mus
 * Sega Game Gear: vgm, vgz
 * Sega Mark III/Master System: vgm, vgz
@@ -118,9 +118,6 @@ If you want to use munt Roland MT-32 emulator as decoder, you must filled parame
 * http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
 * http://www.vgmpf.com/
 * https://wiki.archlinux.org/index.php/FluidSynth
-
-## TODO
-* ay files: use ffmpeg to decode
 
 ## Help for dependencies installation:
 ### munt

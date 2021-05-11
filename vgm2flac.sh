@@ -39,7 +39,8 @@ vgm2wav_samplerate="44100"																	# Sample rate in Hz
 vgm2wav_bit_depth="16"																		# Bit depth must be 16 or 24
 vgm2wav_loops="2"
 # vgmstream
-vgmstream_force_looping=""																	# force end-to-end looping with value "1", if empty no force
+vgmstream_loops="1"																			# Number of loop made by vgmstream
+vgmstream_force_looping=""																	# If vgmstream_loops variable don't work, use this. Force end-to-end looping with value "1", if empty no force
 
 
 # Extensions
@@ -397,17 +398,13 @@ if ! [[ "$no_normalization" = "1" ]]; then
 
 	# Test Volume, set normalization variable
 	testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
-	if [[ "$testdb" = *"-"* ]]; then
-		positive_testdb=$(echo "$testdb" | cut -c2-)
-	fi
-	if [[ "$testdb" = *"-"* ]] && (( $(echo "$positive_testdb > $default_peakdb_norm" | bc -l) )); then
-		db="$(echo "$testdb" | cut -c2- | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
+
+	if [[ "$testdb" = *"-"* ]] && (( $(echo "${testdb/-/} > $default_peakdb_norm" | bc -l) )); then
+		db="$(echo "${testdb/-/}" | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
 		afilter="-af volume=$db"
 	else
 		afilter=""
 	fi
-	echo "$positive_testdb $default_peakdb_norm"
-	echo "$positive_testdb > $default_peakdb_norm" | bc -l
 
 	# Channel test mono or stereo
 	left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
@@ -1211,7 +1208,9 @@ if (( "${#lst_all_files[@]}" )); then
 		if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
 			vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
 			# If vgmstream pass test, add to array
-			if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${files##*.}" = "TXTH" ]]; then
+			# Ignore txth
+			test_ext_file="${files##*.}"
+			if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${test_ext_file^^}" = "TXTH" ]]; then
 				# If no wav already output ok add to array
 				if ! compgen -G "$files*.wav" > /dev/null; then
 					lst_vgmstream+=("$files")
@@ -1230,13 +1229,18 @@ if (( "${#lst_all_files[@]}" )); then
 		tag_album
 
 		# Get total track
-		total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
+		# Ignore txtp
+		test_ext_file="${files##*.}"
+		if ! [[ "${test_ext_file^^}" =~ "TXTP" ]]; then
+			total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
+		fi
 		# Record output name
 		if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
 			lst_wav+=("${files%.*}".wav)
 		else
 			lst_wav+=("${files%.*}"-"$sub_track".wav)
 		fi
+
 		# Extract WAV
 		(
 			if [[ "$vgmstream_force_looping" = "1" ]]; then
@@ -1250,11 +1254,11 @@ if (( "${#lst_all_files[@]}" )); then
 				fi
 			else
 				if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
-					"$vgmstream_cli_bin" -o "${files%.*}".wav "$files"
+					"$vgmstream_cli_bin" -l "$vgmstream_loops" -o "${files%.*}".wav "$files"
 				else
 					# Multi track loop
 					for sub_track in $(seq -w 1 "$total_sub_track"); do
-						"$vgmstream_cli_bin" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
+						"$vgmstream_cli_bin" -l "$vgmstream_loops" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
 					done
 				fi
 			fi
