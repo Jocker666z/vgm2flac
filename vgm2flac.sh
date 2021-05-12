@@ -665,6 +665,7 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 
 	for hes in "${lst_ffmpeg_hes[@]}"; do
 		# Tags
+		set -x
 		tag_hes_extract
 		tag_machine="PC-Engine"
 		tag_questions
@@ -1799,11 +1800,11 @@ if [ "${#lst_m3u[@]}" -gt "0" ]; then
 
 else
 	tag_song="[untitled]"
-	xxs_duration_second="$xss_default_max_duration"
+	xxs_duration_second="$xxs_default_max_duration"
 
 	# nsfplay duration & fading s to ms
-	xxs_duration_msecond=$(($xxs_default_max_duration*1000))
-	xxs_fading_msecond=$(($default_wav_fade_out*1000))
+	xxs_duration_msecond=$(( xxs_default_max_duration * 1000 ))
+	xxs_fading_msecond=$(( default_wav_fade_out * 1000 ))
 fi
 }
 tag_ay() {					# Amstrad CPC, ZX Spectrum
