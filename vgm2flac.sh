@@ -13,7 +13,7 @@ vgm2flac_cache_tag="/home/$USER/.cache/vgm2flac/tag-$(date +%Y%m%s%N).info"					
 export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script outside a terminal
 
 # Others
-core_dependency=(bc bchunk ffmpeg ffprobe sox xxd)
+core_dependency=(awk bc ffmpeg ffprobe sed sox xxd)
 ffmpeg_log_lvl="-hide_banner -loglevel quiet"												# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
 
@@ -69,6 +69,18 @@ system_bin_location=$(which $bin_name)
 
 if test -n "$system_bin_location"; then
 	adplay_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
+fi
+}
+bchunk_bin() {
+local bin_name="bchunk"
+local system_bin_location
+system_bin_location=$(which $bin_name)
+
+if test -n "$system_bin_location"; then
+	bchunk_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
 	exit
@@ -607,9 +619,9 @@ fi
 }
 cmd_bchunk() {
 if [[ "$verbose" = "1" ]]; then
-	bchunk -v -w "${lst_bchunk_iso[0]}" "${lst_bchunk_cue[0]}" "$track_name"-Track-
+	"$bchunk_bin" -v -w "${lst_bchunk_iso[0]}" "${lst_bchunk_cue[0]}" "$track_name"-Track-
 else
-	bchunk -w "${lst_bchunk_iso[0]}" "${lst_bchunk_cue[0]}" "$track_name"-Track- &>/dev/null \
+	"$bchunk_bin" -w "${lst_bchunk_iso[0]}" "${lst_bchunk_cue[0]}" "$track_name"-Track- &>/dev/null \
 		&& echo_pre_space "✓ WAV  <- ${lst_bchunk_iso##*/}" || echo_pre_space "x WAV  <- ${lst_bchunk_iso##*/}"
 fi
 }
@@ -884,6 +896,9 @@ fi
 loop_bchunk() {				# Various machines CDDA
 if (( "${#lst_bchunk_iso[@]}" )); then
 	if test -n "$bchunk"; then				# If bchunk="1" in list_source_files()
+
+		# Bin check & set
+		bchunk_bin
 
 		# Local variable
 		local track_name
