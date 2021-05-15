@@ -1,6 +1,6 @@
 # vgm2flac
 
-Bash tool for vgm/chiptune encoding to flac.
+Bash tool for encoding various files vgm/chiptune to FLAC.
 
 ## Install & update
 
@@ -43,14 +43,15 @@ Simply launch vgm2flac command in directory with vgm files supported.
 ### Arguments options
 * -h|--help: Display this help.
 * --no_fade_out: Force no fade out.
-* --no_flac: Force output wav temp. files only.
+* --no_flac: Force output wav files only.
 * --no_normalization: Force no peak db normalization.
 * --no_remove_silence: Force no remove silence at start & end of track.
 * --pal: Force the tempo reduction to simulate 50hz.
+*   -v|--verbose: Verbose mode
 
 ## Files tested
 * 3DO : aif
-* Amiga: 8svx, aam, core, cust, dw, gmc, mcr, mdat, mod, sa, sb, scumm, sfx, xm
+* Amiga: 8svx, aam, bd, core, cust, dw, gmc, mcr, mdat, mod, sa, sb, scumm, sfx, xm
 * Amstrad CPC: ay, ym
 * Atari ST: snd, sndh, ym
 * Philips CD-i: xa

@@ -1,4 +1,23 @@
 # Changelog
+v0.26:
+* add - flav & wav duplicate test
+* add - print at start, current PWD & loop used by script
+* add - a standard view mode, print title, and a message at each conversion 
+* add - -v|--verbose in argument for ffmpeg in info mode (vervose mode become old display mode)
+* add - summary at end of encoding
+* chg - improve final test files
+* chg - ffmpeg default vervose is quiet
+* chg - improve bash code
+* chg - improve ay files loop
+* chg - ay files, now use ffprobe for get tag
+* fix - xxs_default_max_duration variable
+* fix - tag date empty, if it was entered manually
+* fix - flac_force_pal_tempo
+* fix - ay files, if "/" in tag title, no more rename fail
+* fix - ay files, now start seq by 0
+* remove - vgmstream_force_looping
+* remove - dead code
+
 v0.25:
 * fix regression in normalization
 * chg improve of bash code
