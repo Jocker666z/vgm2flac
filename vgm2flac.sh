@@ -13,7 +13,7 @@ vgm2flac_cache_tag="/home/$USER/.cache/vgm2flac/tag-$(date +%Y%m%s%N).info"					
 export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script outside a terminal
 
 # Others
-core_dependency=(awk bc ffmpeg ffprobe sed sox xxd)
+core_dependency=(awk bc ffmpeg ffprobe find sed sox xxd)
 ffmpeg_log_lvl="-hide_banner -loglevel quiet"												# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
 
@@ -45,9 +45,10 @@ vgmstream_loops="1"																			# Number of loop made by vgmstream
 ext_adplay="hsq|imf|sdb|sqx|wlf"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
-ext_ffmpeg="mod|spc|xa"
 ext_ffmpeg_gbs="gbs"
 ext_ffmpeg_hes="hes"
+ext_ffmpeg_spc="spc"
+ext_ffmpeg_xa="xa"
 ext_midi="mid"
 ext_nsfplay_nsf="nsf"
 ext_nsfplay_nsfe="nsfe"
@@ -271,7 +272,7 @@ if ! [[ "${#lst_wav_in_error[@]}" = "0" ]]; then
 	display_separator
 	echo_pre_space "WAV file(s) in error:"
 	display_separator
-	printf ' %s\n' "${lst_wav_duplicate[@]}"
+	printf ' %s\n' "${lst_wav_in_error[@]}"
 fi
 if ! [[ "${#lst_wav_duplicate[@]}" = "0" ]]; then
 	display_separator
@@ -382,9 +383,10 @@ mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep
 mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort)
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort)
 mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort)
-mapfile -t lst_ffmpeg < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort)
+mapfile -t lst_ffmpeg_spc < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_spc')$' 2>/dev/null | sort)
+mapfile -t lst_ffmpeg_xa < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_xa')$' 2>/dev/null | sort)
 mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort)
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_nsfplay_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsf')$' 2>/dev/null | sort)
@@ -645,20 +647,12 @@ else
 		&& echo_pre_space "✓ WAV  <- $sub_track - $tag_song" || echo_pre_space "x WAV  <- $sub_track - $tag_song"
 fi
 }
-cmd_ffmpeg_mod() {
-if [[ "$verbose" = "1" ]]; then
-	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec pcm_s16le -ar 44100 -f wav "${files%.*}".wav
-else
-	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec pcm_s16le -ar 44100 -f wav "${files%.*}".wav \
-		&& echo_pre_space "✓ WAV  <- ${files##*/}" || echo_pre_space "x WAV  <- ${files##*/}"
-fi
-}
 cmd_ffmpeg_spc() {
 if [[ "$verbose" = "1" ]]; then
 	ffmpeg $ffmpeg_log_lvl -y -i "$files" -t $spc_duration_total -acodec pcm_s16le -ar 32000 -f wav "${files%.*}".wav
 else
 	ffmpeg $ffmpeg_log_lvl -y -i "$files" -t $spc_duration_total -acodec pcm_s16le -ar 32000 -f wav "${files%.*}".wav \
-		&& echo_pre_space "✓ WAV  <-${files##*/}" || echo_pre_space "x WAV  <- ${files##*/}"
+		&& echo_pre_space "✓ WAV  <- ${files##*/}" || echo_pre_space "x WAV  <- ${files##*/}"
 fi
 }
 cmd_ffmpeg_xa() {
@@ -942,71 +936,6 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 	fi
 fi
 }
-loop_ffmpeg() {				# SNES, PS1 xa, PC mod, CD-i xa
-if (( "${#lst_ffmpeg[@]}" )); then
-	for files in "${lst_ffmpeg[@]}"; do
-		shopt -s nocasematch									# Set case insentive
-		case "${files[@]##*.}" in
-			*mod)												# PC ProTracker MOD
-				shopt -u nocasematch							# Set case sentive
-				# Tag
-				tag_questions
-				tag_album
-				tag_song
-				# Extract WAV
-				cmd_ffmpeg_mod
-				# Peak normalisation to 0, false stereo detection 
-				wav_normalization_channel_test
-				# Remove silence
-				wav_remove_silent
-				# Fade out
-				wav_fade_out
-			;;
-			*spc)												# SNES
-				shopt -u nocasematch							# Set case sentive
-				# Tag
-				tag_spc
-				tag_questions
-				tag_album
-				# Calc duration/fading
-				local spc_fading_second=$((spc_fading/1000))
-				local spc_duration_total=$((spc_duration+spc_fading_second))
-				# Extract WAV
-				cmd_ffmpeg_spc
-				# Fade out
-				imported_sox_fade_out="$spc_fading_second"
-				wav_fade_out
-				# Peak normalisation to 0, false stereo detection 
-				wav_normalization_channel_test
-				# Remove silence
-				wav_remove_silent
-			;;
-			*xa)												# PS1, CD-i
-				shopt -u nocasematch							# Set case sentive
-				# Tag
-				tag_questions
-				tag_album
-				tag_song
-				# Extract WAV
-				cmd_ffmpeg_xa
-				# Peak normalisation to 0, false stereo detection 
-				wav_normalization_channel_test
-				# Remove silence
-				wav_remove_silent
-			;;
-		esac
-
-		# Flac conversion
-		(
-		wav2flac
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
-	done
-	wait
-fi
-}
 loop_ffmpeg_gbs() {			# GB/GBC
 if (( "${#lst_ffmpeg_gbs[@]}" )); then
 
@@ -1158,6 +1087,102 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 		done
 		wait
 	done
+fi
+}
+loop_ffmpeg_spc() {			# SNES
+if (( "${#lst_ffmpeg_spc[@]}" )); then
+
+	# User info - Title
+	display_loop_title "ffmpeg" "SNES"
+
+	# Extract WAV
+	display_convert_title "WAV"
+	for files in "${lst_ffmpeg_spc[@]}"; do
+		# Tag
+		tag_spc
+		if [[ "$files" = "${lst_ffmpeg_spc[0]}" ]];then
+			tag_questions
+			tag_album
+		fi
+		# Calc duration/fading
+		local spc_fading_second=$((spc_fading/1000))
+		local spc_duration_total=$((spc_duration+spc_fading_second))
+		# Extract WAV
+		(
+		cmd_ffmpeg_spc
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Flac loop
+	display_convert_title "FLAC"
+	for files in "${lst_ffmpeg_spc[@]}"; do
+		# Tag
+		tag_spc
+		# Fade out
+		set -x
+		imported_sox_fade_out="$spc_fading_second"
+		set +x
+		wav_fade_out
+		# Peak normalisation to 0, false stereo detection 
+		wav_normalization_channel_test
+		# Remove silence
+		wav_remove_silent
+		(
+		wav2flac
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+fi
+}
+loop_ffmpeg_xa() {			# PS1/CD-i XA
+if (( "${#lst_ffmpeg_xa[@]}" )); then
+
+	# User info - Title
+	display_loop_title "ffmpeg" "PS1/CD-i XA"
+
+	# Tag
+	tag_questions
+	tag_album
+
+	# Extract WAV
+	display_convert_title "WAV"
+	for files in "${lst_ffmpeg_xa[@]}"; do
+		(
+		cmd_ffmpeg_xa
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Flac loop
+	display_convert_title "FLAC"
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song
+		# Remove silence
+		wav_remove_silent
+		# Peak normalisation to 0, false stereo detection 
+		wav_normalization_channel_test
+		# Flac conversion
+		(
+		wav2flac
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
 fi
 }
 loop_midi() {				# midi
@@ -1542,9 +1567,11 @@ if (( "${#lst_all_files[@]}" )); then
 	# Test all files
 	lst_uade=()
 	for files in "${lst_all_files[@]}"; do
-		uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
-		if [ "${#uade_test_result}" -gt "0" ]; then
-			lst_uade+=("$files")
+		if ! [[ "${files##*.}" = "mod" ]]; then
+			uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
+			if [ "${#uade_test_result}" -gt "0" ]; then
+				lst_uade+=("$files")
+			fi
 		fi
 	done
 
@@ -1709,12 +1736,12 @@ if (( "${#lst_all_files[@]}" )); then
 		# User info - Title
 		display_loop_title "vgmstream" "Various machines"
 
+		# Tag
+		tag_questions
+		tag_album
+
 		display_convert_title "WAV"
 		for files in "${lst_vgmstream[@]}"; do
-			# Tag
-			tag_questions
-			tag_album
-
 			# Get total track
 			# Ignore txtp
 			test_ext_file="${files##*.}"
@@ -2687,9 +2714,10 @@ timer_start=$(date +%s)
 # Encoding/tag loop
 loop_adplay
 loop_bchunk
-loop_ffmpeg
 loop_ffmpeg_gbs
 loop_ffmpeg_hes
+loop_ffmpeg_spc
+loop_ffmpeg_xa
 loop_midi
 loop_nsfplay_nsf
 loop_nsfplay_nsfe

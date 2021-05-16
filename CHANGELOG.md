@@ -1,4 +1,12 @@
 # Changelog
+v0.27:
+* chg - split ffmmpeg spc/xa function
+* chg - .mod files now use vgmstream for decoding
+* chg - move bchunk in optional dependency
+* fix - wav in error display
+* fix - ffmpeg xa, spc encoding message to user
+* fix - excluse .mod from uade loop, consider file extension is at end of files there is a probability that it is not an amiga file, files are left to vgmstream
+
 v0.26:
 * add - flav & wav duplicate test
 * add - print at start, current PWD & loop used by script

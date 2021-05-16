@@ -7,7 +7,7 @@ Bash tool for encoding various files vgm/chiptune to FLAC.
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`bc adplay bc bchunk ffmpeg ffprobe fluidsynth info68 munt nsfplay sc68 sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
+`bc adplay bc bchunk ffmpeg ffprobe fluidsynth find info68 munt nsfplay sc68 sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
 
 You will be able to run the vgm2flac even if it is missing, the script will warn you if a dependency is not met.
 
