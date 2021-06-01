@@ -30,8 +30,8 @@ sid_duration_without_loop="15"																# Track duration is second that do
 # Game Boy, NES, PC-Engine
 xxs_default_max_duration="360"																# In second
 # Midi
-fluidsynth_soundfont="/home/guignol/Téléchargements/vgm2flac-wip/soundfont/TyrolandSFX.sf2"																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
-munt_rom_path="/home/guignol/Téléchargements/Scripts/VGM/mt32roms/"																			# Set munt ROM dir (Roland MT-32 ROM)
+fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
+munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
 # SNES
 spc_default_duration="180"																	# In second
 # vgm2wav
