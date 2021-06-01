@@ -80,7 +80,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sony Playstation: psf, minipsf, pona, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, sps, svag, vag, vpk, sng, vgs
 * Sony Playstation 3: aa3, adx, at3, genh, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem
-* Sony Playstation 4: sab, wem
+* Sony Playstation 4: at9, sab, wem
 * Sony PSP: at3, txtp
 * Playstation Vita: at9, sab
 * Panasonic 3DO: aifc, pona, str

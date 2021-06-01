@@ -1,5 +1,6 @@
 # Changelog
 v0.27:
+* chg - now cache folder is /tmp/vgm2flac, on systems where tmp is in tmpfs, which reduces disk writes (https://wiki.archlinux.org/title/Tmpfs)
 * chg - split ffmmpeg spc/xa function
 * chg - .mod files now use vgmstream for decoding
 * chg - move bchunk in optional dependency
