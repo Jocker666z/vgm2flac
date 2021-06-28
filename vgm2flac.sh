@@ -1123,9 +1123,7 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 		# Tag
 		tag_spc
 		# Fade out
-		set -x
 		imported_sox_fade_out="$spc_fading_second"
-		set +x
 		wav_fade_out
 		# Peak normalisation to 0, false stereo detection 
 		wav_normalization_channel_test
