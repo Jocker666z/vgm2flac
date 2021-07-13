@@ -863,7 +863,7 @@ if (( "${#lst_adplay[@]}" )); then
 	wait
 
 	# Generate wav array
-	clean_wav_validation
+	list_wav_files
 
 	# Flac loop
 	display_convert_title "FLAC"
@@ -913,7 +913,7 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 		rm -- "$track_name"-Track-*.iso &>/dev/null
 
 		# Populate wav array
-		clean_wav_validation
+		list_wav_files
 
 		# Flac loop
 		display_convert_title "FLAC"
@@ -1059,7 +1059,7 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 		wait
 
 		# Wav clean
-		clean_wav_validation
+		list_wav_files
 
 		display_convert_title "FLAC"
 		for sub_track in $(seq -w 0 "$total_sub_track"); do
@@ -1272,7 +1272,7 @@ if (( "${#lst_midi[@]}" )); then
 	wait
 
 	# Generate wav array
-	clean_wav_validation
+	list_wav_files
 
 	# Flac loop
 	display_convert_title "FLAC"
@@ -1472,7 +1472,7 @@ if (( "${#lst_sc68[@]}" )); then
 		done
 
 		# Generate wav array
-		clean_wav_validation
+		list_wav_files
 
 		# Flac loop
 		display_convert_title "FLAC"
@@ -1528,7 +1528,7 @@ if (( "${#lst_sox[@]}" )); then
 	wait
 
 	# Generate wav array
-	clean_wav_validation
+	list_wav_files
 
 	# Flac loop
 	display_convert_title "FLAC"
@@ -1610,7 +1610,7 @@ if (( "${#lst_all_files[@]}" )); then
 		done
 
 		# Generate wav array
-		clean_wav_validation
+		list_wav_files
 
 		# Flac loop
 		display_convert_title "FLAC"
@@ -1700,7 +1700,7 @@ fi
 loop_vgmstream() {			# Various machines
 if (( "${#lst_all_files[@]}" )); then
 	# Bin check & set
-	unset lst_wav
+	lst_wav=()
 	vgmstream_cli_bin
 
 	# Local variables
@@ -1769,9 +1769,6 @@ if (( "${#lst_all_files[@]}" )); then
 			fi
 		done
 		wait
-
-		# Generate wav array
-		clean_wav_validation
 
 		# Flac loop
 		display_convert_title "FLAC"
@@ -1946,7 +1943,7 @@ if (( "${#lst_zxtune_sid[@]}" )); then
 		done
 
 		# Generate wav array
-		clean_wav_validation
+		list_wav_files
 
 		# if no wav, try without subtrack
 		if [ "${#lst_wav[@]}" -eq 0 ]; then
@@ -1982,7 +1979,7 @@ if (( "${#lst_zxtune_sid[@]}" )); then
 	done
 
 	# Generate wav array
-	clean_wav_validation
+	list_wav_files
 
 	# Flac loop
 	if (( "${#lst_wav[@]}" )); then
@@ -2104,7 +2101,7 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	wait
 
 	# Generate wav array
-	clean_wav_validation
+	list_wav_files
 
 	# Flac loop
 	display_convert_title "FLAC"
@@ -2161,7 +2158,7 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 	wait
 
 	# Generate wav array
-	clean_wav_validation
+	list_wav_files
 
 	# Flac loop
 	display_convert_title "FLAC"
@@ -2648,7 +2645,7 @@ if [[ "$no_flac" = "1" ]]; then
 	clean_cache_directory
 else
 	if [[ "$flac_loop_activated" = "1" ]]; then
-		list_wav_files
+		clean_wav_validation
 		clean_flac_validation
 		flac_force_pal_tempo
 		tag_track

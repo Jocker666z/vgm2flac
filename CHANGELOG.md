@@ -1,4 +1,8 @@
 # Changelog
+v0.27b:
+* fix - remove bash debug in spc loop
+* fix - vgmstream_cli no more duplicate FLAC encoding if various extension in current directory
+
 v0.27:
 * chg - now cache folder is /tmp/vgm2flac, on systems where tmp is in tmpfs, which reduces disk writes (https://wiki.archlinux.org/title/Tmpfs)
 * chg - split ffmmpeg spc/xa function
