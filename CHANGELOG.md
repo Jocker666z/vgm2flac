@@ -1,4 +1,8 @@
 # Changelog
+v0.28:
+* chg - improve read
+* fix - replace which by command -v - Debian is deprecated which (https://salsa.debian.org/debian/debianutils/-/commit/3a8dd10b4502f7bae8fc6973c13ce23fc9da7efb)
+
 v0.27b:
 * fix - remove bash debug in spc loop
 * fix - vgmstream_cli no more duplicate FLAC encoding if various extension in current directory

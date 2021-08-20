@@ -66,7 +66,7 @@ ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 adplay_bin() {
 local bin_name="adplay"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	adplay_bin="$system_bin_location"
@@ -78,7 +78,7 @@ fi
 bchunk_bin() {
 local bin_name="bchunk"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	bchunk_bin="$system_bin_location"
@@ -90,7 +90,7 @@ fi
 fluidsynth_bin() {
 local bin_name="fluidsynth"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 if test -n "$system_bin_location"; then
 	if [[ -z "$fluidsynth_soundfont" ]]; then
 		echo_pre_space "Warning, the variable (fluidsynth_soundfont) indicating the location"
@@ -110,7 +110,7 @@ fi
 info68_bin() {
 local bin_name="info68"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	info68_bin="$system_bin_location"
@@ -122,7 +122,7 @@ fi
 munt_bin() {
 local bin_name="mt32emu-smf2wav"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	if [[ -z "$munt_rom_path" ]]; then
@@ -141,7 +141,7 @@ fi
 nsfplay_bin() {
 local bin_name="nsf2wav"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	nsfplay_bin="$system_bin_location"
@@ -153,7 +153,7 @@ fi
 sc68_bin() {
 local bin_name="sc68"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	sc68_bin="$system_bin_location"
@@ -165,7 +165,7 @@ fi
 vgm2wav_bin() {
 local bin_name="vgm2wav"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	vgm2wav_bin="$system_bin_location"
@@ -177,7 +177,7 @@ fi
 vgmstream_cli_bin() {
 local bin_name="vgmstream_cli"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	vgmstream_cli_bin="$system_bin_location"
@@ -189,7 +189,7 @@ fi
 vgm_tag_bin() {
 local bin_name="vgm_tag"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	vgm_tag_bin="$system_bin_location"
@@ -201,7 +201,7 @@ fi
 uade123_bin() {
 local bin_name="uade123"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	uade123_bin="$system_bin_location"
@@ -213,7 +213,7 @@ fi
 zxtune123_bin() {
 local bin_name="zxtune123"
 local system_bin_location
-system_bin_location=$(which $bin_name)
+system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	zxtune123_bin="$system_bin_location"
@@ -2218,21 +2218,21 @@ fi
 tag_questions() {
 if ! [[ "$no_flac" = "1" ]]; then
 	if test -z "$tag_game"; then
-		read -r -p " Enter the game title: " tag_game
+		read -r -e -p " Enter the game title: " tag_game
 		display_remove_previous_line
 		if test -z "$tag_game"; then
 			tag_game="unknown"
 		fi
 	fi
 	if test -z "$tag_artist"; then
-		read -r -p " Enter the audio artist: " tag_artist
+		read -r -e -p " Enter the audio artist: " tag_artist
 		display_remove_previous_line
 		if test -z "$tag_artist"; then
 			tag_artist="unknown"
 		fi
 	fi
 	if test -z "$tag_date"; then
-		read -r -p " Enter the release date: " tag_date
+		read -r -e -p " Enter the release date: " tag_date
 		display_remove_previous_line
 		if test -z "$tag_date"; then
 			tag_date="NULL"
@@ -2246,7 +2246,7 @@ if ! [[ "$no_flac" = "1" ]]; then
 		tag_date_formated="$tag_date"
 	fi
 	if test -z "$tag_machine"; then
-		read -r -p " Enter the release platform: " tag_machine
+		read -r -e -p " Enter the release platform: " tag_machine
 		display_remove_previous_line
 		if test -z "$tag_machine"; then
 			tag_machine="NULL"

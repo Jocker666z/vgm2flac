@@ -85,7 +85,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Playstation Vita: at9, sab
 * Panasonic 3DO: aifc, pona, str
 * Philips CD-i: grn
-* PC: bik, bnk, hsq, fsb, his, imc, imf, logg, mid, mod, sab, sdb, snds, smk, sqx, txtp, wem, wlf, xwb
+* PC: apc, bik, bnk, hsq, fsb, his, imc, imf, logg, mab, mid, mod, sab, sdb, snds, smk, sqx, txtp, wem, wlf, xwb
 * Various machines: vgm, vgz
 * Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
 * ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp
@@ -192,6 +192,6 @@ su -c "make install" -m "root"
 
 ```
 cd /home/$USER/.local/bin/
-wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r4990.tar.bz2
-tar -xf zxtune123_r4990.tar.bz2 && rm zxtune123_r4990.tar.bz2
+wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_b5000.tar.bz2
+tar -xf zxtune123_b5000.tar.bz2 && rm zxtune123_b5000.tar.bz2
 ```
