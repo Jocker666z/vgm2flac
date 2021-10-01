@@ -36,18 +36,19 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Encoding loop order:
 	* vgm encoding in wav file
 	* peak normalisation to -1db & false stereo detection (md5 channel test)
-	* apply fade out if necessary
 	* remove audio silence at start & end
+	* apply fade out (if necessary or forced)
 	* wav encoding in flac file
 
 ### Arguments options
 * -h|--help: Display this help.
+* --fade_out: Force default fade out.
 * --no_fade_out: Force no fade out.
 * --no_flac: Force output wav files only.
 * --no_normalization: Force no peak db normalization.
 * --no_remove_silence: Force no remove silence at start & end of track.
 * --pal: Force the tempo reduction to simulate 50hz.
-*   -v|--verbose: Verbose mode
+* -v|--verbose: Verbose mode
 
 ## Files tested
 * 3DO : aif
@@ -70,7 +71,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo NES: nsf, nsfe
 * Nintendo SNES: spc
 * Nintendo Switch: acb/awb, adx, bgm, bfstm, bfwav, bwav, hca, kno, ktss, lopus, wem
-* Nintendo Wii: ads, adx, brstm, mus
+* Nintendo Wii: ads, adx, brstm, lwav, mus
 * Sega Game Gear: vgm, vgz
 * Sega Mark III/Master System: vgm, vgz
 * Sega Mega Drive/Genesis: vgm, vgz
@@ -111,8 +112,8 @@ If you want to use munt Roland MT-32 emulator as decoder, you must filled parame
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
 * HES spec: http://www.purose.net/befis/download/nezplug/hesspec.txt
 * KSS spec: https://ocremix.org/info/KSS_Format_Specification
-* NSF spec: https://wiki.nesdev.com/w/index.php/NSF
-* NSFe spec: https://wiki.nesdev.com/w/index.php/NSFe
+* NSF spec: https://wiki.nesdev.org/w/index.php/NSF
+* NSFe spec: https://wiki.nesdev.org/w/index.php/NSFe
 * SGC spec: https://ocremix.org/info/SGC_Format_Specification
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt

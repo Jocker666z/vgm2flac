@@ -249,6 +249,7 @@ Bash tool for vgm/chiptune encoding to flac
 Usage: vgm2flac [options]
                           Without option treat current directory.
   -h|--help               Display this help.
+  --fade_out              Force default fade out.
   --no_fade_out           Force no fade out.
   --no_flac               Force output wav files only.
   --no_normalization      Force no peak db normalization.
@@ -555,22 +556,22 @@ if [[ -f "${files%.*}".wav ]]; then
 	# For active end functions
 	flac_loop_activated="1"
 
-	if ! [[ "$no_normalization" = "1" ]]; then
-
 		# Local variables
 		local testdb
 		local db
 		local left_md5
 		local right_md5
+		local afilter
+		local confchan
 
 		# Test Volume, set normalization variable
-		testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
+		if ! [[ "$no_normalization" = "1" ]]; then
+			testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
 
-		if [[ "$testdb" = *"-"* ]] && (( $(echo "${testdb/-/} > $default_peakdb_norm" | bc -l) )); then
-			db="$(echo "${testdb/-/}" | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
-			afilter="-af volume=$db"
-		else
-			afilter=""
+			if [[ "$testdb" = *"-"* ]] && (( $(echo "${testdb/-/} > $default_peakdb_norm" | bc -l) )); then
+				db="$(echo "${testdb/-/}" | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
+				afilter="-af volume=$db"
+			fi
 		fi
 
 		# Channel test mono or stereo
@@ -578,16 +579,15 @@ if [[ -f "${files%.*}".wav ]]; then
 		right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
 		if [ "$left_md5" = "$right_md5" ]; then
 			confchan="-channel_layout mono"
-		else
-			confchan=""
 		fi
 
 		# Encoding Wav
-		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec "$default_wav_bit_depth" -f wav temp-out.wav
-		rm "${files%.*}".wav &>/dev/null
-		mv temp-out.wav "${files%.*}".wav &>/dev/null
+		if [[ -n "$afilter" ]] || [[ -n "$confchan" ]]; then
+			ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec "$default_wav_bit_depth" -f wav temp-out.wav
+			rm "${files%.*}".wav &>/dev/null
+			mv temp-out.wav "${files%.*}".wav &>/dev/null
+		fi
 
-	fi
 fi
 }
 flac_force_pal_tempo() {
@@ -725,9 +725,9 @@ fi
 }
 cmd_sox() {
 if [[ "$verbose" = "1" ]]; then
-	sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$files" "${files%.*}".wav
+	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" -L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop"
 else
-	sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$files" "${files%.*}".wav &>/dev/null \
+	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" -L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" &>/dev/null \
 		&& echo_pre_space "✓ WAV  <- ${files##*/}" || echo_pre_space "x WAV  <- ${files##*/}"
 fi
 }
@@ -870,7 +870,7 @@ if (( "${#lst_adplay[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation to 0, false stereo detection 
+		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
@@ -920,10 +920,14 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 		for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song="[untitled]"
-			# Peak normalisation to 0, false stereo detection 
+			# Peak normalisation, false stereo detection 
 			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
+			# Add fade out
+			if [[ "$force_fade_out" = "1" ]]; then
+				wav_fade_out
+			fi
 			# Flac conversion
 			(
 			wav2flac
@@ -1002,7 +1006,7 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
-				# Peak normalisation to 0, false stereo detection 
+				# Peak normalisation, false stereo detection 
 				wav_normalization_channel_test
 				# Fade out
 				imported_sox_fade_out="$xxs_fading_second"
@@ -1069,7 +1073,7 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
-				# Peak normalisation to 0, false stereo detection 
+				# Peak normalisation, false stereo detection 
 				wav_normalization_channel_test
 				# Fade out
 				imported_sox_fade_out="$xxs_fading_second"
@@ -1122,11 +1126,11 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 	for files in "${lst_ffmpeg_spc[@]}"; do
 		# Tag
 		tag_spc
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
 		# Fade out
 		imported_sox_fade_out="$spc_fading_second"
 		wav_fade_out
-		# Peak normalisation to 0, false stereo detection 
-		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
 		(
@@ -1169,7 +1173,11 @@ if (( "${#lst_ffmpeg_xa[@]}" )); then
 		tag_song
 		# Remove silence
 		wav_remove_silent
-		# Peak normalisation to 0, false stereo detection 
+		# Add fade out
+		if [[ "$force_fade_out" = "1" ]]; then
+			wav_fade_out
+		fi
+		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
 		# Flac conversion
 		(
@@ -1279,7 +1287,7 @@ if (( "${#lst_midi[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation to 0, false stereo detection 
+		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
@@ -1343,10 +1351,14 @@ if (( "${#lst_nsfplay_nsf[@]}" )); then
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
-				# Peak normalisation to 0, false stereo detection 
+				# Peak normalisation, false stereo detection 
 				wav_normalization_channel_test
 				# Remove silence
 				wav_remove_silent
+				# Add fade out
+				if [[ "$force_fade_out" = "1" ]]; then
+					wav_fade_out
+				fi
 				# Flac conversion
 				(
 				wav2flac
@@ -1406,10 +1418,14 @@ if (( "${#lst_nsfplay_nsfe[@]}" )); then
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
-				# Peak normalisation to 0, false stereo detection 
+				# Peak normalisation, false stereo detection 
 				wav_normalization_channel_test
 				# Remove silence
 				wav_remove_silent
+				# Add fade out
+				if [[ "$force_fade_out" = "1" ]]; then
+					wav_fade_out
+				fi
 				# Flac conversion
 				(
 				wav2flac
@@ -1479,7 +1495,7 @@ if (( "${#lst_sc68[@]}" )); then
 		for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song="[untitled]"
-			# Peak normalisation to 0, false stereo detection 
+			# Peak normalisation, false stereo detection 
 			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
@@ -1502,52 +1518,156 @@ if (( "${#lst_sox[@]}" )); then
 
 	# Local variable
 	local delta
+	local sox_sample_rate_question
+	local sox_channel_question
+	local sox_loop_question
 
-	# User info - Title
-	display_loop_title "sox" "Various machines"
-
-	# Tag
-	tag_questions
-	tag_album
-
-	# Extract WAV
-	display_convert_title "WAV"
+	# Test files
 	for files in "${lst_sox[@]}"; do
 		# Test if data by measuring maximum difference between two successive samples
 		delta=$(sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$files" -n stat 2>&1 | grep "Maximum delta:" | awk '{print $3}')
 		# If Maximum delta < 1.9 - raw -> wav
 		if awk -v n1="$delta" -v n2="1.9" 'BEGIN {if (n1+0<n2+0) exit 0; exit 1}'; then
+			lst_sox_pass+=("$files")
+		fi
+	done
+	wait
+
+	# Start sox loop with file passed
+	if (( "${#lst_sox_pass[@]}" )); then
+
+		# User info - Title
+		display_loop_title "sox" "Various machines - RAW files"
+
+		# Tag
+		tag_questions
+		tag_album
+
+		# Sample rate question
+		echo_pre_space "Choose sample rate:"
+		echo
+		echo_pre_space " [1]  > 8000 Hz"
+		echo_pre_space " [2]  > 11025 Hz"
+		echo_pre_space " [3]  > 16000 Hz"
+		echo_pre_space " [4]  > 22050 Hz"
+		echo_pre_space " [5]  > 24000 Hz"
+		echo_pre_space " [6]  > 32000 Hz"
+		echo_pre_space " [7]* > 44100 Hz"
+		echo_pre_space " [8]  > 48000 Hz"
+		read -r -e -p " -> " sox_sample_rate_question
+		case "$sox_sample_rate_question" in
+			"1")
+				sox_sample_rate="8000"
+			;;
+			"2")
+				sox_sample_rate="11025"
+			;;
+			"3")
+				sox_sample_rate="16000"
+			;;
+			"4")
+				sox_sample_rate="22050"
+			;;
+			"5")
+				sox_sample_rate="24000"
+			;;
+			"6")
+				sox_sample_rate="32000"
+			;;
+			"7")
+				sox_sample_rate="44100"
+			;;
+			"8")
+				sox_sample_rate="48000"
+			;;
+			*)
+				sox_sample_rate="44100"
+				display_remove_previous_line
+				echo " -> 44100"
+			;;
+		esac
+
+		# Channels question
+		display_separator
+		echo_pre_space "Choose channels number:"
+		echo
+		echo_pre_space " [1]  > Mono"
+		echo_pre_space " [2]* > Stereo"
+		read -r -e -p " -> " sox_channel_question
+		case "$sox_channel_question" in
+			"1")
+				sox_channel="1"
+			;;
+			"2")
+				sox_channel="2"
+			;;
+			*)
+				sox_channel="2"
+				display_remove_previous_line
+				echo " -> 2"
+			;;
+		esac
+
+		# Loop question
+		display_separator
+		echo_pre_space "Choose number of loop:"
+		echo
+		echo_pre_space " [1]* > No loop"
+		echo_pre_space " [2]  > 2 loop"
+		read -r -e -p " -> " sox_loop_question
+		case "$sox_loop_question" in
+			"1")
+				sox_loop="0"
+			;;
+			"2")
+				sox_loop="1"
+			;;
+			*)
+				sox_loop="0"
+				display_remove_previous_line
+				echo " -> 1"
+			;;
+		esac
+
+		# Extract WAV
+		display_convert_title "WAV"
+		for files in "${lst_sox_pass[@]}"; do
+				(
+				cmd_sox
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+					wait -n
+				fi
+		done
+		wait
+
+		# Generate wav array
+		list_wav_files
+
+		# Flac loop
+		display_convert_title "FLAC"
+		for files in "${lst_wav[@]}"; do
+			# Tag
+			tag_song
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
+			# Remove silence
+			wav_remove_silent
+			# Fade out
+			if [[ "$force_fade_out" = "1" ]]; then
+				wav_fade_out
+			fi
+			# Flac conversion
 			(
-			cmd_sox
+			wav2flac
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
 			fi
-		fi
-	done
-	wait
+		done
+		wait
 
-	# Generate wav array
-	list_wav_files
-
-	# Flac loop
-	display_convert_title "FLAC"
-	for files in "${lst_wav[@]}"; do
-		# Tag
-		tag_song
-		# Peak normalisation to 0, false stereo detection 
-		wav_normalization_channel_test
-		# Remove silence
-		wav_remove_silent
-		# Flac conversion
-		(
-		wav2flac
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
-	done
-	wait
+	fi
 fi
 }
 loop_uade() {				# Amiga
@@ -1618,7 +1738,7 @@ if (( "${#lst_all_files[@]}" )); then
 				# Tag
 				tag_song
 
-				# Peak normalisation to 0, false stereo detection 
+				# Peak normalisation, false stereo detection 
 				wav_normalization_channel_test
 				# Remove silence
 				wav_remove_silent
@@ -1680,11 +1800,14 @@ if (( "${#lst_vgm2wav[@]}" )); then
 		tag_questions
 		tag_album
 
-		# Peak normalisation to 0, false stereo detection 
+		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
-
 		# Remove silence
 		wav_remove_silent
+		# Add fade out
+		if [[ "$force_fade_out" = "1" ]]; then
+			wav_fade_out
+		fi
 
 		# Flac conversion
 		(
@@ -1775,10 +1898,10 @@ if (( "${#lst_all_files[@]}" )); then
 		for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
-			# Peak normalisation to 0, false stereo detection 
-			wav_normalization_channel_test
 			# Fade out, vgmstream fade out default off, special case for files: his
 			if [[ "$force_fade_out" = "1" ]]; then
 				wav_fade_out
@@ -1828,7 +1951,7 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 
 			# Flac filename
 			files="$tag_song.wav"
-			# Peak normalisation to 0, false stereo detection 
+			# Peak normalisation, false stereo detection 
 			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
@@ -1865,7 +1988,7 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 				# Flac filename
 				mv "$sub_track".wav "$sub_track - $tag_song.wav"
 				files="$sub_track - $tag_song.wav"
-				# Peak normalisation to 0, false stereo detection 
+				# Peak normalisation, false stereo detection 
 				wav_normalization_channel_test
 				# Remove silence
 				wav_remove_silent
@@ -1987,7 +2110,7 @@ if (( "${#lst_zxtune_sid[@]}" )); then
 		for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song="[untitled]"
-			# Peak normalisation to 0, false stereo detection 
+			# Peak normalisation, false stereo detection 
 			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
@@ -2048,12 +2171,12 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 		tag_questions
 		tag_album
 
-		# Peak normalisation to 0, false stereo detection 
+		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
-		# Consider fade out if N64 files not have tag_length
-		if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ]; then
+		# Consider fade out if N64 files not have tag_length, or force
+		if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ] || [ "$force_fade_out" = "1" ]; then
 			if [[ -z "$tag_length" ]]; then
 				wav_fade_out
 			fi
@@ -2108,7 +2231,7 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation to 0, false stereo detection 
+		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
@@ -2165,7 +2288,7 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation to 0, false stereo detection 
+		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
@@ -2666,8 +2789,8 @@ while [[ $# -gt 0 ]]; do
 		cmd_usage
 		exit
 	;;
-	---pal)
-		flac_force_pal="1"													# Set pal mode
+	--fade_out)
+		force_fade_out="1"													# Set force default fade out
 	;;
 	--no_fade_out)
 		no_fade_out="1"														# Set force no fade out
@@ -2680,6 +2803,9 @@ while [[ $# -gt 0 ]]; do
 	;;
 	--no_remove_silence)
 		no_remove_silence="1"												# Set force no remove silence
+	;;
+	---pal)
+		flac_force_pal="1"													# Set pal mode
 	;;
 	-v|--verbose)
 		verbose="1"

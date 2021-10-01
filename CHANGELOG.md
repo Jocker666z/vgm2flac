@@ -1,4 +1,11 @@
 # Changelog
+v0.29:
+* fix - no more test false stereo test if --no_normalization selected
+* chg - no more ffmpeg command call, if no peak db & false stereo
+* add - in sox loop, add loop number, sample rate & channels question
+* add - in sox loop, now test file before launch loop
+* add - force default fade out option --fade_out
+
 v0.28:
 * chg - improve read
 * fix - replace which by command -v - Debian is deprecated which (https://salsa.debian.org/debian/debianutils/-/commit/3a8dd10b4502f7bae8fc6973c13ce23fc9da7efb)
