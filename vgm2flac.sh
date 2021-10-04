@@ -35,7 +35,7 @@ munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
 # SNES
 spc_default_duration="180"																	# In second
 # vgm2wav
-vgm2wav_samplerate="44100"																	# Sample rate in Hz
+vgm2wav_samplerate="48000"																	# Sample rate in Hz
 vgm2wav_bit_depth="16"																		# Bit depth must be 16 or 24
 vgm2wav_loops="2"
 # vgmstream
@@ -1867,13 +1867,16 @@ if (( "${#lst_all_files[@]}" )); then
 			# Ignore txtp
 			test_ext_file="${files##*.}"
 			if ! [[ "${test_ext_file^^}" =~ "TXTP" ]]; then
+				#total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //' | awk '{ print $1 - 1 }')
 				total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
 			fi
 			# Record output name
 			if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
 				lst_wav+=("${files%.*}".wav)
 			else
-				lst_wav+=("${files%.*}"-"$sub_track".wav)
+				for sub_track in $(seq -w 0 "$total_sub_track"); do
+					lst_wav+=("${files%.*}"-"$sub_track".wav)
+				done
 			fi
 
 			# Extract WAV
@@ -1882,7 +1885,7 @@ if (( "${#lst_all_files[@]}" )); then
 				cmd_vgmstream
 			else
 				# Multi track loop
-				for sub_track in $(seq -w 1 "$total_sub_track"); do
+				for sub_track in $(seq -w 0 "$total_sub_track"); do
 					cmd_vgmstream_multi_track
 				done
 			fi

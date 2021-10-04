@@ -52,7 +52,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 ## Files tested
 * 3DO : aif
-* Amiga: 8svx, aam, bd, core, cust, dw, gmc, mcr, mdat, mod, sa, sb, scumm, sfx, xm
+* Amiga: 8svx, aam, bd, core, cust, dw, gmc, mcr, mdat, mod, rjp, sa, sb, scumm, sfx, xm
 * Amstrad CPC: ay, ym
 * Atari ST: snd, sndh, ym
 * Philips CD-i: xa
@@ -106,7 +106,7 @@ Recommended soundfonts:
 If you want to use munt Roland MT-32 emulator as decoder, you must filled parameter `munt_rom_path=""` with the ROM path of MT-32.
 
 ## Known error
-* usf/miniusf decoding stuck = zxtune123 bug
+* unrepeatable usf/miniusf decoding stuck = zxtune123 bug
 
 ## Holy reading
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification

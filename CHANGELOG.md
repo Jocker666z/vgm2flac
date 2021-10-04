@@ -1,7 +1,11 @@
 # Changelog
+v0.29a:
+* fix - in vgmstream multi-tracks loop, no more fail flac encoding
+* fix - in vgmstream multi-tracks loop, correction of the start & end number of the tracks
+
 v0.29:
-* fix - no more test false stereo test if --no_normalization selected
-* chg - no more ffmpeg command call, if no peak db & false stereo
+* fix - if --no_normalization selected, test false stereo is now done
+* chg - no more ffmpeg command call, if peak db normalization & false stereo convert needed
 * add - in sox loop, add loop number, sample rate & channels question
 * add - in sox loop, now test file before launch loop
 * add - force default fade out option --fade_out
