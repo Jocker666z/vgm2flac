@@ -2770,8 +2770,16 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 
 	# If target exist add date +%s after dir name
 	if [ ! -d "$PWD/$target_directory" ]; then
+		mkdir "$PWD/$target_directory" &>/dev/null
+	else
 		target_directory="$target_directory-$(date +%s)"
+		mkdir "$PWD/$target_directory" &>/dev/null
 	fi
+
+	# Create target dir & mv
+	for files in "${lst_flac[@]}"; do
+		mv "$files" "$PWD/$target_directory" &>/dev/null
+	done
 
 	# Create target dir & mv
 	mkdir "$PWD/$target_directory" &>/dev/null
