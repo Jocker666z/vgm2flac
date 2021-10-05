@@ -253,6 +253,7 @@ Usage: vgm2flac [options]
   --no_fade_out           Force no fade out.
   --no_flac               Force output wav files only.
   --no_normalization      Force no peak db normalization.
+  --no_remove_duplicate   Force no remove duplicate files.
   --no_remove_silence     Force no remove silence at start & end of track.
   --pal                   Force the tempo reduction to simulate 50hz.
   -v|--verbose            Verbose mode
@@ -271,25 +272,25 @@ echo "--------------------------------------------------------------"
 display_all_in_errors() {
 if ! [[ "${#lst_wav_in_error[@]}" = "0" ]]; then
 	display_separator
-	echo_pre_space "WAV file(s) in error:"
+	echo_pre_space "WAV in error:"
 	display_separator
 	printf ' %s\n' "${lst_wav_in_error[@]}"
 fi
 if ! [[ "${#lst_wav_duplicate[@]}" = "0" ]]; then
 	display_separator
-	echo_pre_space "WAV file(s) duplicate:"
+	echo_pre_space "WAV duplicate:"
 	display_separator
 	printf ' %s\n' "${lst_wav_duplicate[@]}"
 fi
 if ! [[ "${#lst_flac_in_error[@]}" = "0" ]]; then
 	display_separator
-	echo_pre_space "FLAC file(s) in error:"
+	echo_pre_space "FLAC in error:"
 	display_separator
 	printf ' %s\n' "${lst_flac_in_error[@]}"
 fi
 if ! [[ "${#lst_flac_duplicate[@]}" = "0" ]]; then
 	display_separator
-	echo_pre_space "FLAC file(s) duplicate:"
+	echo_pre_space "FLAC duplicate:"
 	display_separator
 	printf ' %s\n' "${lst_flac_duplicate[@]}"
 fi
@@ -360,10 +361,12 @@ elapsed_time_formated="$((diff_in_s/3600))h$((diff_in_s%3600/60))m$((diff_in_s%6
 display_separator
 echo_pre_space "Summary"
 display_separator
-echo_pre_space "WAV  - ${#lst_wav[@]} file(s) created: $wav_size_in_mb MB"
+echo_pre_space "WAV  - ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
 if ! [[ "$no_flac" = "1" ]]; then
-	echo_pre_space "FLAC - ${#lst_flac[@]} file(s) created: $flac_size_in_mb MB"
+	echo_pre_space "FLAC - ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
 fi
+echo_pre_space "Mono - ${#lst_wav_in_mono[@]} file(s)"
+echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
 echo_pre_space "Encoding duration - $elapsed_time_formated"
 }
 
@@ -445,8 +448,12 @@ if ! [[ "${#lst_flac[@]}" = "0" ]]; then
 		for file2 in "${lst_flac[@]}"; do
 			if [[ "$file1" != "$file2" && -e "$file1" && -e "$file2" ]]; then
 				if diff "$file1" "$file2" > /dev/null; then
-					lst_flac_duplicate+=( "${file2##*/}" )
-					rm "$file2" &>/dev/null
+					if ! [[ "$no_remove_duplicate" = "1" ]]; then
+						lst_flac_duplicate+=( "${file1##*/} = ${file2##*/} (removed)" )
+						rm "$file2" &>/dev/null
+					else
+						lst_flac_duplicate+=( "${file1##*/} = ${file2##*/} (keep)" )
+					fi
 				fi
 			fi
 		done
@@ -483,8 +490,12 @@ if ! [[ "${#lst_wav[@]}" = "0" ]]; then
 		for file2 in "${lst_wav[@]}"; do
 			if [[ "$file1" != "$file2" && -e "$file1" && -e "$file2" ]]; then
 				if diff "$file1" "$file2" > /dev/null; then
-					lst_wav_duplicate+=( "${file2##*/}" )
-					rm "$file2" &>/dev/null
+					if ! [[ "$no_remove_duplicate" = "1" ]]; then
+						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (removed)" )
+						rm "$file2" &>/dev/null
+					else
+						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (keep)" )
+					fi
 				fi
 			fi
 		done
@@ -556,37 +567,41 @@ if [[ -f "${files%.*}".wav ]]; then
 	# For active end functions
 	flac_loop_activated="1"
 
-		# Local variables
-		local testdb
-		local db
-		local left_md5
-		local right_md5
-		local afilter
-		local confchan
+	# Local variables
+	local testdb
+	local db
+	local left_md5
+	local right_md5
+	local afilter
+	local confchan
 
-		# Test Volume, set normalization variable
-		if ! [[ "$no_normalization" = "1" ]]; then
-			testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
+	# Test Volume, set normalization variable
+	if ! [[ "$no_normalization" = "1" ]]; then
+		testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
 
-			if [[ "$testdb" = *"-"* ]] && (( $(echo "${testdb/-/} > $default_peakdb_norm" | bc -l) )); then
-				db="$(echo "${testdb/-/}" | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
-				afilter="-af volume=$db"
-			fi
+		if [[ "$testdb" = *"-"* ]] && (( $(echo "${testdb/-/} > $default_peakdb_norm" | bc -l) )); then
+			db="$(echo "${testdb/-/}" | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
+			afilter="-af volume=$db"
+			# Record for summary
+			lst_wav_normalized+=( "${files%.*}.wav" )
 		fi
+	fi
 
-		# Channel test mono or stereo
-		left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
-		right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
-		if [ "$left_md5" = "$right_md5" ]; then
-			confchan="-channel_layout mono"
-		fi
+	# Channel test mono or stereo
+	left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
+	right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
+	if [ "$left_md5" = "$right_md5" ]; then
+		confchan="-channel_layout mono"
+		# Record for summary
+		lst_wav_in_mono+=( "${files%.*}.wav" )
+	fi
 
-		# Encoding Wav
-		if [[ -n "$afilter" ]] || [[ -n "$confchan" ]]; then
-			ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec "$default_wav_bit_depth" -f wav temp-out.wav
-			rm "${files%.*}".wav &>/dev/null
-			mv temp-out.wav "${files%.*}".wav &>/dev/null
-		fi
+	# Encoding Wav
+	if [[ -n "$afilter" ]] || [[ -n "$confchan" ]]; then
+		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec "$default_wav_bit_depth" -f wav temp-out.wav
+		rm "${files%.*}".wav &>/dev/null
+		mv temp-out.wav "${files%.*}".wav &>/dev/null
+	fi
 
 fi
 }
@@ -816,20 +831,19 @@ else
 fi
 }
 wav2flac() {
+# Enconding final flac
 if [[ "$verbose" = "1" ]]; then
 	if ! [[ "$no_flac" = "1" ]]; then
-		# Enconding final flac
 		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 12 -sample_fmt "$default_flac_bit_depth" \
 			-metadata title="$tag_song" -metadata album="$tag_album" -metadata artist="$tag_artist" \
 			-metadata date="$tag_date_formated" "${files%.*}".flac
 	fi
 else
 	if ! [[ "$no_flac" = "1" ]]; then
-		# Enconding final flac
 		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 12 -sample_fmt "$default_flac_bit_depth" \
 			-metadata title="$tag_song" -metadata album="$tag_album" -metadata artist="$tag_artist" \
 			-metadata date="$tag_date_formated" "${files%.*}".flac \
-			&& echo_pre_space "✓ FLAC <- $(basename "${files%.*}").wav" || echo_pre_space "x FLAC <-$(basename "${files%.*}").wav"
+			&& echo_pre_space "✓ FLAC <- $(basename "${files%.*}").wav" || echo_pre_space "x FLAC <- $(basename "${files%.*}").wav"
 	fi
 fi
 }
@@ -2721,7 +2735,7 @@ fi
 wav_remove() {
 if [ "${#lst_wav[@]}" -gt "0" ]; then											# If number of wav > 0
 	display_separator
-	read -r -e -p " Remove wav files (temp audio)? [y/N]:" qarm
+	read -r -e -p " Remove wav files (temp. audio)? [y/N]:" qarm
 	case $qarm in
 		"Y"|"y")
 			for files in "${lst_wav[@]}"; do
@@ -2754,10 +2768,13 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 	fi
 	target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_pc_sound_module_dir" | sed 's/ *$//')
 
-	# Create target dir & mv
+	# If target exist add date +%s after dir name
 	if [ ! -d "$PWD/$target_directory" ]; then
-		mkdir "$PWD/$target_directory" &>/dev/null
+		target_directory="$target_directory-$(date +%s)"
 	fi
+
+	# Create target dir & mv
+	mkdir "$PWD/$target_directory" &>/dev/null
 	for files in "${lst_flac[@]}"; do
 		mv "$files" "$PWD/$target_directory" &>/dev/null
 	done
@@ -2765,7 +2782,7 @@ fi
 }
 end_functions() {
 if [[ "$no_flac" = "1" ]]; then
-	list_wav_files
+	clean_wav_validation
 	display_all_in_errors
 	display_end_summary
 	clean_cache_directory
@@ -2803,6 +2820,9 @@ while [[ $# -gt 0 ]]; do
 	;;
 	--no_normalization)
 		no_normalization="1"												# Set force no peak db norm. & channel test
+	;;
+	--no_remove_duplicate)
+		no_remove_duplicate="1"												# Set force no remove duplicate files
 	;;
 	--no_remove_silence)
 		no_remove_silence="1"												# Set force no remove silence

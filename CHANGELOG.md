@@ -1,7 +1,15 @@
 # Changelog
+v0.30:
+* add - now validate wav is active if --no_flac option selected
+* add - option --no_remove_duplicate, for force no remove duplicate files
+* add - if target directory exist add date +%s after dir name
+* add - in end summary, now display the number of files which are in mono and on which the normalization has been applied
+* chg - better display of duplicate file, display: who is equal to whom & who is removed
+* fix - various minors display fix
+
 v0.29a:
 * fix - in vgmstream multi-tracks loop, no more fail flac encoding
-* fix - in vgmstream multi-tracks loop, correction of the start & end number of the tracks
+* fix - in vgmstream multi-tracks loop, correction of the start of the tracks
 
 v0.29:
 * fix - if --no_normalization selected, test false stereo is now done

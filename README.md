@@ -39,6 +39,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* remove audio silence at start & end
 	* apply fade out (if necessary or forced)
 	* wav encoding in flac file
+	* remove duplicate files (diff)
 
 ### Arguments options
 * -h|--help: Display this help.
@@ -46,6 +47,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * --no_fade_out: Force no fade out.
 * --no_flac: Force output wav files only.
 * --no_normalization: Force no peak db normalization.
+* --no_remove_duplicate: Force no remove duplicate files.
 * --no_remove_silence: Force no remove silence at start & end of track.
 * --pal: Force the tempo reduction to simulate 50hz.
 * -v|--verbose: Verbose mode
