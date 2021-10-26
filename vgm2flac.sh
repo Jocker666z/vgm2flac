@@ -424,10 +424,12 @@ mapfile -t lst_flac < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 }
 
 # Files cleaning
-clean_flac_validation() {
+clean_wav_flac_validation() {
 # Regenerate array
+list_wav_files
 list_flac_files
 
+# FLAC test
 if ! [[ "${#lst_flac[@]}" = "0" ]]; then
 	# Local variable
 	local flac_error_test
@@ -436,38 +438,13 @@ if ! [[ "${#lst_flac[@]}" = "0" ]]; then
 		flac_error_test=$(soxi "$files" 2>/dev/null)
 		if [ -z "$flac_error_test" ]; then
 			lst_flac_in_error+=( "${files##*/}" )
-			rm "$files" &>/dev/null
+			rm "${file2%.*}".flac &>/dev/null
 		fi
 	done
 
-	# Regenerate array
-	list_flac_files
-
-	# Remove duplicate - https://superuser.com/a/386207/857763
-	for file1 in "${lst_flac[@]}"; do
-		for file2 in "${lst_flac[@]}"; do
-			if [[ "$file1" != "$file2" && -e "$file1" && -e "$file2" ]]; then
-				if diff "$file1" "$file2" > /dev/null; then
-					if ! [[ "$no_remove_duplicate" = "1" ]]; then
-						lst_flac_duplicate+=( "${file1##*/} = ${file2##*/} (removed)" )
-						rm "$file2" &>/dev/null
-					else
-						lst_flac_duplicate+=( "${file1##*/} = ${file2##*/} (keep)" )
-					fi
-				fi
-			fi
-		done
-	done
-
-	# Regenerate array
-	list_flac_files
-
 fi
-}
-clean_wav_validation() {
-# Regenerate array
-list_wav_files
 
+# WAV test
 if ! [[ "${#lst_wav[@]}" = "0" ]]; then
 	# Local variable
 	local wav_error_test
@@ -478,7 +455,7 @@ if ! [[ "${#lst_wav[@]}" = "0" ]]; then
 		wav_empty_test=$(sox "$files" -n stat 2>&1 | grep "Maximum amplitude:" | awk '{print $3}')
 		if [ -z "$wav_error_test" ] || [[ "$wav_empty_test" = "0.000000" ]]; then
 			lst_wav_in_error+=( "${files##*/}" )
-			rm "$files" &>/dev/null
+			rm "${file2%.*}".wav &>/dev/null
 		fi
 	done
 
@@ -492,7 +469,8 @@ if ! [[ "${#lst_wav[@]}" = "0" ]]; then
 				if diff "$file1" "$file2" > /dev/null; then
 					if ! [[ "$no_remove_duplicate" = "1" ]]; then
 						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (removed)" )
-						rm "$file2" &>/dev/null
+						rm "${file2%.*}".wav &>/dev/null
+						rm "${file2%.*}".flac &>/dev/null
 					else
 						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (keep)" )
 					fi
@@ -503,6 +481,7 @@ if ! [[ "${#lst_wav[@]}" = "0" ]]; then
 
 	# Regenerate array
 	list_wav_files
+	list_flac_files
 fi
 }
 
@@ -2780,24 +2759,17 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 	for files in "${lst_flac[@]}"; do
 		mv "$files" "$PWD/$target_directory" &>/dev/null
 	done
-
-	# Create target dir & mv
-	mkdir "$PWD/$target_directory" &>/dev/null
-	for files in "${lst_flac[@]}"; do
-		mv "$files" "$PWD/$target_directory" &>/dev/null
-	done
 fi
 }
 end_functions() {
 if [[ "$no_flac" = "1" ]]; then
-	clean_wav_validation
+	clean_wav_flac_validation
 	display_all_in_errors
 	display_end_summary
 	clean_cache_directory
 else
 	if [[ "$flac_loop_activated" = "1" ]]; then
-		clean_wav_validation
-		clean_flac_validation
+		clean_wav_flac_validation
 		flac_force_pal_tempo
 		tag_track
 		display_all_in_errors
