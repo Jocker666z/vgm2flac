@@ -168,7 +168,7 @@ su -c "make install" -m "root"
 ```
 
 ### vgmstream_cli
-Build dependencies: `git build-essential cmake audacious-dev libao-dev libvorbis-dev libmpg123-dev`
+Build dependencies: `git build-essential cmake audacious-dev libao-dev libvorbis-dev libmpg123-dev libgtk-3-dev`
 ```
 git clone https://github.com/losnoco/vgmstream && cd vgmstream
 mkdir build && cd build && cmake .. 
