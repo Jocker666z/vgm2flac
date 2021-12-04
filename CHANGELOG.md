@@ -1,4 +1,10 @@
 # Changelog
+v0.31:
+* add - option --agressive_rm_silent, set agressive mode for remove silent 85db->58db
+* fix - --pal argument
+* fix - improve clean duplicate; now FLAC files removed if wav is duplicate
+* fix - target directory name regression
+
 v0.30:
 * add - now validate wav is active if --no_flac option selected
 * add - option --no_remove_duplicate, for force no remove duplicate files

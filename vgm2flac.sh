@@ -248,6 +248,7 @@ Bash tool for vgm/chiptune encoding to flac
 
 Usage: vgm2flac [options]
                           Without option treat current directory.
+  --agressive_rm_silent   Force agressive mode for remove silent 85db->58db
   -h|--help               Display this help.
   --fade_out              Force default fade out.
   --no_fade_out           Force no fade out.
@@ -492,13 +493,21 @@ if [[ -f "${files%.*}".wav ]]; then
 
 		# Local variable
 		local test_duration
+		local silent_db_cut
+
+		# Agressive silent cut
+		if [[ "$agressive_silence" = "1" ]]; then
+			silent_db_cut="58"
+		else
+			silent_db_cut="85"
+		fi
 
 		# Remove silence from audio files while leaving gaps, if audio during more than 10s
 		test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
 		if ! [[ "$test_duration" = "N/A" ]]; then			 # If not a bad file
 			if [[ "$test_duration" -gt 10 ]]; then
 				# Remove silence at start & end
-				sox "${files%.*}".wav temp-out.wav silence 1 0.2 -85d reverse silence 1 0.2 -85d reverse
+				sox "${files%.*}".wav temp-out.wav silence 1 0.2 -"$silent_db_cut"d reverse silence 1 0.2 -"$silent_db_cut"d reverse
 				rm "${files%.*}".wav &>/dev/null
 				mv temp-out.wav "${files%.*}".wav &>/dev/null
 			fi
@@ -2167,15 +2176,21 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 		tag_questions
 		tag_album
 
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
-		# Remove silence
-		wav_remove_silent
 		# Consider fade out if N64 files not have tag_length, or force
 		if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ] || [ "$force_fade_out" = "1" ]; then
 			if [[ -z "$tag_length" ]]; then
+				# Remove silence
+				wav_remove_silent
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
+				# Fade out
 				wav_fade_out
 			fi
+		else
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
+			# Remove silence
+			wav_remove_silent
 		fi
 		# Flac conversion
 		(
@@ -2785,6 +2800,9 @@ fi
 while [[ $# -gt 0 ]]; do
 	key="$1"
 	case "$key" in
+	--agressive_rm_silent)													# Set agressive mode for remove silent 85db->58db
+		agressive_silence="1"
+	;;
 	-h|--help)																# Help
 		cmd_usage
 		exit
@@ -2807,7 +2825,7 @@ while [[ $# -gt 0 ]]; do
 	--no_remove_silence)
 		no_remove_silence="1"												# Set force no remove silence
 	;;
-	---pal)
+	--pal)
 		flac_force_pal="1"													# Set pal mode
 	;;
 	-v|--verbose)

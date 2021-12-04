@@ -42,6 +42,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* remove duplicate files (diff)
 
 ### Arguments options
+* --agressive_rm_silent: Force agressive mode for remove silent 85db->58db
 * -h|--help: Display this help.
 * --fade_out: Force default fade out.
 * --no_fade_out: Force no fade out.
@@ -123,7 +124,7 @@ If you want to use munt Roland MT-32 emulator as decoder, you must filled parame
 * http://www.vgmpf.com/
 * https://wiki.archlinux.org/index.php/FluidSynth
 
-## Help for dependencies installation:
+## Dependencies installation:
 ### munt
 Build dependencies: `git build-essential cmake libpulse-dev libasound2-dev libjack-jackd2-dev`
 ```
