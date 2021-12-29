@@ -1,4 +1,8 @@
 # Changelog
+v0.32:
+* add - default cut db & agressive cut db in start variable
+* add - progress bar at startup of script, for indicate eta of files test by vgmstream & uade
+
 v0.31:
 * add - option --agressive_rm_silent, set agressive mode for remove silent 85db->58db
 * fix - --pal argument

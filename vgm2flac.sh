@@ -18,10 +18,12 @@ ffmpeg_log_lvl="-hide_banner -loglevel quiet"												# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
 
 # Output
-default_wav_fade_out="6"																	# Default fade out value in second, apply to all file during more than 10s
+default_wav_fade_out="6"																	# Fade out value in second, apply to all file during more than 10s
 default_wav_bit_depth="pcm_s16le"															# Wav bit depth must be pcm_s16le, pcm_s24le or pcm_s32le
 default_flac_bit_depth="s16"																# Flac bit depth must be s16 or s32
 default_peakdb_norm="1"																		# Peak db normalization option, this value is written as positive but is used in negative, e.g. 4 = -4
+default_silent_db_cut="85"																	# Silence db value for cut file
+default_agressive_silent_db_cut="58"														# Agressive silence db value for cut file
 # Atari ST
 sc68_loops="1"
 # Commodore 64/128
@@ -30,8 +32,8 @@ sid_duration_without_loop="15"																# Track duration is second that do
 # Game Boy, NES, PC-Engine
 xxs_default_max_duration="360"																# In second
 # Midi
-fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
-munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
+fluidsynth_soundfont="/home/guignol/Téléchargements/vgm2flac-wip/soundfont/UHD3.sf2"																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
+munt_rom_path="/home/guignol/Téléchargements/Scripts/VGM/mt32roms/"																			# Set munt ROM dir (Roland MT-32 ROM)
 # SNES
 spc_default_duration="180"																	# In second
 # vgm2wav
@@ -370,6 +372,34 @@ echo_pre_space "Mono - ${#lst_wav_in_mono[@]} file(s)"
 echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
 echo_pre_space "Encoding duration - $elapsed_time_formated"
 }
+ProgressBar() {
+# Local variables
+local TotalFilesNB
+local CurrentFilesNB
+local ProgressTitle
+local _progress
+local _done
+local _done
+local _left
+
+# arguments
+CurrentFilesNB="$1"
+TotalFilesNB="$2"
+
+# Display variables
+_progress=$(( ( ((CurrentFilesNB * 100) / TotalFilesNB) * 100 ) / 100 ))
+_done=$(( (_progress * 4) / 10 ))
+_left=$(( 40 - _done ))
+_done=$(printf "%${_done}s")
+_left=$(printf "%${_left}s")
+ExtendLabel="${CurrentFilesNB}/${TotalFilesNB}"
+
+# Progress bar display
+echo -e -n "\r\e[0K ]${_done// /▇}${_left// / }[ ${_progress}% $ExtendLabel"
+if [[ "$_progress" = "100" ]]; then
+	clear
+fi
+}
 
 # Cache directory
 check_cache_directory() {
@@ -497,9 +527,9 @@ if [[ -f "${files%.*}".wav ]]; then
 
 		# Agressive silent cut
 		if [[ "$agressive_silence" = "1" ]]; then
-			silent_db_cut="58"
+			silent_db_cut="$default_agressive_silent_db_cut"
 		else
-			silent_db_cut="85"
+			silent_db_cut="$default_silent_db_cut"
 		fi
 
 		# Remove silence from audio files while leaving gaps, if audio during more than 10s
@@ -1676,6 +1706,7 @@ loop_uade() {				# Amiga
 if (( "${#lst_all_files[@]}" )); then
 	# Bin check & set
 	uade123_bin
+	lst_uade=()
 
 	# Local variables
 	local uade_test_result
@@ -1685,13 +1716,16 @@ if (( "${#lst_all_files[@]}" )); then
 	local file_name
 
 	# Test all files
-	lst_uade=()
+	echo "vgm2flac - uade (amiga) files test:"
 	for files in "${lst_all_files[@]}"; do
 		if ! [[ "${files##*.}" = "mod" ]]; then
 			uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
 			if [ "${#uade_test_result}" -gt "0" ]; then
 				lst_uade+=("$files")
 			fi
+			# Progress bar
+			progress_counter=$(( progress_counter + 1 ))
+			ProgressBar "$progress_counter" "${#lst_all_files[@]}"
 		fi
 	done
 
@@ -1832,8 +1866,10 @@ if (( "${#lst_all_files[@]}" )); then
 	local vgmstream_test_result
 	local total_sub_track
 	local force_fade_out
+	local progress_counter
 
 	# Test all files
+	echo "vgm2flac - vgmstream (various machines) files test:"
 	for files in "${lst_all_files[@]}"; do
 		if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
 			vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
@@ -1850,6 +1886,10 @@ if (( "${#lst_all_files[@]}" )); then
 					force_fade_out="1"
 				fi
 			fi
+
+		# Progress bar
+		progress_counter=$(( progress_counter + 1 ))
+		ProgressBar "$progress_counter" "${#lst_all_files[@]}"
 		fi
 	done
 
