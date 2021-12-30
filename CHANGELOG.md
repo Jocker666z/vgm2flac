@@ -1,4 +1,9 @@
 # Changelog
+v0.33:
+* add - test if current directory have user write access, try to change it if not
+* chg - files test with vgmstream & uade now do at start of script
+* fix - regression with N64 files
+
 v0.32:
 * add - default cut db & agressive cut db in start variable
 * add - progress bar at startup of script, for indicate eta of files test by vgmstream & uade

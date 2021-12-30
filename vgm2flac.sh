@@ -405,9 +405,9 @@ ExtendLabel="${CurrentFilesNB}/${TotalFilesNB}"
 
 # Progress bar display
 echo -e -n "\r\e[0K ]${_done// /▇}${_left// / }[ ${_progress}% $ExtendLabel"
-if [[ "$_progress" = "100" ]]; then
-	clear
-fi
+#if [[ "$_progress" = "100" ]]; then
+	#echo
+#fi
 }
 
 # Cache directory
@@ -423,6 +423,12 @@ rm "$vgm2flac_cache_tag" &>/dev/null
 
 # Files array
 list_source_files() {
+# Local variables
+local vgmstream_test_result
+local uade_test_result
+local vgmstream_progress_counter
+local uade_progress_counter
+
 mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort)
 mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort)
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort)
@@ -455,6 +461,51 @@ elif [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If bin > 1 - sox use
 	unset lst_bchunk_cue
 	unset lst_bchunk_iso
 fi
+
+# Bin check & set
+vgmstream_cli_bin
+# vgmstream test all files
+echo_pre_space "vgm2flac - vgmstream (various machines) files test:"
+for files in "${lst_all_files[@]}"; do
+	if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
+		vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+		# If vgmstream pass test, add to array
+		# Ignore txth
+		test_ext_file="${files##*.}"
+		if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${test_ext_file^^}" = "TXTH" ]]; then
+			# If no wav already output ok add to array
+			if ! compgen -G "$files*.wav" > /dev/null; then
+				lst_vgmstream+=("$files")
+			fi
+			# Activate fade out for files: his
+			if [[ "${files##*.}" = "his" ]]; then
+				force_fade_out="1"
+			fi
+		fi
+
+	# Progress bar
+	vgmstream_progress_counter=$(( vgmstream_progress_counter + 1 ))
+	progress_bar "$vgmstream_progress_counter" "${#lst_all_files[@]}"
+	fi
+done
+
+# Bin check & set
+uade123_bin
+# uade test all files
+echo
+echo_pre_space "vgm2flac - uade (amiga) files test:"
+for files in "${lst_all_files[@]}"; do
+	if ! [[ "${files##*.}" = "mod" ]]; then
+		uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
+		if [ "${#uade_test_result}" -gt "0" ]; then
+			lst_uade+=("$files")
+		fi
+		# Progress bar
+		uade_progress_counter=$(( uade_progress_counter + 1 ))
+		progress_bar "$uade_progress_counter" "${#lst_all_files[@]}"
+	fi
+done
+clear
 }
 list_wav_files() {
 mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort)
@@ -1712,93 +1763,70 @@ if (( "${#lst_sox[@]}" )); then
 fi
 }
 loop_uade() {				# Amiga
-if (( "${#lst_all_files[@]}" )); then
-	# Bin check & set
-	uade123_bin
-	lst_uade=()
-
+if (( "${#lst_uade[@]}" )); then
 	# Local variables
-	local uade_test_result
 	local total_track
 	local current_track
 	local diff_track
 	local file_name
 
-	# Test all files
-	echo "vgm2flac - uade (amiga) files test:"
-	for files in "${lst_all_files[@]}"; do
-		if ! [[ "${files##*.}" = "mod" ]]; then
-			uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
-			if [ "${#uade_test_result}" -gt "0" ]; then
-				lst_uade+=("$files")
+	# User info - Title
+	display_loop_title "uade" "Amiga"
+
+	display_convert_title "WAV"
+	for files in "${lst_uade[@]}"; do
+		# Tag
+		tag_machine="Amiga"
+		tag_questions
+		tag_album
+
+		# Get total track
+		total_track=$("$uade123_bin" -g "$files" 2>/dev/null | grep "subsongs:"  | awk '/^subsongs:/ { print $NF }')
+		current_track=$("$uade123_bin" -g "$files" 2>/dev/null | grep "subsongs:" | awk '/^subsongs:/ { print $3 }')
+		diff_track=$(( current_track - total_track ))
+		# Wav loop
+		for sub_track in $(seq -w "$current_track" "$total_track"); do
+			# Filename construction
+			if [ "$diff_track" -eq "0" ]; then
+				file_name="$files"
+			else
+				file_name="${files}-$sub_track"
 			fi
-			# Progress bar
-			progress_counter=$(( progress_counter + 1 ))
-			progress_bar "$progress_counter" "${#lst_all_files[@]}"
-		fi
-	done
-
-	# Start uade loop with file passed
-	if (( "${#lst_uade[@]}" )); then
-
-		# User info - Title
-		display_loop_title "uade" "Amiga"
-
-		display_convert_title "WAV"
-		for files in "${lst_uade[@]}"; do
-			# Tag
-			tag_machine="Amiga"
-			tag_questions
-			tag_album
-
-			# Get total track
-			total_track=$("$uade123_bin" -g "$files" 2>/dev/null | grep "subsongs:"  | awk '/^subsongs:/ { print $NF }')
-			current_track=$("$uade123_bin" -g "$files" 2>/dev/null | grep "subsongs:" | awk '/^subsongs:/ { print $3 }')
-			diff_track=$(( current_track - total_track ))
-			# Wav loop
-			for sub_track in $(seq -w "$current_track" "$total_track"); do
-				# Filename construction
-				if [ "$diff_track" -eq "0" ]; then
-					file_name="$files"
-				else
-					file_name="${files}-$sub_track"
-				fi
-				# Wav extract
-				(
-				cmd_uade
-				) &
-				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-					wait -n
-				fi
-			done
-			wait
-		done
-
-		# Generate wav array
-		list_wav_files
-
-		# Flac loop
-		display_convert_title "FLAC"
-		for files in "${lst_wav[@]}"; do
-				# Tag
-				tag_song
-
-				# Peak normalisation, false stereo detection 
-				wav_normalization_channel_test
-				# Remove silence
-				wav_remove_silent
-				# Fade out
-				wav_fade_out
-				# Flac conversion
-				(
-				wav2flac
-				) &
-				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-					wait -n
-				fi
+			# Wav extract
+			(
+			cmd_uade
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
 		done
 		wait
-	fi
+	done
+
+	# Generate wav array
+	list_wav_files
+
+	# Flac loop
+	display_convert_title "FLAC"
+	for files in "${lst_wav[@]}"; do
+			# Tag
+			tag_song
+
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
+			# Remove silence
+			wav_remove_silent
+			# Fade out
+			wav_fade_out
+			# Flac conversion
+			(
+			wav2flac
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+	done
+	wait
 fi
 }
 loop_vgm2wav() {			# Various machines
@@ -1866,111 +1894,76 @@ if (( "${#lst_vgm2wav[@]}" )); then
 fi
 }
 loop_vgmstream() {			# Various machines
-if (( "${#lst_all_files[@]}" )); then
-	# Bin check & set
-	lst_wav=()
-	vgmstream_cli_bin
-
+if (( "${#lst_vgmstream[@]}" )); then
 	# Local variables
-	local vgmstream_test_result
 	local total_sub_track
 	local force_fade_out
-	local progress_counter
 
-	# Test all files
-	echo "vgm2flac - vgmstream (various machines) files test:"
-	for files in "${lst_all_files[@]}"; do
-		if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
-			vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-			# If vgmstream pass test, add to array
-			# Ignore txth
-			test_ext_file="${files##*.}"
-			if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${test_ext_file^^}" = "TXTH" ]]; then
-				# If no wav already output ok add to array
-				if ! compgen -G "$files*.wav" > /dev/null; then
-					lst_vgmstream+=("$files")
-				fi
-				# Activate fade out for files: his
-				if [[ "${files##*.}" = "his" ]]; then
-					force_fade_out="1"
-				fi
-			fi
+	# User info - Title
+	display_loop_title "vgmstream" "Various machines"
 
-		# Progress bar
-		progress_counter=$(( progress_counter + 1 ))
-		progress_bar "$progress_counter" "${#lst_all_files[@]}"
+	# Tag
+	tag_questions
+	tag_album
+
+	display_convert_title "WAV"
+	for files in "${lst_vgmstream[@]}"; do
+		# Get total track
+		# Ignore txtp
+		test_ext_file="${files##*.}"
+		if ! [[ "${test_ext_file^^}" =~ "TXTP" ]]; then
+			#total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //' | awk '{ print $1 - 1 }')
+			total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
+		fi
+		# Record output name
+		if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
+			lst_wav+=("${files%.*}".wav)
+		else
+			for sub_track in $(seq -w 0 "$total_sub_track"); do
+				lst_wav+=("${files%.*}"-"$sub_track".wav)
+			done
+		fi
+
+		# Extract WAV
+		(
+		if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
+			cmd_vgmstream
+		else
+			# Multi track loop
+			for sub_track in $(seq -w 0 "$total_sub_track"); do
+				cmd_vgmstream_multi_track
+			done
+		fi
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
 		fi
 	done
+	wait
 
-	# Start vgmstream loop with file passed
-	if (( "${#lst_vgmstream[@]}" )); then
-
-		# User info - Title
-		display_loop_title "vgmstream" "Various machines"
-
+	# Flac loop
+	display_convert_title "FLAC"
+	for files in "${lst_wav[@]}"; do
 		# Tag
-		tag_questions
-		tag_album
+		tag_song
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
+		# Remove silence
+		wav_remove_silent
+		# Fade out, vgmstream fade out default off, special case for files: his
+		if [[ "$force_fade_out" = "1" ]]; then
+			wav_fade_out
+		fi
+		# Flac conversion
+		(
+		wav2flac
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
 
-		display_convert_title "WAV"
-		for files in "${lst_vgmstream[@]}"; do
-			# Get total track
-			# Ignore txtp
-			test_ext_file="${files##*.}"
-			if ! [[ "${test_ext_file^^}" =~ "TXTP" ]]; then
-				#total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //' | awk '{ print $1 - 1 }')
-				total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
-			fi
-			# Record output name
-			if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
-				lst_wav+=("${files%.*}".wav)
-			else
-				for sub_track in $(seq -w 0 "$total_sub_track"); do
-					lst_wav+=("${files%.*}"-"$sub_track".wav)
-				done
-			fi
-
-			# Extract WAV
-			(
-			if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
-				cmd_vgmstream
-			else
-				# Multi track loop
-				for sub_track in $(seq -w 0 "$total_sub_track"); do
-					cmd_vgmstream_multi_track
-				done
-			fi
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
-		done
-		wait
-
-		# Flac loop
-		display_convert_title "FLAC"
-		for files in "${lst_wav[@]}"; do
-			# Tag
-			tag_song
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
-			# Remove silence
-			wav_remove_silent
-			# Fade out, vgmstream fade out default off, special case for files: his
-			if [[ "$force_fade_out" = "1" ]]; then
-				wav_fade_out
-			fi
-			# Flac conversion
-			(
-			wav2flac
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
-		done
-		wait
-
-	fi
 fi
 }
 loop_zxtune_ay() {			# Amstrad CPC, ZX Spectrum
@@ -2234,6 +2227,11 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 				wav_normalization_channel_test
 				# Fade out
 				wav_fade_out
+			else
+				# Remove silence
+				wav_remove_silent
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
 			fi
 		else
 			# Peak normalisation, false stereo detection 
