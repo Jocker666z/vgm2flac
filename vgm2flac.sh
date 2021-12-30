@@ -32,8 +32,8 @@ sid_duration_without_loop="15"																# Track duration is second that do
 # Game Boy, NES, PC-Engine
 xxs_default_max_duration="360"																# In second
 # Midi
-fluidsynth_soundfont="/home/guignol/Téléchargements/vgm2flac-wip/soundfont/UHD3.sf2"																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
-munt_rom_path="/home/guignol/Téléchargements/Scripts/VGM/mt32roms/"																			# Set munt ROM dir (Roland MT-32 ROM)
+fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
+munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
 # SNES
 spc_default_duration="180"																	# In second
 # vgm2wav
@@ -241,6 +241,15 @@ if (( "${#command_fail[@]}" )); then
 	exit
 fi
 }
+test_write_access() {
+if ! [[ -w "$PWD" ]]; then
+	chmod -R 775 "$PWD"
+	if ! [[ -w "$PWD" ]]; then
+		echo "vgm2flac fail: Current directory not writable"
+		exit
+	fi
+fi
+}
 
 # Messages
 cmd_usage() {
@@ -372,7 +381,7 @@ echo_pre_space "Mono - ${#lst_wav_in_mono[@]} file(s)"
 echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
 echo_pre_space "Encoding duration - $elapsed_time_formated"
 }
-ProgressBar() {
+progress_bar() {
 # Local variables
 local TotalFilesNB
 local CurrentFilesNB
@@ -1725,7 +1734,7 @@ if (( "${#lst_all_files[@]}" )); then
 			fi
 			# Progress bar
 			progress_counter=$(( progress_counter + 1 ))
-			ProgressBar "$progress_counter" "${#lst_all_files[@]}"
+			progress_bar "$progress_counter" "${#lst_all_files[@]}"
 		fi
 	done
 
@@ -1889,7 +1898,7 @@ if (( "${#lst_all_files[@]}" )); then
 
 		# Progress bar
 		progress_counter=$(( progress_counter + 1 ))
-		ProgressBar "$progress_counter" "${#lst_all_files[@]}"
+		progress_bar "$progress_counter" "${#lst_all_files[@]}"
 		fi
 	done
 
@@ -2884,6 +2893,7 @@ shift
 done
 
 # Bin check & set
+test_write_access
 common_bin
 
 # Files source check & set
