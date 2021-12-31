@@ -405,9 +405,9 @@ ExtendLabel="${CurrentFilesNB}/${TotalFilesNB}"
 
 # Progress bar display
 echo -e -n "\r\e[0K ]${_done// /▇}${_left// / }[ ${_progress}% $ExtendLabel"
-#if [[ "$_progress" = "100" ]]; then
-	#echo
-#fi
+if [[ "$_progress" = "100" ]]; then
+	echo
+fi
 }
 
 # Cache directory
@@ -423,11 +423,14 @@ rm "$vgm2flac_cache_tag" &>/dev/null
 
 # Files array
 list_source_files() {
+# Bin check & set
+vgmstream_cli_bin
+uade123_bin
+
 # Local variables
 local vgmstream_test_result
 local uade_test_result
-local vgmstream_progress_counter
-local uade_progress_counter
+local progress_counter
 
 mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort)
 mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort)
@@ -462,14 +465,21 @@ elif [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If bin > 1 - sox use
 	unset lst_bchunk_iso
 fi
 
-# Bin check & set
-vgmstream_cli_bin
-# vgmstream test all files
-echo_pre_space "vgm2flac - vgmstream (various machines) files test:"
+# vgmstream & uade test all files
+echo_pre_space "vgm2flac - All files test:"
 for files in "${lst_all_files[@]}"; do
+
+	if ! [[ "${files##*.}" = "mod" ]]; then
+		uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
+	fi
+
 	if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
 		vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-		# If vgmstream pass test, add to array
+	fi
+
+	if [ "${#uade_test_result}" -gt "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
+		lst_uade+=("$files")
+	elif [ "${#uade_test_result}" -eq "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
 		# Ignore txth
 		test_ext_file="${files##*.}"
 		if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${test_ext_file^^}" = "TXTH" ]]; then
@@ -482,28 +492,12 @@ for files in "${lst_all_files[@]}"; do
 				force_fade_out="1"
 			fi
 		fi
+	fi
 
 	# Progress bar
-	vgmstream_progress_counter=$(( vgmstream_progress_counter + 1 ))
-	progress_bar "$vgmstream_progress_counter" "${#lst_all_files[@]}"
-	fi
-done
+	progress_counter=$(( progress_counter + 1 ))
+	progress_bar "$progress_counter" "${#lst_all_files[@]}"
 
-# Bin check & set
-uade123_bin
-# uade test all files
-echo
-echo_pre_space "vgm2flac - uade (amiga) files test:"
-for files in "${lst_all_files[@]}"; do
-	if ! [[ "${files##*.}" = "mod" ]]; then
-		uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
-		if [ "${#uade_test_result}" -gt "0" ]; then
-			lst_uade+=("$files")
-		fi
-		# Progress bar
-		uade_progress_counter=$(( uade_progress_counter + 1 ))
-		progress_bar "$uade_progress_counter" "${#lst_all_files[@]}"
-	fi
 done
 clear
 }
