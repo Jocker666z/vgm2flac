@@ -184,8 +184,7 @@ system_bin_location=$(command -v $bin_name)
 if test -n "$system_bin_location"; then
 	vgmstream_cli_bin="$system_bin_location"
 else
-	echo "Break, $bin_name is not installed"
-	exit
+	echo_pre_space "Warning, $bin_name is not installed; Various machines files will not be detected"
 fi
 }
 vgm_tag_bin() {
@@ -208,8 +207,7 @@ system_bin_location=$(command -v $bin_name)
 if test -n "$system_bin_location"; then
 	uade123_bin="$system_bin_location"
 else
-	echo "Break, $bin_name is not installed"
-	exit
+	echo_pre_space "Warning, $bin_name is not installed; Amiga files will not be detected"
 fi
 }
 zxtune123_bin() {
@@ -466,40 +464,41 @@ elif [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If bin > 1 - sox use
 fi
 
 # vgmstream & uade test all files
-echo_pre_space "vgm2flac - All files test:"
-for files in "${lst_all_files[@]}"; do
+if [ "${#uade123_bin}" -gt "0" ] || [ "${#vgmstream_cli_bin}" -gt "0" ]; then
+	echo_pre_space "vgm2flac - Files test:"
+	for files in "${lst_all_files[@]}"; do
 
-	if ! [[ "${files##*.}" = "mod" ]]; then
-		uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
-	fi
+		if ! [[ "${files##*.}" = "mod" ]]; then
+			uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
+		fi
 
-	if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
-		vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-	fi
+		if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
+			vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+		fi
 
-	if [ "${#uade_test_result}" -gt "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
-		lst_uade+=("$files")
-	elif [ "${#uade_test_result}" -eq "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
-		# Ignore txth
-		test_ext_file="${files##*.}"
-		if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${test_ext_file^^}" = "TXTH" ]]; then
-			# If no wav already output ok add to array
-			if ! compgen -G "$files*.wav" > /dev/null; then
-				lst_vgmstream+=("$files")
-			fi
-			# Activate fade out for files: his
-			if [[ "${files##*.}" = "his" ]]; then
-				force_fade_out="1"
+		if [ "${#uade_test_result}" -gt "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
+			lst_uade+=("$files")
+		elif [ "${#uade_test_result}" -eq "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
+			# Ignore txth
+			test_ext_file="${files##*.}"
+			if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${test_ext_file^^}" = "TXTH" ]]; then
+				# If no wav already output ok add to array
+				if ! compgen -G "$files*.wav" > /dev/null; then
+					lst_vgmstream+=("$files")
+				fi
+				# Activate fade out for files: his
+				if [[ "${files##*.}" = "his" ]]; then
+					force_fade_out="1"
+				fi
 			fi
 		fi
-	fi
 
-	# Progress bar
-	progress_counter=$(( progress_counter + 1 ))
-	progress_bar "$progress_counter" "${#lst_all_files[@]}"
+		# Progress bar
+		progress_counter=$(( progress_counter + 1 ))
+		progress_bar "$progress_counter" "${#lst_all_files[@]}"
 
-done
-clear
+	done
+fi
 }
 list_wav_files() {
 mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort)
