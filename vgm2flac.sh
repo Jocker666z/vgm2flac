@@ -298,12 +298,6 @@ if ! [[ "${#lst_flac_in_error[@]}" = "0" ]]; then
 	display_separator
 	printf ' %s\n' "${lst_flac_in_error[@]}"
 fi
-if ! [[ "${#lst_flac_duplicate[@]}" = "0" ]]; then
-	display_separator
-	echo_pre_space "FLAC duplicate:"
-	display_separator
-	printf ' %s\n' "${lst_flac_duplicate[@]}"
-fi
 }
 display_loop_title() {
 local command
@@ -313,7 +307,7 @@ machine="$2"
 
 display_separator
 echo_pre_space "working directory: $PWD"
-echo_pre_space "vgm2flac - $command loop - $machine"
+echo_pre_space "$command loop - $machine"
 display_separator
 }
 display_convert_title() {
@@ -331,36 +325,96 @@ fi
 display_remove_previous_line() {
 printf '\e[A\e[K'
 }
+display_size_mb() {
+local files
+local size
+local size_in_mb
+files=("$@")
+
+if (( "${#files[@]}" )); then
+	# Get size in bytes
+	size=$(wc -c "${files[@]}" | tail -1 | awk '{print $1;}')
+	# MB convert
+	size_in_mb=$(bc <<< "scale=3; $size / 1024 / 1024" | sed 's!\.0*$!!')
+else
+	size_in_mb="0"
+fi
+
+# If string start by "." add lead 0
+# If string not start by ".", remove all after dot
+if [[ "${size_in_mb:0:1}" == "." ]]; then
+	echo "0$size_in_mb"
+else
+	echo "$size_in_mb" | awk -F"." '{ print $1 }'
+fi
+}
+display_start_summary() {
+if (( "${#lst_all_files_pass[@]}" )); then
+	fetched_stat() {
+		local label
+		local files
+		label="$1"
+		shift 1
+		files=("$@")
+
+		if (( "${#files[@]}" )); then
+			if [[ "$label" = "Amiga" ]]; then
+
+				echo_pre_space "${label} files: ${#files[@]} ($(display_size_mb "${files[@]}") MB)"
+
+			else
+				echo_pre_space "${label}; $(echo "${files[@]##*.}" | awk -v RS="[ \n]+" '!n[$0]++' | awk -v RS="" '{gsub (/\n/,"|")}1') files : ${#files[@]} ($(display_size_mb "${files[@]}") MB)"
+			fi
+		fi
+	}
+
+	display_separator
+	echo_pre_space "${#lst_all_files_pass[@]} Fetched files ($(display_size_mb "${lst_all_files_pass[@]}") MB)"
+	display_separator
+	fetched_stat "Amiga" "${lst_uade[@]}"
+	fetched_stat "Atari ST" "${lst_sc68[@]}"
+	fetched_stat "Amstrad CPC" "${lst_zxtune_ay[@]}"
+	fetched_stat "Amstrad CPC, Atari ST" "${lst_zxtune_ym[@]}"
+	fetched_stat "Commodore C64/128" "${lst_zxtune_sid[@]}"
+	fetched_stat "Game Boy, Game Boy Color" "${lst_ffmpeg_gbs[@]}"
+	fetched_stat "NES" "${lst_nsfplay_nsf[@]}"
+	fetched_stat "NES" "${lst_nsfplay_nsfe[@]}"
+	fetched_stat "SNES" "${lst_ffmpeg_spc[@]}"
+	fetched_stat "PC AdLib" "${lst_adplay[@]}"
+	fetched_stat "PC Engine, TurboGrafx-16" "${lst_ffmpeg_hes[@]}"
+	fetched_stat "PC midi" "${lst_midi[@]}"
+	fetched_stat "Various machines" "${lst_vgmstream[@]}"
+	fetched_stat "Various machines ISO" "${lst_bchunk_iso[@]}"
+	fetched_stat "Various machines RAW" "${lst_sox[@]}"
+	fetched_stat "Various machines SF" "${lst_zxtune_xsf[@]}"
+	fetched_stat "Various machines VGM" "${lst_vgm2wav[@]}"
+	fetched_stat "XA ADPCM" "${lst_ffmpeg_xa[@]}"
+	fetched_stat "ZX Spectrum" "${lst_zxtune_zx_spectrum[@]}"
+
+else
+	display_separator
+	echo_pre_space "${#lst_all_files_pass[@]} Fetched files"
+
+fi
+}
 display_end_summary() {
-local wav_size
-local flac_size
+local source_size_in_mb
 local wav_size_in_mb
 local flac_size_in_mb
 local diff_in_s
 local elapsed_time_formated
 
-# Get wav size in bytes
+# Get source size in mb
+if (( "${#lst_all_files_pass[@]}" )); then
+	source_size_in_mb=$(display_size_mb "${lst_all_files_pass[@]}")
+fi
+# Get wav size in mb
 if (( "${#lst_wav[@]}" )); then
-	wav_size=$(wc -c "${lst_wav[@]}" | tail -1 | awk '{print $1;}')
-else
-	wav_size="0"
+	wav_size_in_mb=$(display_size_mb "${lst_wav[@]}")
 fi
-# Wav in MB
-wav_size_in_mb=$(bc <<< "scale=1; $wav_size / 1024 / 1024" | sed 's!\.0*$!!')
-# Get flac size in bytes
+# Get flac size in mb
 if (( "${#lst_flac[@]}" )); then
-	flac_size=$(wc -c "${lst_flac[@]}" | tail -1 | awk '{print $1;}')
-else
-	flac_size="0"
-fi
-# Flac in MB
-flac_size_in_mb=$(bc <<< "scale=1; $flac_size / 1024 / 1024" | sed 's!\.0*$!!')
-# If string start by "." add lead 0
-if [[ "${wav_size_in_mb:0:1}" == "." ]]; then
-	wav_size_in_mb="0$wav_size_in_mb"
-fi
-if [[ "${flac_size_in_mb:0:1}" == "." ]]; then
-	flac_size_in_mb="0$flac_size_in_mb"
+	flac_size_in_mb=$(display_size_mb "${lst_flac[@]}")
 fi
 
 # Timer
@@ -371,19 +425,19 @@ elapsed_time_formated="$((diff_in_s/3600))h$((diff_in_s%3600/60))m$((diff_in_s%6
 display_separator
 echo_pre_space "Summary"
 display_separator
-echo_pre_space "WAV  - ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
+echo_pre_space "SOURCE  - ${#lst_all_files_pass[@]} file(s) - $source_size_in_mb MB"
+echo_pre_space "WAV     - ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
 if ! [[ "$no_flac" = "1" ]]; then
-	echo_pre_space "FLAC - ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
+	echo_pre_space "FLAC    - ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
 fi
-echo_pre_space "Mono - ${#lst_wav_in_mono[@]} file(s)"
+echo_pre_space "Mono    - ${#lst_wav_in_mono[@]} file(s)"
 echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
-echo_pre_space "Encoding duration - $elapsed_time_formated"
+echo_pre_space "Encoding duration  - $elapsed_time_formated"
 }
 progress_bar() {
 # Local variables
 local TotalFilesNB
 local CurrentFilesNB
-local ProgressTitle
 local _progress
 local _done
 local _done
@@ -464,41 +518,67 @@ elif [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If bin > 1 - sox use
 fi
 
 # vgmstream & uade test all files
-if [ "${#uade123_bin}" -gt "0" ] || [ "${#vgmstream_cli_bin}" -gt "0" ]; then
-	echo_pre_space "vgm2flac - Files test:"
-	for files in "${lst_all_files[@]}"; do
+echo_pre_space "/ vgm2flac /"
+if (( "${#lst_all_files[@]}" )); then
+	if [ "${#uade123_bin}" -gt "0" ] || [ "${#vgmstream_cli_bin}" -gt "0" ]; then
+		display_separator
+		echo_pre_space "Files test:"
+		for files in "${lst_all_files[@]}"; do
 
-		if ! [[ "${files##*.}" = "mod" ]]; then
-			uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
-		fi
+			if ! [[ "${files##*.}" = "mod" ]]; then
+				uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
+			fi
 
-		if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
-			vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-		fi
+			if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
+				vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+			fi
 
-		if [ "${#uade_test_result}" -gt "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
-			lst_uade+=("$files")
-		elif [ "${#uade_test_result}" -eq "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
-			# Ignore txth
-			test_ext_file="${files##*.}"
-			if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${test_ext_file^^}" = "TXTH" ]]; then
-				# If no wav already output ok add to array
-				if ! compgen -G "$files*.wav" > /dev/null; then
-					lst_vgmstream+=("$files")
-				fi
-				# Activate fade out for files: his
-				if [[ "${files##*.}" = "his" ]]; then
-					force_fade_out="1"
+			if [ "${#uade_test_result}" -gt "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
+				lst_uade+=("$files")
+			elif [ "${#uade_test_result}" -eq "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
+				# Ignore txth
+				test_ext_file="${files##*.}"
+				if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${test_ext_file^^}" = "TXTH" ]]; then
+					# If no wav already output ok add to array
+					if ! compgen -G "$files*.wav" > /dev/null; then
+						lst_vgmstream+=("$files")
+					fi
+					# Activate fade out for files: his
+					if [[ "${files##*.}" = "his" ]]; then
+						force_fade_out="1"
+					fi
 				fi
 			fi
-		fi
 
-		# Progress bar
-		progress_counter=$(( progress_counter + 1 ))
-		progress_bar "$progress_counter" "${#lst_all_files[@]}"
+			# Progress bar
+			progress_counter=$(( progress_counter + 1 ))
+			progress_bar "$progress_counter" "${#lst_all_files[@]}"
 
-	done
+		done
+	fi
 fi
+
+# Combine pass array
+lst_all_files_pass+=( "${lst_adplay[@]}" \
+				"${lst_bchunk_iso[@]}" \
+				"${lst_ffmpeg_gbs[@]}" \
+				"${lst_ffmpeg_hes[@]}" \
+				"${lst_ffmpeg_spc[@]}" \
+				"${lst_ffmpeg_xa[@]}" \
+				"${lst_nsfplay_nsf[@]}" \
+				"${lst_nsfplay_nsfe[@]}" \
+				"${lst_sc68[@]}" \
+				"${lst_vgm2wav[@]}" \
+				"${lst_vgmstream[@]}" \
+				"${lst_zxtune_ay[@]}" \
+				"${lst_zxtune_sid[@]}" \
+				"${lst_zxtune_xsf[@]}" \
+				"${lst_zxtune_ym[@]}" \
+				"${lst_zxtune_zx_spectrum[@]}" \
+				"${lst_uade[@]}" )
+
+
+
 }
 list_wav_files() {
 mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort)
@@ -2890,6 +2970,7 @@ common_bin
 # Files source check & set
 check_cache_directory
 list_source_files
+display_start_summary
 
 # Timer start
 timer_start=$(date +%s)
