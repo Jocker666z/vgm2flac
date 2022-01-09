@@ -525,20 +525,28 @@ if (( "${#lst_all_files[@]}" )); then
 		echo_pre_space "Files test:"
 		for files in "${lst_all_files[@]}"; do
 
-			if ! [[ "${files##*.}" = "mod" ]]; then
+			# Test file
+			if [[ "${#uade123_bin}" -gt "0" ]]; then
 				uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
 			fi
-
-			if ! [[ "${files##*.}" = "wav" || "${files##*.}" = "flac" ]]; then
+			if [[ "${#vgmstream_cli_bin}" -gt "0" ]]; then
 				vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
 			fi
 
-			if [ "${#uade_test_result}" -gt "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
-				lst_uade+=("$files")
-			elif [ "${#uade_test_result}" -eq "0" ] && [ "${#vgmstream_test_result}" -gt "0" ]; then
-				# Ignore txth
-				test_ext_file="${files##*.}"
-				if [ "${#vgmstream_test_result}" -gt "0" ] && ! [[ "${test_ext_file^^}" = "TXTH" ]]; then
+			# Set case insensitive
+			shopt -s nocasematch
+			# Populate arrays if test valid
+			if [[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -gt "0" ]] || \
+				[[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -eq "0" ]]; then
+				if [ "${files##*.}" != "mod" ]; then
+					lst_uade+=("$files")
+				fi
+			elif [[ "${#vgmstream_cli_bin}" -gt "0" && "${#uade_test_result}" -eq "0" && "${#vgmstream_test_result}" -gt "0" ]]; then
+				if [[ "${files##*.}" != "txth" ]] && \
+					[[ "${files##*.}" != "mkv" ]] && \
+					[[ "${files##*.}" != "wv" ]] && \
+					[[ "${files##*.}" != "wav" ]] && \
+					[[ "${files##*.}" != "flac" ]]; then
 					# If no wav already output ok add to array
 					if ! compgen -G "$files*.wav" > /dev/null; then
 						lst_vgmstream+=("$files")
@@ -549,6 +557,8 @@ if (( "${#lst_all_files[@]}" )); then
 					fi
 				fi
 			fi
+			# Set case sensitive
+			shopt -u nocasematch
 
 			# Progress bar
 			progress_counter=$(( progress_counter + 1 ))
@@ -576,9 +586,6 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_zxtune_ym[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" \
 				"${lst_uade[@]}" )
-
-
-
 }
 list_wav_files() {
 mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort)

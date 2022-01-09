@@ -1,4 +1,13 @@
 # Changelog
+v0.34:
+* add - at startup, now display fetched files
+* add - now ignore mkv, wv files in vgmstream loop
+* chg - improve all files test loop
+* chg - no more break vgm2flac at startup if vgmstream or uade are not installed
+* fix - now proper ignore wav & flac in vgmstream loop
+* fix - amiga files now proper fetched
+* fix - fix test files if uade or vgmstream_cli bin missing
+
 v0.33:
 * add - test if current directory have user write access, try to change it if not
 * chg - files test with vgmstream & uade now do at start of script
