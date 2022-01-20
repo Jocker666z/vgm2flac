@@ -32,7 +32,9 @@ sid_duration_without_loop="15"																# Track duration is second that do
 # Game Boy, NES, PC-Engine
 xxs_default_max_duration="360"																# In second
 # Midi
+#fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
 fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
+#munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
 munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
 # SNES
 spc_default_duration="180"																	# In second
@@ -1267,6 +1269,9 @@ fi
 }
 loop_ffmpeg_spc() {			# SNES
 if (( "${#lst_ffmpeg_spc[@]}" )); then
+	# Local variable
+	local spc_fading_second
+	local spc_duration_total
 
 	# User info - Title
 	display_loop_title "ffmpeg" "SNES"
@@ -1281,8 +1286,8 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 			tag_album
 		fi
 		# Calc duration/fading
-		local spc_fading_second=$((spc_fading/1000))
-		local spc_duration_total=$((spc_duration+spc_fading_second))
+		spc_fading_second=$((spc_fading/1000))
+		spc_duration_total=$((spc_duration+spc_fading_second))
 		# Extract WAV
 		(
 		cmd_ffmpeg_spc
@@ -1301,6 +1306,7 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
 		# Fade out
+		spc_fading_second=$((spc_fading/1000))
 		imported_sox_fade_out="$spc_fading_second"
 		wav_fade_out
 		# Remove silence
@@ -2780,7 +2786,7 @@ if [ "$id666_test" = "1a" ]; then						# 1a hex = 26 dec
 	fi
 
 	# Prevent incoherence duration between fade out and total duration
-	if [[ "$spc_duration" -ge "spc_fading" ]]; then
+	if [[ "$spc_duration" -ge "$spc_fading" ]]; then
 		spc_fading="0"
 	fi
 
