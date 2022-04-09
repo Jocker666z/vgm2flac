@@ -196,6 +196,6 @@ su -c "make install" -m "root"
 
 ```
 cd /home/$USER/.local/bin/
-wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_b5000.tar.bz2
-tar -xf zxtune123_b5000.tar.bz2 && rm zxtune123_b5000.tar.bz2
+wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r5010.tar.bz2
+tar -xf zxtune123_r5010.tar.bz2 && rm zxtune123_r5010.tar.bz2
 ```
