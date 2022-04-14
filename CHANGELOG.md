@@ -1,8 +1,4 @@
 # Changelog
-v0.36:
-
-
-
 v0.35:
 * add - C64, sidplayfp now used for convert sid files
 * add - C64, if HVSC_BASE environment variables not set: use total duration variable $sid_default_max_duration (5min for now)

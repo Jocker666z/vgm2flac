@@ -110,7 +110,12 @@ Recommended soundfonts:
 If you want to use munt Roland MT-32 emulator as decoder, you must filled parameter `munt_rom_path=""` with the ROM path of MT-32.
 
 ## Commodore 64 files
-For use correct track duration, you must filled parameter `hvsc_directory=""` with the C64Music path (https://hvsc.c64.org/downloads).
+For use correct track duration, you have 2 solutions:
+* In vgm2flac script file ,filled parameter `hvsc_directory=""` with the C64Music path (https://hvsc.c64.org/downloads).
+* In sidplayfp config file `/home/$USER/.config/sidplayfp.ini` filled parameter `Songlength Database =`, with Songlengths text file.
+
+In most cases the music is converted without problems, but you may need to add the Kernal, BASIC, and Chargen ROM files to the configuration file of sidplayfp.
+These files are available here https://github.com/Jocker666z/vgm2flac-dep/raw/main/C64-ROM.tar.bz2
 
 ## Known error
 * unrepeatable usf/miniusf decoding stuck = zxtune123 bug
