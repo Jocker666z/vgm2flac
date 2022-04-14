@@ -1,4 +1,12 @@
 # Changelog
+v0.35:
+* add - C64, sidplayfp now used for convert sid files
+* add - C64, if HVSC_BASE environment variables not set: use total duration variable $sid_default_max_duration (5min for now)
+* add - C64, if HVSC_BASE environment variables set: use duration in Songlengths.md5
+* chg - amiga, improve uade command
+* fix - snes, various errors in spc fading
+* remove - C64, zxtune no more used, too instable
+
 v0.34:
 * add - at startup, now display fetched files
 * add - now ignore mkv, wv files in vgmstream loop

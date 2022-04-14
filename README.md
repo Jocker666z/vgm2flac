@@ -1,17 +1,17 @@
 # vgm2flac
 
-Bash tool for encoding various files vgm/chiptune to FLAC.
+Bash tool for encoding various video game music files to FLAC.
 
 ## Install & update
 
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`bc adplay bc bchunk ffmpeg ffprobe fluidsynth find info68 munt nsfplay sc68 sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
+`bc adplay bc bchunk ffmpeg ffprobe fluidsynth find info68 munt nsfplay sc68 sidplayfp sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
 
-You will be able to run the vgm2flac even if it is missing, the script will warn you if a dependency is not met.
+You will be able to run vgm2flac even if some dependencies are missing. The script will warn you if a dependency is not met depending on the file format to convert.
 
-* ffmpeg must be compiled with: --enable-libgme --enable-libopenmpt --enable-nonfree
+* ffmpeg must be compiled with: `--enable-libgme --enable-libopenmpt --enable-nonfree`
 * adplay: https://github.com/adplug/adplay-unix
 * fluidsynth: https://www.fluidsynth.org/
 * munt: https://github.com/munt/munt
@@ -19,6 +19,7 @@ You will be able to run the vgm2flac even if it is missing, the script will warn
 * sc68 & info68:
 	* original source: https://sourceforge.net/projects/sc68/
 	* prefered version: https://github.com/Jocker666z/sc68
+* sidplayfp: https://github.com/libsidplayfp/sidplayfp
 * vgm2wav: https://github.com/ValleyBell/libvgm
 * vgmstream_cli: https://github.com/losnoco/vgmstream
 * vgmtag: https://github.com/vgmrips/vgmtools
@@ -108,8 +109,15 @@ Recommended soundfonts:
 ### munt
 If you want to use munt Roland MT-32 emulator as decoder, you must filled parameter `munt_rom_path=""` with the ROM path of MT-32.
 
+## Commodore 64 files
+For use correct track duration, you must filled parameter `hvsc_directory=""` with the C64Music path (https://hvsc.c64.org/downloads).
+
 ## Known error
 * unrepeatable usf/miniusf decoding stuck = zxtune123 bug
+
+## Notable sites, source of audio files
+* Atari: http://sndh.atari.org/
+* Commodore 64: https://hvsc.c64.org/
 
 ## Holy reading
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
@@ -120,9 +128,9 @@ If you want to use munt Roland MT-32 emulator as decoder, you must filled parame
 * SGC spec: https://ocremix.org/info/SGC_Format_Specification
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
+* https://wiki.archlinux.org/index.php/FluidSynth
 * http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
 * http://www.vgmpf.com/
-* https://wiki.archlinux.org/index.php/FluidSynth
 
 ## Dependencies installation:
 ### munt

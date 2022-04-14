@@ -27,19 +27,18 @@ default_agressive_silent_db_cut="58"														# Agressive silence db value f
 # Atari ST
 sc68_loops="1"
 # Commodore 64/128
-sid_loops="1"																				# sid file loop file number, value must be 1 or 2
-sid_duration_without_loop="15"																# Track duration is second that does not trigger a music loop 
+hvsc_directory=""																			# Directory containing extracted archive of https://hvsc.c64.org/downloads
+export HVSC_BASE="$hvsc_directory"															# Env variable for sidplayfp
+sid_default_max_duration="360"																# Max track duration in second
 # Game Boy, NES, PC-Engine
 xxs_default_max_duration="360"																# In second
 # Midi
-#fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
 fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
-#munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
 munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
 # SNES
 spc_default_duration="180"																	# In second
 # vgm2wav
-vgm2wav_samplerate="48000"																	# Sample rate in Hz
+vgm2wav_samplerate="44100"																	# Sample rate in Hz
 vgm2wav_bit_depth="16"																		# Bit depth must be 16 or 24
 vgm2wav_loops="2"
 # vgmstream
@@ -57,11 +56,11 @@ ext_midi="mid"
 ext_nsfplay_nsf="nsf"
 ext_nsfplay_nsfe="nsfe"
 ext_sc68="snd|sndh"
+ext_sidplayfp_sid="sid"
 ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_zxtune_ay="ay"
-ext_zxtune_sid="sid"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
@@ -164,6 +163,25 @@ if test -n "$system_bin_location"; then
 else
 	echo "Break, $bin_name is not installed"
 	exit
+fi
+}
+sidplayfp_bin() {
+local bin_name="sidplayfp"
+local system_bin_location
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	sidplayfp_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
+fi
+if [[ -n "$hvsc_directory" ]]; then
+	if ! [[ -d "$hvsc_directory" ]]; then
+		echo_pre_space "Break, the variable (hvsc_directory) not indicating a valid directory."
+		echo_pre_space "Read documentation."
+		exit
+	fi
 fi
 }
 vgm2wav_bin() {
@@ -499,10 +517,10 @@ mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -i
 mapfile -t lst_nsfplay_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsf')$' 2>/dev/null | sort)
 mapfile -t lst_nsfplay_nsfe < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsfe')$' 2>/dev/null | sort)
 mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
+mapfile -t lst_sidplayfp_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sidplayfp_sid')$' 2>/dev/null | sort)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort)
-mapfile -t lst_zxtune_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_sid')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort)
 mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort)
@@ -580,10 +598,10 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_nsfplay_nsf[@]}" \
 				"${lst_nsfplay_nsfe[@]}" \
 				"${lst_sc68[@]}" \
+				"${lst_sidplayfp_sid[@]}" \
 				"${lst_vgm2wav[@]}" \
 				"${lst_vgmstream[@]}" \
 				"${lst_zxtune_ay[@]}" \
-				"${lst_zxtune_sid[@]}" \
 				"${lst_zxtune_xsf[@]}" \
 				"${lst_zxtune_ym[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" \
@@ -898,6 +916,22 @@ else
 		&& echo_pre_space "✓ WAV  <- $sub_track - $track_name" || echo_pre_space "x WAV  <- $sub_track - $track_name"
 fi
 }
+cmd_sidplayfp() {
+if [[ "$verbose" = "1" ]]; then
+	"$sidplayfp_bin" -w "$files"
+else
+	"$sidplayfp_bin" -q -w "$files" &>/dev/null \
+		&& echo_pre_space "✓ WAV  <- ${files##*/}" || echo_pre_space "x WAV  <- ${files##*/}"
+fi
+}
+cmd_sidplayfp_duration() {
+if [[ "$verbose" = "1" ]]; then
+	"$sidplayfp_bin" "$files" -w -t"$sid_default_max_duration"
+else
+	"$sidplayfp_bin" "$files" -q -w -t"$sid_default_max_duration" &>/dev/null \
+		&& echo_pre_space "✓ WAV  <- ${files##*/}" || echo_pre_space "x WAV  <- ${files##*/}"
+fi
+}
 cmd_sox() {
 if [[ "$verbose" = "1" ]]; then
 	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" -L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop"
@@ -908,9 +942,9 @@ fi
 }
 cmd_uade() {
 if [[ "$verbose" = "1" ]]; then
-	"$uade123_bin" --force-led=0 --one --silence-timeout 5 --panning 0.8 --subsong "$sub_track" "$files" -f "$file_name".wav
+	"$uade123_bin" --filter=A1200 --force-led=0 --one --silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav
 else
-	"$uade123_bin" --force-led=0 --one --silence-timeout 5 --panning 0.8 --subsong "$sub_track" "$files" -f "$file_name".wav &>/dev/null \
+	"$uade123_bin" --filter=A1200 --force-led=0 --one --silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav &>/dev/null \
 		&& echo_pre_space "✓ WAV  <- $file_name" || echo_pre_space "x WAV  <- $file_name"
 fi
 }
@@ -958,26 +992,6 @@ else
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$ay"?#"$sub_track" &>/dev/null \
 		&& mv output-"$file_name_random".wav "$sub_track".wav \
 		&& echo_pre_space "✓ WAV  <- $sub_track - ${ay##*/}" || echo_pre_space "x WAV  <- $sub_track - ${ay##*/}"
-fi
-}
-cmd_zxtune_sid() {
-if [[ "$verbose" = "1" ]]; then
-	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files" \
-		&& mv output-"$file_name_random".wav "$tag_song"0.wav
-else
-	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files" &>/dev/null \
-		&& mv output-"$file_name_random".wav "$tag_song"0.wav &>/dev/null \
-		&& echo_pre_space "✓ WAV  <- ${files##*/}" || echo_pre_space "x WAV  <- ${files##*/}"
-fi
-}
-cmd_zxtune_sid_multi_track() {
-if [[ "$verbose" = "1" ]]; then
-	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files"?#"$sub_track" \
-	&& mv output-"$file_name_random".wav "$sub_track - $tag_song"0.wav
-else
-	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files"?#"$sub_track" &>/dev/null \
-		&& mv output-"$file_name_random".wav "$sub_track - $tag_song"0.wav &>/dev/null \
-		&& echo_pre_space "✓ WAV  <- $sub_track - ${files##*/}" || echo_pre_space "x WAV  <- $sub_track - ${files##*/}"
 fi
 }
 cmd_zxtune_xfs_ym_zxspectrum() {
@@ -1691,6 +1705,61 @@ if (( "${#lst_sc68[@]}" )); then
 	done
 fi
 }
+loop_sidplayfp_sid() {		# Commodore 64/128
+if (( "${#lst_sidplayfp_sid[@]}" )); then
+	# Bin check & set
+	sidplayfp_bin
+
+	# Local variable
+	local test_duration
+
+	# User info - Title
+	display_loop_title "sidplayfp" "Commodore 64/128"
+
+	for files in "${lst_sidplayfp_sid[@]}"; do
+		# Tag extract
+		tag_sid
+		tag_questions
+		tag_album
+		tag_song
+
+		# Wav loop by track
+		display_convert_title "WAV"
+		if [[ -z "$hvsc_directory" ]]; then
+			cmd_sidplayfp_duration
+		else
+			cmd_sidplayfp
+		fi
+	done
+
+	# Generate wav array
+	list_wav_files
+
+	# Flac loop
+	if (( "${#lst_wav[@]}" )); then
+		display_convert_title "FLAC"
+		for files in "${lst_wav[@]}"; do
+			# Tag
+			tag_song="[untitled]"
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
+			# Remove silence
+			wav_remove_silent
+			# Add fade out
+			wav_fade_out
+			# Flac conversion
+			(
+			wav2flac
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		done
+		wait
+	fi
+
+fi
+}
 loop_sox() {				# Various machines
 if (( "${#lst_sox[@]}" )); then
 
@@ -2143,125 +2212,6 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 	wait
 fi
 }
-loop_zxtune_sid() {			# Commodore 64/128
-if (( "${#lst_zxtune_sid[@]}" )); then
-	# Bin check & set
-	zxtune123_bin
-
-	# Local variable
-	local test_duration
-
-	# User info - Title
-	display_loop_title "zxtune" "Commodore 64/128"
-
-	for files in "${lst_zxtune_sid[@]}"; do
-		# Tag extract
-		tag_sid
-		tag_questions
-		tag_album
-		tag_song
-
-		# Wav loop by track
-		display_convert_title "WAV"
-		for sub_track in $(seq -w 1 99); do
-			# Filename contruction
-			file_name_random=$(( RANDOM % 10000 ))
-			# Extract WAV
-			cmd_zxtune_sid_multi_track
-
-			if [[ "$sid_loops" = "1" ]]; then
-				mv "$sub_track - $tag_song"0.wav "$sub_track - $tag_song".wav &>/dev/null
-			else
-				# 2 loops contruction
-				test_duration=$(ffprobe -i "$sub_track - $tag_song"0.wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
-				if [[ "$test_duration" -gt "$sid_duration_without_loop" ]] ; then
-					# copy another wav if duration > 15s
-					cp "$sub_track - $tag_song"0.wav "$sub_track - $tag_song"1.wav &>/dev/null
-					# make clean loop without silence
-					sox "$sub_track - $tag_song"0.wav temp-out0.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
-					sox "$sub_track - $tag_song"1.wav temp-out1.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
-					rm "$sub_track - $tag_song"0.wav "$sub_track - $tag_song"1.wav &>/dev/null
-					mv temp-out0.wav "$sub_track - $tag_song"0.wav &>/dev/null
-					mv temp-out1.wav "$sub_track - $tag_song"1.wav &>/dev/null
-					# Concatenate loops
-					sox "$sub_track - $tag_song"0.wav "$sub_track - $tag_song"1.wav "$sub_track - $tag_song".wav
-					# Clean temp files
-					rm "$sub_track - $tag_song"0.wav "$sub_track - $tag_song"1.wav &>/dev/null
-				else
-					mv "$sub_track - $tag_song"0.wav "$sub_track - $tag_song".wav &>/dev/null
-				fi
-			fi
-
-			# Break loop when fail
-			if [ ! -f "$sub_track - $tag_song".wav ]; then
-				break
-			fi
-		done
-
-		# Generate wav array
-		list_wav_files
-
-		# if no wav, try without subtrack
-		if [ "${#lst_wav[@]}" -eq 0 ]; then
-			# Filename contruction
-			file_name_random=$(( RANDOM % 10000 ))
-			# Extract WAV
-			cmd_zxtune_sid
-
-			if [[ "$sid_loops" = "1" ]]; then
-				mv "$sub_track - $tag_song"0.wav "$sub_track - $tag_song".wav &>/dev/null
-			else
-				# 2 loops contruction
-				test_duration=$(ffprobe -i "$tag_song"0.wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
-				if [[ "$test_duration" -gt "$sid_duration_without_loop" ]] ; then
-					# copy another wav if duration > 15s
-					cp "$tag_song"0.wav "$tag_song"1.wav &>/dev/null
-					# make clean loop without silence
-					sox "$tag_song"0.wav temp-out0.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
-					sox "$tag_song"1.wav temp-out1.wav silence 1 0.1 1% reverse silence 1 0.1 1% reverse
-					rm "$tag_song"0.wav "$tag_song"1.wav &>/dev/null
-					mv temp-out0.wav "$tag_song"0.wav &>/dev/null
-					mv temp-out1.wav "$tag_song"1.wav &>/dev/null
-					# Concatenate loops
-					sox "$tag_song"0.wav "$tag_song"1.wav "$tag_song".wav
-					# Clean temp files
-					rm "$tag_song"0.wav "$tag_song"1.wav &>/dev/null
-				else
-					mv "$tag_song"0.wav "$tag_song".wav &>/dev/null
-				fi
-			fi
-		fi
-
-	done
-
-	# Generate wav array
-	list_wav_files
-
-	# Flac loop
-	if (( "${#lst_wav[@]}" )); then
-		display_convert_title "FLAC"
-		for files in "${lst_wav[@]}"; do
-			# Tag
-			tag_song="[untitled]"
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
-			# Remove silence
-			wav_remove_silent
-			# Add fade out
-			wav_fade_out
-			# Flac conversion
-			(
-			wav2flac
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
-		done
-		wait
-	fi
-
-fi
-}
 loop_zxtune_xfs() {			# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
 if (( "${#lst_zxtune_xsf[@]}" )); then
 	# Bin check & set
@@ -2566,7 +2516,7 @@ if [ "${#lst_m3u[@]}" -gt "0" ]; then
 	local xxs_fading_format
 
 	tag_song=$(< "$vgm2flac_cache_tag" awk -v var=$xxs_track -F',' '$2 == var { print $0 }' | awk -F"," '{ print $3 }')
-	tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
+	tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)							# Replace eventualy "/" & ":" in string
 	if [[ -z "$tag_song" ]]; then
 		tag_song="[untitled]"
 	fi
@@ -2740,14 +2690,14 @@ if [[ -z "$tag_artist" ]]; then
 	tag_artist=$(xxd -ps -s 0x36 -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 fi
 if [ "$tag_artist" = "<?>" ]; then
-	tag_artist=""
+	unset tag_artist
 fi
 
 if [[ -z "$tag_game" ]]; then
 	tag_game=$(xxd -ps -s 0x16 -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 fi
 if [ "$tag_game" = "<?>" ]; then
-	tag_game=""
+	unset tag_game
 fi
 }
 tag_spc() {					# SNES
@@ -2999,10 +2949,10 @@ loop_midi
 loop_nsfplay_nsf
 loop_nsfplay_nsfe
 loop_sc68
+loop_sidplayfp_sid
 loop_sox
 loop_vgm2wav
 loop_zxtune_ay
-loop_zxtune_sid
 loop_zxtune_xfs
 loop_zxtune_ym
 loop_zxtune_zx_spectrum
