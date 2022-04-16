@@ -197,7 +197,7 @@ else
 fi
 }
 vgmstream_cli_bin() {
-local bin_name="vgmstream_cli"
+local bin_name="vgmstream-cli"
 local system_bin_location
 system_bin_location=$(command -v $bin_name)
 
