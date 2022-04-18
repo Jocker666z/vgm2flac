@@ -13,38 +13,46 @@ vgm2flac_cache_tag="$vgm2flac_cache/tag-$(date +%Y%m%s%N).info"								# Tag cac
 export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script outside a terminal
 
 # Others
-core_dependency=(awk bc ffmpeg ffprobe find sed sox xxd)
+core_dependency=(awk bc ffmpeg ffprobe find sed sox soxi xxd)
 ffmpeg_log_lvl="-hide_banner -loglevel quiet"												# ffmpeg log level
 nprocessor=$(nproc --all)																	# Set number of processor
 
 # Output
-default_wav_fade_out="6"																	# Fade out value in second, apply to all file during more than 10s
+## WAV
 default_wav_bit_depth="pcm_s16le"															# Wav bit depth must be pcm_s16le, pcm_s24le or pcm_s32le
-default_flac_bit_depth="s16"																# Flac bit depth must be s16 or s32
+default_wav_fade_out="6"																	# Fade out value in second, apply to all file during more than 10s
 default_peakdb_norm="1"																		# Peak db normalization option, this value is written as positive but is used in negative, e.g. 4 = -4
 default_silent_db_cut="85"																	# Silence db value for cut file
 default_agressive_silent_db_cut="58"														# Agressive silence db value for cut file
-# Atari ST
+## FLAC with ffmpeg
+default_ffmpeg_flac_bit_depth="s16"															# ffmpeg FLAC bit depth, must be s16 or s32
+default_ffmpeg_flac_lvl="12"																# ffmpeg FLAC compression level, 0 to 12
+## FLAC with flac bin
+default_FLAC_lvl="--best -e"																# flac bin compression level, must be -0 to -8, --fast, --best & with addition of -e & -p
+
+# Input
+## Atari ST
 sc68_loops="1"
-# Commodore 64/128
+## Commodore 64/128
 hvsc_directory=""																			# Directory containing extracted archive of https://hvsc.c64.org/downloads
 export HVSC_BASE="$hvsc_directory"															# Env variable for sidplayfp
 sid_default_max_duration="360"																# Max track duration in second
-# Game Boy, NES, PC-Engine
+## Game Boy, NES, PC-Engine
 xxs_default_max_duration="360"																# In second
-# Midi
+## Midi
 fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
 munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
-# SNES
+## SNES
 spc_default_duration="180"																	# In second
-# vgm2wav
+## vgm2wav
 vgm2wav_samplerate="44100"																	# Sample rate in Hz
 vgm2wav_bit_depth="16"																		# Bit depth must be 16 or 24
 vgm2wav_loops="2"
-# vgmstream
+## vgmstream
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
+ext_input_exclude="ape|flac|m4a|mp3|mkv|txth|wav|wv"
 ext_adplay="hsq|imf|sdb|sqx|wlf"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
@@ -90,6 +98,33 @@ else
 	exit
 fi
 }
+common_bin() {
+n=0;
+for command in "${core_dependency[@]}"; do
+	if hash "$command" &>/dev/null
+	then
+		(( c++ )) || true
+	else
+		local command_fail+=("$command")
+		(( n++ )) || true
+	fi
+done
+if (( "${#command_fail[@]}" )); then
+	echo "vgm2flac break, the following dependencies are not installed:"
+	printf '  %s\n' "${command_fail[@]}"
+	exit
+fi
+}
+flac_bin() {
+local bin_name="flac"
+local system_bin_location
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	flac_bin="$system_bin_location"
+	flac_version="$(flac --version) $default_FLAC_lvl"
+fi
+}
 fluidsynth_bin() {
 local bin_name="fluidsynth"
 local system_bin_location
@@ -120,6 +155,15 @@ if test -n "$system_bin_location"; then
 else
 	echo "Break, $bin_name is not installed"
 	exit
+fi
+}
+metaflac_bin() {
+local bin_name="metaflac"
+local system_bin_location
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	metaflac_bin="$system_bin_location"
 fi
 }
 munt_bin() {
@@ -239,23 +283,6 @@ if test -n "$system_bin_location"; then
 	zxtune123_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-common_bin() {
-n=0;
-for command in "${core_dependency[@]}"; do
-	if hash "$command" &>/dev/null
-	then
-		(( c++ )) || true
-	else
-		local command_fail+=("$command")
-		(( n++ )) || true
-	fi
-done
-if (( "${#command_fail[@]}" )); then
-	echo "vgm2flac break, the following dependencies are not installed:"
-	printf '  %s\n' "${command_fail[@]}"
 	exit
 fi
 }
@@ -546,11 +573,13 @@ if (( "${#lst_all_files[@]}" )); then
 		for files in "${lst_all_files[@]}"; do
 
 			# Test file
-			if [[ "${#uade123_bin}" -gt "0" ]]; then
-				uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
-			fi
-			if [[ "${#vgmstream_cli_bin}" -gt "0" ]]; then
-				vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+			if ! [[ ${ext_input_exclude[*]} =~ ${files##*.} ]]; then
+				if [[ "${#uade123_bin}" -gt "0" ]]; then
+					uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
+				fi
+				if [[ "${#vgmstream_cli_bin}" -gt "0" ]]; then
+					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+				fi
 			fi
 
 			# Set case insensitive
@@ -562,19 +591,12 @@ if (( "${#lst_all_files[@]}" )); then
 					lst_uade+=("$files")
 				fi
 			elif [[ "${#vgmstream_cli_bin}" -gt "0" && "${#uade_test_result}" -eq "0" && "${#vgmstream_test_result}" -gt "0" ]]; then
-				if [[ "${files##*.}" != "txth" ]] && \
-					[[ "${files##*.}" != "mkv" ]] && \
-					[[ "${files##*.}" != "wv" ]] && \
-					[[ "${files##*.}" != "wav" ]] && \
-					[[ "${files##*.}" != "flac" ]]; then
-					# If no wav already output ok add to array
-					if ! compgen -G "$files*.wav" > /dev/null; then
-						lst_vgmstream+=("$files")
-					fi
-					# Activate fade out for files: his
-					if [[ "${files##*.}" = "his" ]]; then
-						force_fade_out="1"
-					fi
+				if ! compgen -G "$files*.wav" > /dev/null; then
+					lst_vgmstream+=("$files")
+				fi
+				# Activate fade out for files: his
+				if [[ "${files##*.}" = "his" ]]; then
+					force_fade_out="1"
 				fi
 			fi
 			# Set case sensitive
@@ -583,6 +605,7 @@ if (( "${#lst_all_files[@]}" )); then
 			# Progress bar
 			progress_counter=$(( progress_counter + 1 ))
 			progress_bar "$progress_counter" "${#lst_all_files[@]}"
+
 
 		done
 	fi
@@ -747,59 +770,57 @@ if [[ -f "${files%.*}".wav ]]; then
 
 	# Local variables
 	local testdb
+	local testdb_diff
 	local db
 	local left_md5
 	local right_md5
 	local afilter
 	local confchan
 
-	# Test Volume, set normalization variable
-	if ! [[ "$no_normalization" = "1" ]]; then
-		testdb=$(ffmpeg -i "${files%.*}".wav -af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 | grep "max_volume" | awk '{print $5;}')
-
-		if [[ "$testdb" = *"-"* ]] && (( $(echo "${testdb/-/} > $default_peakdb_norm" | bc -l) )); then
-			db="$(echo "${testdb/-/}" | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
-			afilter="-af volume=$db"
-			# Record for summary
-			lst_wav_normalized+=( "${files%.*}.wav" )
-		fi
-	fi
-
 	# Channel test mono or stereo
 	left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
 	right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
 	if [ "$left_md5" = "$right_md5" ]; then
 		confchan="-channel_layout mono"
+
+		# Encoding Wav
+		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
+			$afilter $confchan \
+			-acodec "$default_wav_bit_depth" \
+			-f wav temp-out.wav
+		rm "${files%.*}".wav &>/dev/null
+		mv temp-out.wav "${files%.*}".wav &>/dev/null
+
 		# Record for summary
 		lst_wav_in_mono+=( "${files%.*}.wav" )
 	fi
 
-	# Encoding Wav
-	if [[ -n "$afilter" ]] || [[ -n "$confchan" ]]; then
-		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav $afilter $confchan -acodec "$default_wav_bit_depth" -f wav temp-out.wav
-		rm "${files%.*}".wav &>/dev/null
-		mv temp-out.wav "${files%.*}".wav &>/dev/null
-	fi
+	# Volume normalization
+	if ! [[ "$no_normalization" = "1" ]]; then
 
-fi
-}
-flac_force_pal_tempo() {
-if ! [[ "$no_flac" = "1" ]]; then
-	if (( "${#lst_flac[@]}" )); then
-		if [[ "$flac_force_pal" = "1" ]]; then
-			# In case of audio speed is to high, reduce tempo to simulate 50hz
-			# 60hz - 50hz = 83.333333333% of orginal speed
-			for files in "${lst_flac[@]}"; do
-				if [[ "$verbose" = "1" ]]; then
-					sox "$files" temp-out.flac tempo 0.83333333333
-				else
-					sox "$files" temp-out.flac tempo 0.83333333333 &>/dev/null
-				fi
-				rm "$files".flac &>/dev/null
-				mv temp-out.flac "$files" &>/dev/null
-			done
+		testdb=$(ffmpeg -i "${files%.*}".wav \
+				-af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 \
+				| grep "max_volume" | awk '{print $5;}')
+		testdb_diff=$(echo "${testdb/-/} > $default_peakdb_norm" | bc -l 2>/dev/null)
+
+		# Apply if db detected < default peak db variable
+		if [[ "${testdb:0:1}" == "-" ]] && [[ "$testdb_diff" = "1" ]]; then
+			db="$(echo "${testdb/-/}" | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
+			afilter="-af volume=$db"
+
+			# Encoding Wav
+			ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
+				$afilter \
+				-acodec "$default_wav_bit_depth" \
+				-f wav temp-out.wav
+			rm "${files%.*}".wav &>/dev/null
+			mv temp-out.wav "${files%.*}".wav &>/dev/null
+
+			# Record for summary
+			lst_wav_normalized+=( "${files%.*}.wav" )
 		fi
 	fi
+
 fi
 }
 
@@ -822,37 +843,62 @@ fi
 }
 cmd_ffmpeg_gbs() {
 if [[ "$verbose" = "1" ]]; then
-	ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$gbs" -t $xxs_duration_second -channel_layout mono -acodec pcm_s16le -ar 44100 \
+	ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$gbs" \
+		-t $xxs_duration_second \
+		-channel_layout mono \
+		-acodec "$default_wav_bit_depth" \
+		-ar 44100 \
 		-f wav "$sub_track - $tag_song".wav
 else
-	ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$gbs" -t $xxs_duration_second -channel_layout mono -acodec pcm_s16le -ar 44100 \
+	ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$gbs" \
+		-t $xxs_duration_second \
+		-channel_layout mono \
+		-acodec "$default_wav_bit_depth" \
+		-ar 44100 \
 		-f wav "$sub_track - $tag_song".wav \
-		&& echo_pre_space "✓ WAV  <- $sub_track - $tag_song" || echo_pre_space "x WAV  <- $sub_track - $tag_song"
+		&& echo_pre_space "✓ WAV  <- $sub_track - $tag_song" \
+		|| echo_pre_space "x WAV  <- $sub_track - $tag_song"
 fi
 }
 cmd_ffmpeg_hes() {
 if [[ "$verbose" = "1" ]]; then
-	ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$hes" -t $xxs_duration_second -acodec pcm_s16le \
+	ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$hes" \
+		-t $xxs_duration_second \
+		-acodec "$default_wav_bit_depth" \
+		-map_metadata -1 \
 		-f wav "$sub_track - $tag_song".wav
 else
-	ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$hes" -t $xxs_duration_second -acodec pcm_s16le \
+	ffmpeg $ffmpeg_log_lvl -track_index "$sub_track" -y -i "$hes" \
+		-t $xxs_duration_second \
+		-acodec "$default_wav_bit_depth" \
+		-map_metadata -1 \
 		-f wav "$sub_track - $tag_song".wav \
-		&& echo_pre_space "✓ WAV  <- $sub_track - $tag_song" || echo_pre_space "x WAV  <- $sub_track - $tag_song"
+		&& echo_pre_space "✓ WAV  <- $sub_track - $tag_song" \
+		|| echo_pre_space "x WAV  <- $sub_track - $tag_song"
 fi
 }
 cmd_ffmpeg_spc() {
 if [[ "$verbose" = "1" ]]; then
-	ffmpeg $ffmpeg_log_lvl -y -i "$files" -t $spc_duration_total -acodec pcm_s16le -ar 32000 -f wav "${files%.*}".wav
+	ffmpeg $ffmpeg_log_lvl -y -i "$files" \
+		-t $spc_duration_total \
+		-acodec "$default_wav_bit_depth" \
+		-ar 32000 \
+		-fflags +bitexact -flags:v +bitexact -flags:a +bitexact \
+		-f wav "${files%.*}".wav
 else
-	ffmpeg $ffmpeg_log_lvl -y -i "$files" -t $spc_duration_total -acodec pcm_s16le -ar 32000 -f wav "${files%.*}".wav \
+	ffmpeg $ffmpeg_log_lvl -fflags +bitexact -flags:v +bitexact -flags:a +bitexact -y -i "$files" \
+		-t $spc_duration_total \
+		-acodec "$default_wav_bit_depth" \
+		-ar 32000 \
+		-f wav "${files%.*}".wav \
 		&& echo_pre_space "✓ WAV  <- ${files##*/}" || echo_pre_space "x WAV  <- ${files##*/}"
 fi
 }
 cmd_ffmpeg_xa() {
 if [[ "$verbose" = "1" ]]; then
-	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec pcm_s16le -f wav "${files%.*}".wav
+	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec "$default_wav_bit_depth" -map_metadata -1 -f wav "${files%.*}".wav
 else
-	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec pcm_s16le -f wav "${files%.*}".wav \
+	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec "$default_wav_bit_depth" -map_metadata -1 -f wav "${files%.*}".wav \
 		&& echo_pre_space "✓ WAV  <- ${files##*/}" || echo_pre_space "x WAV  <- ${files##*/}"
 fi
 }
@@ -1005,19 +1051,53 @@ else
 fi
 }
 wav2flac() {
-# Enconding final flac
-if [[ "$verbose" = "1" ]]; then
-	if ! [[ "$no_flac" = "1" ]]; then
-		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 12 -sample_fmt "$default_flac_bit_depth" \
-			-metadata title="$tag_song" -metadata album="$tag_album" -metadata artist="$tag_artist" \
-			-metadata date="$tag_date_formated" "${files%.*}".flac
-	fi
-else
-	if ! [[ "$no_flac" = "1" ]]; then
-		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav -acodec flac -compression_level 12 -sample_fmt "$default_flac_bit_depth" \
-			-metadata title="$tag_song" -metadata album="$tag_album" -metadata artist="$tag_artist" \
-			-metadata date="$tag_date_formated" "${files%.*}".flac \
-			&& echo_pre_space "✓ FLAC <- $(basename "${files%.*}").wav" || echo_pre_space "x FLAC <- $(basename "${files%.*}").wav"
+if ! [[ "$no_flac" = "1" ]]; then
+	# Enconding final flac
+	if [[ "$verbose" = "1" ]]; then
+			# Use official FLAC if available
+			set -x
+			if [[ -n "$flac_bin" ]]; then
+				"$flac_bin" -f --no-keep-foreign-metadata \
+					$default_FLAC_lvl "${files%.*}".wav \
+					--tag=TITLE="$tag_song" \
+					--tag=ARTIST="$tag_artist" \
+					--tag=ALBUM="$tag_album" \
+					--tag=DATE="$tag_date_formated"
+			# Or ffmpeg
+			elif [[ -z "$flac_bin" ]]; then
+				ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
+					-acodec flac -compression_level "$default_ffmpeg_flac_lvl" \
+					-sample_fmt "$default_ffmpeg_flac_bit_depth" \
+					-metadata title="$tag_song" \
+					-metadata album="$tag_album" \
+					-metadata artist="$tag_artist" \
+					-metadata date="$tag_date_formated" \
+					"${files%.*}".flac
+			fi
+	else
+			# Use official FLAC if available
+			if [[ -n "$flac_bin" ]]; then
+				"$flac_bin" --totally-silent --no-keep-foreign-metadata -f \
+					$default_FLAC_lvl "${files%.*}".wav \
+					--tag=TITLE="$tag_song" \
+					--tag=ARTIST="$tag_artist" \
+					--tag=ALBUM="$tag_album" \
+					--tag=DATE="$tag_date_formated" \
+					&& echo_pre_space "✓ FLAC <- $(basename "${files%.*}").wav" \
+					|| echo_pre_space "x FLAC <- $(basename "${files%.*}").wav"
+			# Or ffmpeg
+			elif [[ -z "$flac_bin" ]]; then
+				ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
+					-acodec flac -compression_level "$default_ffmpeg_flac_lvl" \
+					-sample_fmt "$default_ffmpeg_flac_bit_depth" \
+					-metadata title="$tag_song" \
+					-metadata album="$tag_album" \
+					-metadata artist="$tag_artist" \
+					-metadata date="$tag_date_formated" \
+					"${files%.*}".flac \
+					&& echo_pre_space "✓ FLAC <- $(basename "${files%.*}").wav" \
+					|| echo_pre_space "x FLAC <- $(basename "${files%.*}").wav"
+			fi
 	fi
 fi
 }
@@ -2403,8 +2483,9 @@ fi
 # Tag common
 tag_track() {
 if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If number of flac > 0
-local tag_track_count
-local count
+	local tag_track_count
+	local count
+
 	for files in "${lst_flac[@]}"; do
 		tag_track_count=$((count+1))
 		count="$tag_track_count"
@@ -2422,12 +2503,20 @@ local count
 			fi
 		fi
 
-		ffmpeg $ffmpeg_log_lvl -i "$files" -c:v copy -c:a copy -metadata TRACKNUMBER="$tag_track_count" \
-			-metadata TRACK="$tag_track_count" "${files%.*}"-temp.flac
-		# If temp-file exist remove source and rename
-		if [[ -f "${files%.*}-temp.flac" && -s "${files%.*}-temp.flac" ]]; then
-			rm "$files" &>/dev/null
-			mv "${files%.*}"-temp.flac "$files" &>/dev/null
+		# Add track tag with metaflac
+		if [[ -n "$metaflac_bin" ]]; then
+			"$metaflac_bin" --remove-tag=ENCODER --set-tag=ENCODER="$flac_version" \
+			--remove-tag=TRACKNUMBER --set-tag=TRACKNUMBER="$tag_track_count" "$files"
+		# Or add track tag with ffmpeg
+		elif [[ -z "$metaflac_bin" ]]; then
+			ffmpeg $ffmpeg_log_lvl -i "$files" -c:v copy -c:a copy \
+				-metadata TRACKNUMBER="$tag_track_count" \
+				"${files%.*}"-temp.flac
+			# If temp-file exist remove source and rename
+			if [[ -f "${files%.*}-temp.flac" && -s "${files%.*}-temp.flac" ]]; then
+				rm "$files" &>/dev/null
+				mv "${files%.*}"-temp.flac "$files" &>/dev/null
+			fi
 		fi
 	done
 fi
@@ -2699,6 +2788,9 @@ fi
 if [ "$tag_game" = "<?>" ]; then
 	unset tag_game
 fi
+if [[ -z "$tag_machine" ]]; then
+	tag_machine="C64"
+fi
 }
 tag_spc() {					# SNES
 # Local variable
@@ -2868,7 +2960,6 @@ if [[ "$no_flac" = "1" ]]; then
 else
 	if [[ "$flac_loop_activated" = "1" ]]; then
 		clean_wav_flac_validation
-		flac_force_pal_tempo
 		tag_track
 		display_all_in_errors
 		display_end_summary
@@ -2908,9 +2999,6 @@ while [[ $# -gt 0 ]]; do
 	--no_remove_silence)
 		no_remove_silence="1"												# Set force no remove silence
 	;;
-	--pal)
-		flac_force_pal="1"													# Set pal mode
-	;;
 	-v|--verbose)
 		verbose="1"
 		unset ffmpeg_log_lvl												# Unset default ffmpeg log
@@ -2929,6 +3017,8 @@ done
 # Bin check & set
 test_write_access
 common_bin
+flac_bin
+metaflac_bin
 
 # Files source check & set
 check_cache_directory

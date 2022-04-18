@@ -1,4 +1,16 @@
 # Changelog
+v0.36:
+* add - proper exclude list of file type
+* add - soxi in core dependency
+* add - flac, if available now use official flac bin for make final files
+* add - flac, if available now use official metaflac bin for make final files tag
+* add - flac, add variable with compression level at start of script
+* fix - tag, clean track number with ffmpeg
+* fix - wav, split encoding mono test & peakdb normalization
+* fix - vgmstream, now name of bin is vgmstream-cli instead of vgmstream_cli
+* chg - bash, various code improve & clean
+* remove - --pal option (force tempo)
+
 v0.35:
 * add - C64, sidplayfp now used for convert sid files
 * add - C64, if HVSC_BASE environment variables not set: use total duration variable $sid_default_max_duration (5min for now)

@@ -21,7 +21,7 @@ You will be able to run vgm2flac even if some dependencies are missing. The scri
 	* prefered version: https://github.com/Jocker666z/sc68
 * sidplayfp: https://github.com/libsidplayfp/sidplayfp
 * vgm2wav: https://github.com/ValleyBell/libvgm
-* vgmstream_cli: https://github.com/losnoco/vgmstream
+* vgmstream-cli: https://github.com/losnoco/vgmstream
 * vgmtag: https://github.com/vgmrips/vgmtools
 * zxtune: https://zxtune.bitbucket.io/
 * uade: https://gitlab.com/uade-music-player/uade
@@ -33,13 +33,13 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 * If possible, encoding is done in parallel.
 * If available, the tags are always implemented in the final file.
-* Final FLAC default quality is: 16 bits with best compression level
+* FLAC default quality is: 16 bits with best compression level (use ffmpeg if flac binary is not available).
 * Encoding loop order:
-	* vgm encoding in wav file
+	* vgm encoding in WAV
 	* peak normalisation to -1db & false stereo detection (md5 channel test)
 	* remove audio silence at start & end
 	* apply fade out (if necessary or forced)
-	* wav encoding in flac file
+	* WAV encoding in FLAC
 	* remove duplicate files (diff)
 
 ### Arguments options
@@ -51,7 +51,6 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * --no_normalization: Force no peak db normalization.
 * --no_remove_duplicate: Force no remove duplicate files.
 * --no_remove_silence: Force no remove silence at start & end of track.
-* --pal: Force the tempo reduction to simulate 50hz.
 * -v|--verbose: Verbose mode
 
 ## Files tested
@@ -111,7 +110,7 @@ If you want to use munt Roland MT-32 emulator as decoder, you must filled parame
 
 ## Commodore 64 files
 For use correct track duration, you have 2 solutions:
-* In vgm2flac script file ,filled parameter `hvsc_directory=""` with the C64Music path (https://hvsc.c64.org/downloads).
+* In vgm2flac script file, filled parameter `hvsc_directory=""` with the C64Music path (https://hvsc.c64.org/downloads).
 * In sidplayfp config file `/home/$USER/.config/sidplayfp.ini` filled parameter `Songlength Database =`, with Songlengths text file.
 
 In most cases the music is converted without problems, but you may need to add the Kernal, BASIC, and Chargen ROM files to the configuration file of sidplayfp.
@@ -181,7 +180,7 @@ make -j"$(nproc)"
 su -c "make install" -m "root"
 ```
 
-### vgmstream_cli
+### vgmstream-cli
 Build dependencies: `git build-essential cmake audacious-dev libao-dev libvorbis-dev libmpg123-dev libgtk-3-dev`
 ```
 git clone https://github.com/losnoco/vgmstream && cd vgmstream
