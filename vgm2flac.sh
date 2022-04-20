@@ -1055,7 +1055,6 @@ if ! [[ "$no_flac" = "1" ]]; then
 	# Enconding final flac
 	if [[ "$verbose" = "1" ]]; then
 			# Use official FLAC if available
-			set -x
 			if [[ -n "$flac_bin" ]]; then
 				"$flac_bin" -f --no-keep-foreign-metadata \
 					$default_FLAC_lvl "${files%.*}".wav \
