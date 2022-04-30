@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # vgm2flac
 # Bash tool for vgm encoding to flac
 #
@@ -587,13 +587,9 @@ if (( "${#lst_all_files[@]}" )); then
 			# Populate arrays if test valid
 			if [[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -gt "0" ]] || \
 				[[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -eq "0" ]]; then
-				if [ "${files##*.}" != "mod" ]; then
-					lst_uade+=("$files")
-				fi
+				lst_uade+=("$files")
 			elif [[ "${#vgmstream_cli_bin}" -gt "0" && "${#uade_test_result}" -eq "0" && "${#vgmstream_test_result}" -gt "0" ]]; then
-				if ! compgen -G "$files*.wav" > /dev/null; then
-					lst_vgmstream+=("$files")
-				fi
+				lst_vgmstream+=("$files")
 				# Activate fade out for files: his
 				if [[ "${files##*.}" = "his" ]]; then
 					force_fade_out="1"
@@ -605,8 +601,6 @@ if (( "${#lst_all_files[@]}" )); then
 			# Progress bar
 			progress_counter=$(( progress_counter + 1 ))
 			progress_bar "$progress_counter" "${#lst_all_files[@]}"
-
-
 		done
 	fi
 fi
@@ -2041,26 +2035,30 @@ if (( "${#lst_uade[@]}" )); then
 	list_wav_files
 
 	# Flac loop
-	display_convert_title "FLAC"
-	for files in "${lst_wav[@]}"; do
-			# Tag
-			tag_song
-
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
-			# Remove silence
-			wav_remove_silent
-			# Fade out
-			wav_fade_out
-			# Flac conversion
-			(
-			wav2flac
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
-	done
-	wait
+	# If no vgmstream files, if the two loops are linked, assume all Amiga file
+	if (( "${#lst_vgmstream[@]}" )); then
+		force_fade_out="1"
+	else
+		display_convert_title "FLAC"
+		for files in "${lst_wav[@]}"; do
+				# Tag
+				tag_song
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
+				# Remove silence
+				wav_remove_silent
+				# Fade out
+				wav_fade_out
+				# Flac conversion
+				(
+				wav2flac
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+					wait -n
+				fi
+		done
+		wait
+	fi
 fi
 }
 loop_vgm2wav() {			# Various machines

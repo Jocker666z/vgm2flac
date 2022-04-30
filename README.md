@@ -3,7 +3,6 @@
 Bash tool for encoding various video game music files to FLAC.
 
 ## Install & update
-
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
@@ -36,7 +35,8 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * FLAC default quality is: 16 bits with best compression level (use ffmpeg if flac binary is not available).
 * Encoding loop order:
 	* vgm encoding in WAV
-	* peak normalisation to -1db & false stereo detection (md5 channel test)
+	* false stereo detection (md5 channel test)
+	* peak normalisation to -1db
 	* remove audio silence at start & end
 	* apply fade out (if necessary or forced)
 	* WAV encoding in FLAC
