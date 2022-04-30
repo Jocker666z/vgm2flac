@@ -2019,7 +2019,7 @@ if (( "${#lst_uade[@]}" )); then
 				file_name="$files"
 			else
 				file_name="${files}-$sub_track"
-				test1+=( "${files}-${sub_track}.wav" )
+				all_sub_track+=( "${files}-${sub_track}.wav" )
 			fi
 			# Wav extract
 			(
@@ -2030,10 +2030,10 @@ if (( "${#lst_uade[@]}" )); then
 			fi
 		done
 		wait
-		# Contruct one file with all subsong
+		# Contruct one file with all subsongs
 		if ! [ "$diff_track" -eq "0" ]; then
-			sox $(printf '%s ' "${test1[@]}") "${files}-full.wav"
-			test1=()
+			sox $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav"
+			all_sub_track=()
 		fi
 	done
 
