@@ -2946,9 +2946,10 @@ local tag_pc_sound_module_dir
 local target_directory
 
 # Get tag, mkdir & mv
-if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If number of flac > 0
+# If number of flac > 0
+if [[ "${#lst_flac[@]}" -gt "0" ]] || [[ "${#lst_wav[@]}" -gt "0" ]]; then
 	# If tag exist add () & replace eventualy "/" & ":" in string
-	tag_game_dir=$(echo "$tag_game" | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
+	tag_game_dir=$(echo "$tag_game" | sed s#/#-#g | sed s#:#-#g)
 	if ! [[ "$tag_machine" = "NULL" ]]; then
 		tag_machine_dir=$(echo "$tag_machine" | sed s#/#-#g | sed s#:#-#g | sed 's/\(.*\)/\(\1\)/')
 	fi
@@ -2969,9 +2970,15 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 	fi
 
 	# Create target dir & mv
-	for files in "${lst_flac[@]}"; do
-		mv "$files" "$PWD/$target_directory" &>/dev/null
-	done
+	if [[ "$no_flac" = "1" ]]; then
+		for files in "${lst_wav[@]}"; do
+			mv "$files" "$PWD/$target_directory" &>/dev/null
+		done
+	else
+		for files in "${lst_flac[@]}"; do
+			mv "$files" "$PWD/$target_directory" &>/dev/null
+		done
+	fi
 fi
 }
 end_functions() {
@@ -2979,6 +2986,7 @@ if [[ "$no_flac" = "1" ]]; then
 	clean_wav_flac_validation
 	display_all_in_errors
 	display_end_summary
+	mk_target_directory
 	clean_cache_directory
 else
 	if [[ "$flac_loop_activated" = "1" ]]; then
