@@ -580,27 +580,29 @@ if (( "${#lst_all_files[@]}" )); then
 				if [[ "${#vgmstream_cli_bin}" -gt "0" ]]; then
 					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
 				fi
-			fi
 
-			# Set case insensitive
-			shopt -s nocasematch
-			# Populate arrays if test valid
-			if [[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -gt "0" ]] || \
-				[[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -eq "0" ]]; then
-				lst_uade+=("$files")
-			elif [[ "${#vgmstream_cli_bin}" -gt "0" && "${#uade_test_result}" -eq "0" && "${#vgmstream_test_result}" -gt "0" ]]; then
-				lst_vgmstream+=("$files")
-				# Activate fade out for files: his
-				if [[ "${files##*.}" = "his" ]]; then
-					force_fade_out="1"
+				# Set case insensitive
+				shopt -s nocasematch
+				# Populate arrays if test valid
+				if [[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -gt "0" ]] || \
+					[[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -eq "0" ]]; then
+					lst_uade+=("$files")
+				elif [[ "${#vgmstream_cli_bin}" -gt "0" && "${#uade_test_result}" -eq "0" && "${#vgmstream_test_result}" -gt "0" ]]; then
+					lst_vgmstream+=("$files")
+					# Activate fade out for files: his
+					if [[ "${files##*.}" = "his" ]]; then
+						force_fade_out="1"
+					fi
 				fi
+				# Set case sensitive
+				shopt -u nocasematch
 			fi
-			# Set case sensitive
-			shopt -u nocasematch
 
 			# Progress bar
-			progress_counter=$(( progress_counter + 1 ))
-			progress_bar "$progress_counter" "${#lst_all_files[@]}"
+			if [[ "$verbose" != "1" ]]; then
+				progress_counter=$(( progress_counter + 1 ))
+				progress_bar "$progress_counter" "${#lst_all_files[@]}"
+			fi
 		done
 	fi
 fi
@@ -985,7 +987,7 @@ if [[ "$verbose" = "1" ]]; then
 	"$uade123_bin" --filter=A1200 --force-led=0 --one --silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav
 else
 	"$uade123_bin" --filter=A1200 --force-led=0 --one --silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV  <- $file_name" || echo_pre_space "x WAV  <- $file_name"
+		&& echo_pre_space "✓ WAV  <- ${file_name##*/}" || echo_pre_space "x WAV  <- ${file_name##*/}"
 fi
 }
 cmd_vgm2wav() {
@@ -2009,18 +2011,16 @@ if (( "${#lst_uade[@]}" )); then
 		tag_album
 
 		# Get total track
-		total_track=$("$uade123_bin" -g "$files" 2>/dev/null | grep "subsongs:"  | awk '/^subsongs:/ { print $NF }')
-		current_track=$("$uade123_bin" -g "$files" 2>/dev/null | grep "subsongs:" | awk '/^subsongs:/ { print $3 }')
-		diff_track=$(( current_track - total_track ))
+		total_track=$("$uade123_bin" -g "$files" 2>/dev/null \
+						| grep "subsongs:"  | awk '/^subsongs:/ { print $NF }')
+		current_track=$("$uade123_bin" -g "$files" 2>/dev/null \
+						| grep "subsongs:" | awk '/^subsongs:/ { print $3 }')
+		diff_track=$(( total_track - current_track ))
 		# Wav loop
-		for sub_track in $(seq -w "$current_track" "$total_track"); do
-			# Filename construction
-			if [ "$diff_track" -eq "0" ]; then
-				file_name="$files"
-			else
-				file_name="${files}-$sub_track"
-				all_sub_track+=( "${files}-${sub_track}.wav" )
-			fi
+		# No sub_tracks
+		if [[ "$diff_track" = "0" ]]; then
+			sub_track="0"
+			file_name="$files"
 			# Wav extract
 			(
 			cmd_uade
@@ -2028,14 +2028,33 @@ if (( "${#lst_uade[@]}" )); then
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
 			fi
-		done
-		wait
-		# Contruct one file with all subsongs
-		if ! [ "$diff_track" -eq "0" ]; then
-			sox $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav"
+		# With sub_tracks
+		else
+			for sub_track in $(seq -w "$current_track" "$total_track"); do
+				# Filename construction
+				file_name="${files}-$sub_track"
+				all_sub_track+=( "${files}-${sub_track}.wav" )
+				# Wav extract
+				(
+				cmd_uade
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+					wait -n
+				fi
+			done
+			wait
+			# Contruct one file with all subsongs
+			if [[ "$verbose" = "1" ]]; then
+				sox $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav"
+			else
+				sox $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav" &>/dev/null \
+					&& echo_pre_space "✓ WAV  <- ${file_name##*/}-full" \
+					|| echo_pre_space "x WAV  <- ${file_name##*/}-full"
+			fi
 			all_sub_track=()
 		fi
 	done
+	wait
 
 	# Generate wav array
 	list_wav_files
