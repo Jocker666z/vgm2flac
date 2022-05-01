@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2001,SC2015,SC2026,SC2046,SC2086
 # vgm2flac
 # Bash tool for vgm encoding to flac
 #
@@ -422,7 +423,7 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "Atari ST" "${lst_sc68[@]}"
 	fetched_stat "Amstrad CPC" "${lst_zxtune_ay[@]}"
 	fetched_stat "Amstrad CPC, Atari ST" "${lst_zxtune_ym[@]}"
-	fetched_stat "Commodore C64/128" "${lst_zxtune_sid[@]}"
+	fetched_stat "Commodore C64/128" "${lst_sidplayfp_sid[@]}"
 	fetched_stat "Game Boy, Game Boy Color" "${lst_ffmpeg_gbs[@]}"
 	fetched_stat "NES" "${lst_nsfplay_nsf[@]}"
 	fetched_stat "NES" "${lst_nsfplay_nsfe[@]}"
