@@ -275,6 +275,25 @@ else
 	echo_pre_space "Warning, $bin_name is not installed; Amiga files will not be detected"
 fi
 }
+wavpack_bin() {
+local bin_name="wavpack"
+local system_bin_location
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	wavpack_bin="$system_bin_location"
+	wavpack_version="wavpack --version | head -1"
+fi
+}
+wvtag_bin() {
+local bin_name="wvtag"
+local system_bin_location
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	wvtag_bin="$system_bin_location"
+fi
+}
 zxtune123_bin() {
 local bin_name="zxtune123"
 local system_bin_location
@@ -305,6 +324,7 @@ Bash tool for vgm/chiptune encoding to flac
 
 Usage: vgm2flac [options]
                           Without option treat current directory.
+  --add_wavpack           Compress also in WAVPAC.
   --agressive_rm_silent   Force agressive mode for remove silent 85db->58db
   -h|--help               Display this help.
   --fade_out              Force default fade out.
@@ -363,7 +383,7 @@ local extract_label
 extract_label="$1"
 
 if ! [[ "$no_flac" = "1" ]]; then
-	if [[ "$extract_label" = "FLAC" ]]; then
+	if [[ "$extract_label" = "FLAC" ]] || [[ "$extract_label" = "WAVPACK" ]]; then
 		display_separator
 	fi
 	echo_pre_space "$extract_label conversion"
@@ -449,6 +469,7 @@ display_end_summary() {
 local source_size_in_mb
 local wav_size_in_mb
 local flac_size_in_mb
+local wavpack_size_in_mb
 local diff_in_s
 local elapsed_time_formated
 
@@ -461,8 +482,12 @@ if (( "${#lst_wav[@]}" )); then
 	wav_size_in_mb=$(display_size_mb "${lst_wav[@]}")
 fi
 # Get flac size in mb
-if (( "${#lst_flac[@]}" )); then
+if [[ "$no_flac" != "1" ]] && (( "${#lst_flac[@]}" )); then
 	flac_size_in_mb=$(display_size_mb "${lst_flac[@]}")
+fi
+# Get wavpack size in mb
+if [[ "$no_flac" != "1" ]] && [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
+	wavpack_size_in_mb=$(display_size_mb "${lst_wavpack[@]}")
 fi
 
 # Timer
@@ -475,8 +500,11 @@ echo_pre_space "Summary"
 display_separator
 echo_pre_space "SOURCE  - ${#lst_all_files_pass[@]} file(s) - $source_size_in_mb MB"
 echo_pre_space "WAV     - ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
-if ! [[ "$no_flac" = "1" ]]; then
+if [[ "$no_flac" != "1" ]]; then
 	echo_pre_space "FLAC    - ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
+	if [[ "$wavpack_compress" = "1" ]]; then
+		echo_pre_space "WAVPACK - ${#lst_wavpack[@]} file(s) - $wavpack_size_in_mb MB"
+	fi
 fi
 echo_pre_space "Mono    - ${#lst_wav_in_mono[@]} file(s)"
 echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
@@ -633,15 +661,19 @@ mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -i
 list_flac_files() {
 mapfile -t lst_flac < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('flac')$' 2>/dev/null | sort)
 }
+list_wavpack_files() {
+mapfile -t lst_wavpack < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wv')$' 2>/dev/null | sort)
+}
 
 # Files cleaning
-clean_wav_flac_validation() {
+clean_target_validation() {
 # Regenerate array
 list_wav_files
 list_flac_files
+list_wavpack_files
 
 # FLAC test
-if ! [[ "${#lst_flac[@]}" = "0" ]]; then
+if (( "${#lst_flac[@]}" )); then
 	# Local variable
 	local flac_error_test
 
@@ -649,14 +681,27 @@ if ! [[ "${#lst_flac[@]}" = "0" ]]; then
 		flac_error_test=$(soxi "$files" 2>/dev/null)
 		if [ -z "$flac_error_test" ]; then
 			lst_flac_in_error+=( "${files##*/}" )
-			rm "${file2%.*}".flac &>/dev/null
+			rm "${file%.*}".flac &>/dev/null
 		fi
 	done
+fi
 
+# WAVPACK test
+if [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
+	# Local variable
+	local wavpack_error_test
+
+	for files in "${lst_flac[@]}"; do
+		wavpack_error_test=$(soxi "$files" 2>/dev/null)
+		if [ -z "$wavpack_error_test" ]; then
+			lst_wavpack_in_error+=( "${files##*/}" )
+			rm "${file%.*}".wv &>/dev/null
+		fi
+	done
 fi
 
 # WAV test
-if ! [[ "${#lst_wav[@]}" = "0" ]]; then
+if (( "${#lst_wav[@]}" )); then
 	# Local variable
 	local wav_error_test
 	local wav_empty_test
@@ -666,7 +711,7 @@ if ! [[ "${#lst_wav[@]}" = "0" ]]; then
 		wav_empty_test=$(sox "$files" -n stat 2>&1 | grep "Maximum amplitude:" | awk '{print $3}')
 		if [ -z "$wav_error_test" ] || [[ "$wav_empty_test" = "0.000000" ]]; then
 			lst_wav_in_error+=( "${files##*/}" )
-			rm "${file2%.*}".wav &>/dev/null
+			rm "${file%.*}".wav &>/dev/null
 		fi
 	done
 
@@ -682,6 +727,9 @@ if ! [[ "${#lst_wav[@]}" = "0" ]]; then
 						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (removed)" )
 						rm "${file2%.*}".wav &>/dev/null
 						rm "${file2%.*}".flac &>/dev/null
+						if [[ "$wavpack_compress" = "1" ]]; then
+							rm "${file2%.*}".wv &>/dev/null
+						fi
 					else
 						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (keep)" )
 					fi
@@ -693,6 +741,7 @@ if ! [[ "${#lst_wav[@]}" = "0" ]]; then
 	# Regenerate array
 	list_wav_files
 	list_flac_files
+	list_wavpack_files
 fi
 }
 
@@ -1094,6 +1143,28 @@ if ! [[ "$no_flac" = "1" ]]; then
 					&& echo_pre_space "✓ FLAC <- $(basename "${files%.*}").wav" \
 					|| echo_pre_space "x FLAC <- $(basename "${files%.*}").wav"
 			fi
+	fi
+fi
+}
+wav2wavpack() {
+if ! [[ "$no_flac" = "1" ]]; then
+	# Enconding final WAVPACK
+	if [[ "$verbose" = "1" ]]; then
+		"$wavpack_bin" -y -hhx6 \
+			-w Title="$tag_song" \
+			-w Artist="$tag_artist" \
+			-w Album="$tag_album" \
+			-w Year="$tag_date_formated" \
+			"${files%.*}".wav
+	else
+		"$wavpack_bin" -y -q -hhx6 \
+			-w Title="$tag_song" \
+			-w Artist="$tag_artist" \
+			-w Album="$tag_album" \
+			-w Year="$tag_date_formated" \
+			"${files%.*}".wav \
+			&& echo_pre_space "✓ WAVPACK <- $(basename "${files%.*}").wav" \
+			|| echo_pre_space "x WAVPACK <- $(basename "${files%.*}").wav"
 	fi
 fi
 }
@@ -2149,6 +2220,41 @@ if (( "${#lst_vgm2wav[@]}" )); then
 		fi
 	done
 	wait
+
+	# WAVPACK/tag loop
+	if [[ "$wavpack_compress" = "1" ]]; then
+		display_convert_title "WAVPACK"
+		for files in "${lst_vgm2wav[@]}"; do
+			# Tag
+			# Set case insentive
+			shopt -s nocasematch
+			case "${files[@]##*.}" in
+				*vgm|*vgz)
+					# Set case sentive
+					shopt -u nocasematch
+					# Tag
+					tag_vgm
+				;;
+				*s98)
+					# Set case sentive
+					shopt -u nocasematch
+					# Tag
+					tag_s98
+				;;
+			esac
+			tag_questions
+			tag_album
+
+			# Flac conversion
+			(
+			wav2wavpack
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		done
+		wait
+	fi
 fi
 }
 loop_vgmstream() {			# Various machines
@@ -2505,7 +2611,7 @@ fi
 
 # Tag common
 tag_track() {
-if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If number of flac > 0
+if (( "${#lst_flac[@]}" )); then
 	local tag_track_count
 	local count
 
@@ -2515,20 +2621,24 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 
 		# Add lead zero if necessary
 		if [ "${#lst_flac[@]}" -lt "100" ]; then
-			if [[ "${#tag_track_count}" -eq "1" ]] ; then				# if integer in one digit
+			# if integer in one digit
+			if [[ "${#tag_track_count}" -eq "1" ]] ; then
 				local tag_track_count="0$tag_track_count" 
 			fi
 		elif [ "${#lst_flac[@]}" -ge "100" ]; then
-			if [[ "${#tag_track_count}" -eq "1" ]] ; then				# if integer in one digit
+			# if integer in one digit
+			if [[ "${#tag_track_count}" -eq "1" ]] ; then
 				local tag_track_count="00$tag_track_count"
-			elif [[ "${#tag_track_count}" -eq "2" ]] ; then				# if integer in two digit
+			# if integer in two digit
+			elif [[ "${#tag_track_count}" -eq "2" ]] ; then
 				local tag_track_count="0$tag_track_count"
 			fi
 		fi
 
 		# Add track tag with metaflac
 		if [[ -n "$metaflac_bin" ]]; then
-			"$metaflac_bin" --remove-tag=ENCODER --set-tag=ENCODER="$flac_version" \
+			"$metaflac_bin" \
+			--remove-tag=ENCODER --set-tag=ENCODEDBY="$flac_version" \
 			--remove-tag=TRACKNUMBER --set-tag=TRACKNUMBER="$tag_track_count" "$files"
 		# Or add track tag with ffmpeg
 		elif [[ -z "$metaflac_bin" ]]; then
@@ -2541,6 +2651,15 @@ if [ "${#lst_flac[@]}" -gt "0" ] && [ "${#lst_wav[@]}" -gt "0" ]; then		# If num
 				mv "${files%.*}"-temp.flac "$files" &>/dev/null
 			fi
 		fi
+		
+		# Wavpack if exist
+		if [[ -s "${files%.*}.wv" ]]; then
+			"$wvtag_bin" -q -y \
+			-w Track="$tag_track_count" \
+			-w EncodedBy="$wavpack_version" \
+			"${files%.*}.wv"
+		fi
+
 	done
 fi
 }
@@ -2945,10 +3064,11 @@ local tag_date_dir
 local tag_pc_sound_module_dir
 local target_directory
 local flac_target_directory
+local wavpack_target_directory
 
 # Get tag, mkdir & mv
-# If number of flac > 0 || wav > 0
-if [[ "${#lst_flac[@]}" -gt "0" ]] || [[ "${#lst_wav[@]}" -gt "0" ]]; then
+# If number of wav > 0
+if (( "${#lst_wav[@]}" )); then
 	# If tag exist add () & replace eventualy "/" & ":" in string
 	tag_game_dir=$(echo "$tag_game" \
 					| sed s#/#-#g \
@@ -2975,9 +3095,22 @@ if [[ "${#lst_flac[@]}" -gt "0" ]] || [[ "${#lst_wav[@]}" -gt "0" ]]; then
 	target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_pc_sound_module_dir" \
 						| sed 's/ *$//')
 
+	# Final WAV target directory
+	wav_target_directory="${PWD}/WAV-${target_directory}"
+	if [ ! -d "$wav_target_directory" ]; then
+		mkdir "$wav_target_directory" &>/dev/null
+	# If target exist add date +%s after dir name
+	else
+		wav_target_directory="${wav_target_directory}-$(date +%s)"
+		mkdir "$wav_target_directory" &>/dev/null
+	fi
+	# mv files
+	for files in "${lst_wav[@]}"; do
+		mv "$files" "$wav_target_directory" &>/dev/null
+	done
 
 	# Final FLAC target directory
-	if [[ "${#lst_flac[@]}" -gt "0" ]]; then
+	if (( "${#lst_flac[@]}" )); then
 		flac_target_directory="${PWD}/FLAC-${target_directory}"
 		if [ ! -d "$flac_target_directory" ]; then
 			mkdir "$flac_target_directory" &>/dev/null
@@ -2992,19 +3125,19 @@ if [[ "${#lst_flac[@]}" -gt "0" ]] || [[ "${#lst_wav[@]}" -gt "0" ]]; then
 		done
 	fi
 
-	# Final WAV target directory
-	if [[ "${#lst_wav[@]}" -gt "0" ]]; then
-		wav_target_directory="${PWD}/WAV-${target_directory}"
-		if [ ! -d "$wav_target_directory" ]; then
-			mkdir "$wav_target_directory" &>/dev/null
+	# Final WAVPACK target directory
+	if (( "${#lst_wavpack[@]}" )); then
+		wavpack_target_directory="${PWD}/WAVPACK-${target_directory}"
+		if [ ! -d "$wavpack_target_directory" ]; then
+			mkdir "$wavpack_target_directory" &>/dev/null
 		# If target exist add date +%s after dir name
 		else
-			wav_target_directory="${wav_target_directory}-$(date +%s)"
-			mkdir "$wav_target_directory" &>/dev/null
+			wavpack_target_directory="${wavpack_target_directory}-$(date +%s)"
+			mkdir "$wavpack_target_directory" &>/dev/null
 		fi
 		# mv files
-		for files in "${lst_wav[@]}"; do
-			mv "$files" "$wav_target_directory" &>/dev/null
+		for files in "${lst_wavpack[@]}"; do
+			mv "$files" "$wavpack_target_directory" &>/dev/null
 		done
 	fi
 
@@ -3012,14 +3145,14 @@ fi
 }
 end_functions() {
 if [[ "$no_flac" = "1" ]]; then
-	clean_wav_flac_validation
+	clean_target_validation
 	display_all_in_errors
 	display_end_summary
 	mk_target_directory
 	clean_cache_directory
 else
 	if [[ "$flac_loop_activated" = "1" ]]; then
-		clean_wav_flac_validation
+		clean_target_validation
 		tag_track
 		display_all_in_errors
 		display_end_summary
@@ -3030,10 +3163,26 @@ else
 fi
 }
 
+# Bin check & set
+test_write_access
+common_bin
+flac_bin
+metaflac_bin
+wavpack_bin
+wvtag_bin
+
 # Arguments variables
 while [[ $# -gt 0 ]]; do
 	key="$1"
 	case "$key" in
+	--add_wavpack)															# Set WAVPACK compress too
+		if [[ -n "$wavpack_bin" ]] || [[ -n "$wvtag_bin" ]]; then
+			wavpack_compress="1"
+		else
+			echo_pre_space "fail, wavpack binary not installed"
+			exit
+		fi
+	;;
 	--agressive_rm_silent)													# Set agressive mode for remove silent 85db->58db
 		agressive_silence="1"
 	;;
@@ -3073,12 +3222,6 @@ while [[ $# -gt 0 ]]; do
 esac
 shift
 done
-
-# Bin check & set
-test_write_access
-common_bin
-flac_bin
-metaflac_bin
 
 # Files source check & set
 check_cache_directory
