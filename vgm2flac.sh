@@ -2931,7 +2931,7 @@ if [ "${#lst_wav[@]}" -gt "0" ]; then											# If number of wav > 0
 	case $qarm in
 		"Y"|"y")
 			for files in "${lst_wav[@]}"; do
-				rm -f "$files" &>/dev/null
+				rm -R "$wav_target_directory" &>/dev/null
 			done
 		;;
 	esac
@@ -2944,6 +2944,7 @@ local tag_machine_dir
 local tag_date_dir
 local tag_pc_sound_module_dir
 local target_directory
+local flac_target_directory
 
 # Get tag, mkdir & mv
 # If number of flac > 0 || wav > 0
@@ -2970,28 +2971,43 @@ if [[ "${#lst_flac[@]}" -gt "0" ]] || [[ "${#lst_wav[@]}" -gt "0" ]]; then
 								| sed s#:#-#g \
 								| sed 's/\(.*\)/\(\1\)/')
 	fi
-	# Final name of directory
+	# Raw name of target directory
 	target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_pc_sound_module_dir" \
 						| sed 's/ *$//')
 
-	# If target exist add date +%s after dir name
-	if [ ! -d "$PWD/$target_directory" ]; then
-		mkdir "${PWD}/${target_directory}" &>/dev/null
-	else
-		target_directory="${target_directory}-$(date +%s)"
-		mkdir "${PWD}/${target_directory}" &>/dev/null
+
+	# Final FLAC target directory
+	if [[ "${#lst_flac[@]}" -gt "0" ]]; then
+		flac_target_directory="${PWD}/FLAC-${target_directory}"
+		if [ ! -d "$flac_target_directory" ]; then
+			mkdir "$flac_target_directory" &>/dev/null
+		# If target exist add date +%s after dir name
+		else
+			flac_target_directory="${flac_target_directory}-$(date +%s)"
+			mkdir "$flac_target_directory" &>/dev/null
+		fi
+		# mv files
+		for files in "${lst_flac[@]}"; do
+			mv "$files" "$flac_target_directory" &>/dev/null
+		done
 	fi
 
-	# Create target dir & mv
-	if [[ "$no_flac" = "1" ]]; then
+	# Final WAV target directory
+	if [[ "${#lst_wav[@]}" -gt "0" ]]; then
+		wav_target_directory="${PWD}/WAV-${target_directory}"
+		if [ ! -d "$wav_target_directory" ]; then
+			mkdir "$wav_target_directory" &>/dev/null
+		# If target exist add date +%s after dir name
+		else
+			wav_target_directory="${wav_target_directory}-$(date +%s)"
+			mkdir "$wav_target_directory" &>/dev/null
+		fi
+		# mv files
 		for files in "${lst_wav[@]}"; do
-			mv "$files" "$PWD/$target_directory" &>/dev/null
-		done
-	else
-		for files in "${lst_flac[@]}"; do
-			mv "$files" "$PWD/$target_directory" &>/dev/null
+			mv "$files" "$wav_target_directory" &>/dev/null
 		done
 	fi
+
 fi
 }
 end_functions() {
