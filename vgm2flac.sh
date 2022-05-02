@@ -324,8 +324,8 @@ Bash tool for vgm/chiptune encoding to flac
 
 Usage: vgm2flac [options]
                           Without option treat current directory.
-  --add_wavpack           Compress also in WAVPAC.
-  --agressive_rm_silent   Force agressive mode for remove silent 85db->58db
+  --add_wavpack           Compress also in WAVPACK.
+  --agressive_rm_silent   Force agressive mode for remove silent 85db->58db.
   -h|--help               Display this help.
   --fade_out              Force default fade out.
   --no_fade_out           Force no fade out.
@@ -596,17 +596,17 @@ fi
 # vgmstream & uade test all files
 echo_pre_space "/ vgm2flac /"
 if (( "${#lst_all_files[@]}" )); then
-	if [ "${#uade123_bin}" -gt "0" ] || [ "${#vgmstream_cli_bin}" -gt "0" ]; then
+	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )); then
 		display_separator
 		echo_pre_space "Files test:"
 		for files in "${lst_all_files[@]}"; do
 
 			# Test file
 			if ! [[ ${ext_input_exclude[*]} =~ ${files##*.} ]]; then
-				if [[ "${#uade123_bin}" -gt "0" ]]; then
+				if (( "${#uade123_bin}" )); then
 					uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
 				fi
-				if [[ "${#vgmstream_cli_bin}" -gt "0" ]]; then
+				if (( "${#vgmstream_cli_bin}" )); then
 					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
 				fi
 
@@ -2738,7 +2738,7 @@ else																					# Hexadecimal track
 fi
 }
 tag_xxs_loop() {			# Game Boy (gbs), NES (nsf), PC-Enginge (HES)
-if [ "${#lst_m3u[@]}" -gt "0" ]; then
+if (( "${#lst_m3u[@]}" )); then
 
 	# Local variables
 	local xxs_duration
@@ -2839,7 +2839,7 @@ tag_game=$(xxd -ps -s 0x10 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d 
 tag_artist=$(xxd -ps -s 0x30 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 
 # If m3u
-if [ "${#lst_m3u[@]}" -gt "0" ]; then
+if (( "${#lst_m3u[@]}" )); then
 	m3u_file="${gbs%.*}.m3u"
 	m3u_track_hex_test=$(< "${gbs%.*}".m3u awk -F"," '{ print $2 }' | grep -F -e "$")
 	tag_m3u_clean_extract
@@ -2847,7 +2847,7 @@ fi
 }
 tag_hes_extract() {			# PC Engine		- Tag extraction & m3u cleaning
 # If m3u
-if [ "${#lst_m3u[@]}" -gt "0" ]; then
+if (( "${#lst_m3u[@]}" )); then
 	m3u_file="${hes%.*}.m3u"
 	tag_game=$(< "${hes%.*}".m3u grep "@TITLE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
 	tag_artist=$(< "${hes%.*}".m3u grep "@COMPOSER" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
@@ -2861,7 +2861,7 @@ tag_game=$(xxd -ps -s 0x00E -l 32 "$nsf" | tr -d '[:space:]' | xxd -r -p | tr -d
 tag_artist=$(xxd -ps -s 0x02E -l 32 "$nsf" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 
 # If m3u
-if [ "${#lst_m3u[@]}" -gt "0" ]; then
+if (( "${#lst_m3u}" )); then
 	m3u_file="${nsf%.*}.m3u"
 	tag_m3u_clean_extract
 fi
@@ -3044,7 +3044,7 @@ fi
 
 # Temp clean & target filename/directory structure
 wav_remove() {
-if [ "${#lst_wav[@]}" -gt "0" ]; then											# If number of wav > 0
+if (( "${#lst_wav}" )); then											# If number of wav > 0
 	display_separator
 	read -r -e -p " Remove wav files (temp. audio)? [y/N]:" qarm
 	case $qarm in
