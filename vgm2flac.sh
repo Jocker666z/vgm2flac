@@ -2946,27 +2946,40 @@ local tag_pc_sound_module_dir
 local target_directory
 
 # Get tag, mkdir & mv
-# If number of flac > 0
+# If number of flac > 0 || wav > 0
 if [[ "${#lst_flac[@]}" -gt "0" ]] || [[ "${#lst_wav[@]}" -gt "0" ]]; then
 	# If tag exist add () & replace eventualy "/" & ":" in string
-	tag_game_dir=$(echo "$tag_game" | sed s#/#-#g | sed s#:#-#g)
+	tag_game_dir=$(echo "$tag_game" \
+					| sed s#/#-#g \
+					| sed s#:#-#g)
 	if ! [[ "$tag_machine" = "NULL" ]]; then
-		tag_machine_dir=$(echo "$tag_machine" | sed s#/#-#g | sed s#:#-#g | sed 's/\(.*\)/\(\1\)/')
+		tag_machine_dir=$(echo "$tag_machine" \
+						| sed s#/#-#g \
+						| sed s#:#-#g \
+						| sed 's/\(.*\)/\(\1\)/')
 	fi
 	if ! [[ "$tag_date" = "NULL" ]]; then
-		tag_date_dir=$(echo "$tag_date" | sed s#/#-#g | sed s#:#-#g | sed 's/\(.*\)/\(\1\)/')
+		tag_date_dir=$(echo "$tag_date" \
+						| sed s#/#-#g \
+						| sed s#:#-#g \
+						| sed 's/\(.*\)/\(\1\)/')
 	fi
 	if [[ -n "$tag_pc_sound_module" ]]; then
-		tag_pc_sound_module_dir=$(echo "$tag_pc_sound_module" | sed s#/#-#g | sed s#:#-#g | sed 's/\(.*\)/\(\1\)/')
+		tag_pc_sound_module_dir=$(echo "$tag_pc_sound_module" \
+								| sed s#/#-#g \
+								| sed s#:#-#g \
+								| sed 's/\(.*\)/\(\1\)/')
 	fi
-	target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_pc_sound_module_dir" | sed 's/ *$//')
+	# Final name of directory
+	target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_pc_sound_module_dir" \
+						| sed 's/ *$//')
 
 	# If target exist add date +%s after dir name
 	if [ ! -d "$PWD/$target_directory" ]; then
-		mkdir "$PWD/$target_directory" &>/dev/null
+		mkdir "${PWD}/${target_directory}" &>/dev/null
 	else
-		target_directory="$target_directory-$(date +%s)"
-		mkdir "$PWD/$target_directory" &>/dev/null
+		target_directory="${target_directory}-$(date +%s)"
+		mkdir "${PWD}/${target_directory}" &>/dev/null
 	fi
 
 	# Create target dir & mv
