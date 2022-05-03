@@ -32,6 +32,8 @@ default_ffmpeg_flac_lvl="12"																# ffmpeg FLAC compression level, 0 t
 default_flac_lvl="--best -e"																# flac bin compression level, must be -0 to -8, --fast, --best & with addition of -e & -p
 ## WAVPACK
 default_wavpack_lvl="-hhx6"
+## Monkey's Audio
+default_mac_lvl="-c5000"
 
 # Input
 ## Atari ST
@@ -167,6 +169,16 @@ system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	metaflac_bin="$system_bin_location"
+fi
+}
+mac_bin() {
+local bin_name="mac"
+local system_bin_location
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	mac_bin="$system_bin_location"
+	mac_version="Monkey's Audio $(mac 2>&1 | head -1 | awk -F"[()]" '{print $2}' | tr -d ' ') $default_mac_lvl"
 fi
 }
 munt_bin() {
@@ -326,6 +338,7 @@ Bash tool for vgm/chiptune encoding to flac
 
 Usage: vgm2flac [options]
                           Without option treat current directory.
+  --add_ape               Compress also in Monkey's Audio.
   --add_wavpack           Compress also in WAVPACK.
   --agressive_rm_silent   Force agressive mode for remove silent 85db->58db.
   -h|--help               Display this help.
@@ -372,6 +385,7 @@ fi
 display_loop_title() {
 local command
 local machine
+
 command="$1"
 machine="$2"
 
@@ -382,10 +396,18 @@ display_separator
 }
 display_convert_title() {
 local extract_label
+
 extract_label="$1"
 
 if ! [[ "$no_flac" = "1" ]]; then
-	if [[ "$extract_label" = "FLAC" ]] || [[ "$extract_label" = "FLAC & WAVPACK" ]]; then
+	if [[ "$extract_label" = "FLAC" ]]; then
+		if [[ "$ape_compress" = "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
+			extract_label="FLAC, APE & WAVPACK"
+		elif [[ "$ape_compress" = "0" ]] && [[ "$wavpack_compress" = "1" ]]; then
+			extract_label="FLAC & WAVPACK"
+		elif [[ "$ape_compress" = "1" ]] && [[ "$wavpack_compress" = "0" ]]; then
+			extract_label="FLAC & APE"
+		fi
 		display_separator
 	fi
 	echo_pre_space "$extract_label conversion"
@@ -491,6 +513,10 @@ fi
 if [[ "$no_flac" != "1" ]] && [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
 	wavpack_size_in_mb=$(display_size_mb "${lst_wavpack[@]}")
 fi
+# Get ape size in mb
+if [[ "$no_flac" != "1" ]] && [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
+	ape_size_in_mb=$(display_size_mb "${lst_ape[@]}")
+fi
 
 # Timer
 diff_in_s=$(( timer_stop - timer_start ))
@@ -506,6 +532,9 @@ if [[ "$no_flac" != "1" ]]; then
 	echo_pre_space "FLAC    - ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
 	if [[ "$wavpack_compress" = "1" ]]; then
 		echo_pre_space "WAVPACK - ${#lst_wavpack[@]} file(s) - $wavpack_size_in_mb MB"
+	fi
+	if [[ "$ape_compress" = "1" ]]; then
+		echo_pre_space "APE     - ${#lst_ape[@]} file(s) - $ape_size_in_mb MB"
 	fi
 fi
 echo_pre_space "Mono    - ${#lst_wav_in_mono[@]} file(s)"
@@ -666,43 +695,17 @@ mapfile -t lst_flac < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 list_wavpack_files() {
 mapfile -t lst_wavpack < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wv')$' 2>/dev/null | sort)
 }
+list_ape_files() {
+mapfile -t lst_ape < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('ape')$' 2>/dev/null | sort)
+}
 
 # Files cleaning
 clean_target_validation() {
 # Regenerate array
 list_wav_files
-list_flac_files
-list_wavpack_files
-
-# FLAC test
-if (( "${#lst_flac[@]}" )); then
-	# Local variable
-	local flac_error_test
-
-	for files in "${lst_flac[@]}"; do
-		flac_error_test=$(soxi "$files" 2>/dev/null)
-		if [ -z "$flac_error_test" ]; then
-			lst_flac_in_error+=( "${files##*/}" )
-			rm "${file%.*}".flac &>/dev/null
-		fi
-	done
-fi
-
-# WAVPACK test
-if [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
-	# Local variable
-	local wavpack_error_test
-
-	for files in "${lst_flac[@]}"; do
-		wavpack_error_test=$(soxi "$files" 2>/dev/null)
-		if [ -z "$wavpack_error_test" ]; then
-			lst_wavpack_in_error+=( "${files##*/}" )
-			rm "${file%.*}".wv &>/dev/null
-		fi
-	done
-fi
 
 # WAV test
+# Consider if wav not valid compressed file also
 if (( "${#lst_wav[@]}" )); then
 	# Local variable
 	local wav_error_test
@@ -714,6 +717,18 @@ if (( "${#lst_wav[@]}" )); then
 		if [ -z "$wav_error_test" ] || [[ "$wav_empty_test" = "0.000000" ]]; then
 			lst_wav_in_error+=( "${files##*/}" )
 			rm "${file%.*}".wav &>/dev/null
+		fi
+		if (( "${#lst_flac[@]}" )); then
+			lst_flac_in_error+=( "${files##*/}" )
+			rm "${file%.*}".flac &>/dev/null
+		fi
+		if [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
+			lst_wavpack_in_error+=( "${files##*/}" )
+			rm "${file%.*}".wv &>/dev/null
+		fi
+		if [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
+			lst_ape_in_error+=( "${files##*/}" )
+			rm "${file%.*}".ape &>/dev/null
 		fi
 	done
 
@@ -729,8 +744,11 @@ if (( "${#lst_wav[@]}" )); then
 						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (removed)" )
 						rm "${file2%.*}".wav &>/dev/null
 						rm "${file2%.*}".flac &>/dev/null
-						if [[ "$wavpack_compress" = "1" ]]; then
+						if [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
 							rm "${file2%.*}".wv &>/dev/null
+						fi
+						if [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
+							rm "${file2%.*}".ape &>/dev/null
 						fi
 					else
 						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (keep)" )
@@ -744,6 +762,7 @@ if (( "${#lst_wav[@]}" )); then
 	list_wav_files
 	list_flac_files
 	list_wavpack_files
+	list_ape_files
 fi
 }
 
@@ -1167,6 +1186,25 @@ if [[ "$no_flac" != "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
 			"${files%.*}".wav \
 			&& echo_pre_space "✓ WAVPACK <- $(basename "${files%.*}").wav" \
 			|| echo_pre_space "x WAVPACK <- $(basename "${files%.*}").wav"
+	fi
+fi
+}
+wav2ape() {
+if [[ "$no_flac" != "1" ]] && [[ "$ape_compress" = "1" ]]; then
+	# Enconding final Monkey's Audio
+	if [[ "$verbose" = "1" ]]; then
+		"$wavpack_bin" -y "$default_wavpack_lvl" \
+			-w Title="$tag_song" \
+			-w Artist="$tag_artist" \
+			-w Album="$tag_album" \
+			-w Year="$tag_date_formated" \
+			"${files%.*}".wav
+	else
+		"$mac_bin" "${files%.*}".wav "${files%.*}".ape \
+			"$default_mac_lvl" \
+			-t "Artist=${tag_artist}|Album=${tag_album}|Title=${tag_song}|Year=${tag_date_formated}" &>/dev/null \
+			&& echo_pre_space "✓ APE <- $(basename "${files%.*}").wav" \
+			|| echo_pre_space "x APE <- $(basename "${files%.*}").wav"
 	fi
 fi
 }
@@ -2182,11 +2220,7 @@ if (( "${#lst_vgm2wav[@]}" )); then
 	wait
 
 	# Flac & WAVPACK + tag loop
-	if [[ "$wavpack_compress" = "1" ]]; then
-		display_convert_title "FLAC & WAVPACK"
-	else
-		display_convert_title "FLAC"
-	fi
+	display_convert_title "FLAC"
 	for files in "${lst_vgm2wav[@]}"; do
 		# Tag
 		# Set case insentive
@@ -2220,7 +2254,8 @@ if (( "${#lst_vgm2wav[@]}" )); then
 		# Flac & wavpack conversion
 		(
 		wav2flac \
-		&& wav2wavpack
+		&& wav2wavpack \
+		&& wav2ape
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -2624,12 +2659,19 @@ if (( "${#lst_flac[@]}" )); then
 			fi
 		fi
 		
-		# Wavpack if exist
+		# WAVPACK if exist
 		if [[ -s "${files%.*}.wv" ]]; then
 			"$wvtag_bin" -q -y \
 			-w Track="$tag_track_count" \
 			-w EncodedBy="$wavpack_version" \
 			"${files%.*}.wv"
+		fi
+
+		# Monkey's Audio if exist
+		if [[ -s "${files%.*}.ape" ]]; then
+			"$mac_bin" \
+			"${files%.*}.ape" \
+			-t "Track=${tag_track_count}|EncodedBy=${mac_version}" &>/dev/null
 		fi
 
 	done
@@ -3037,6 +3079,7 @@ local tag_pc_sound_module_dir
 local target_directory
 local flac_target_directory
 local wavpack_target_directory
+local ape_target_directory
 
 # Get tag, mkdir & mv
 # If number of wav > 0
@@ -3113,6 +3156,22 @@ if (( "${#lst_wav[@]}" )); then
 		done
 	fi
 
+	# Final Monkey's Audio target directory
+	if (( "${#lst_ape[@]}" )); then
+		ape_target_directory="${PWD}/APE-${target_directory}"
+		if [ ! -d "$ape_target_directory" ]; then
+			mkdir "$ape_target_directory" &>/dev/null
+		# If target exist add date +%s after dir name
+		else
+			ape_target_directory="${ape_target_directory}-$(date +%s)"
+			mkdir "$ape_target_directory" &>/dev/null
+		fi
+		# mv files
+		for files in "${lst_ape[@]}"; do
+			mv "$files" "$ape_target_directory" &>/dev/null
+		done
+	fi
+
 fi
 }
 end_functions() {
@@ -3142,11 +3201,20 @@ flac_bin
 metaflac_bin
 wavpack_bin
 wvtag_bin
+mac_bin
 
 # Arguments variables
 while [[ $# -gt 0 ]]; do
 	key="$1"
 	case "$key" in
+	--add_ape)																# Set Monkey's Audio compress too
+		if [[ -n "$mac_bin" ]]; then
+			ape_compress="1"
+		else
+			echo_pre_space "fail, monkeys-audio binary not installed"
+			exit
+		fi
+	;;
 	--add_wavpack)															# Set WAVPACK compress too
 		if [[ -n "$wavpack_bin" ]] || [[ -n "$wvtag_bin" ]]; then
 			wavpack_compress="1"
