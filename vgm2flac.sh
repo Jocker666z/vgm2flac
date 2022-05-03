@@ -29,7 +29,9 @@ default_agressive_silent_db_cut="58"														# Agressive silence db value f
 default_ffmpeg_flac_bit_depth="s16"															# ffmpeg FLAC bit depth, must be s16 or s32
 default_ffmpeg_flac_lvl="12"																# ffmpeg FLAC compression level, 0 to 12
 ## FLAC with flac bin
-default_FLAC_lvl="--best -e"																# flac bin compression level, must be -0 to -8, --fast, --best & with addition of -e & -p
+default_flac_lvl="--best -e"																# flac bin compression level, must be -0 to -8, --fast, --best & with addition of -e & -p
+## WAVPACK
+default_wavpack_lvl="-hhx6"
 
 # Input
 ## Atari ST
@@ -123,7 +125,7 @@ system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	flac_bin="$system_bin_location"
-	flac_version="$(flac --version) $default_FLAC_lvl"
+	flac_version="$(flac --version) $default_flac_lvl"
 fi
 }
 fluidsynth_bin() {
@@ -282,7 +284,7 @@ system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	wavpack_bin="$system_bin_location"
-	wavpack_version="wavpack --version | head -1"
+	wavpack_version="$(wavpack --version | head -1) $default_wavpack_lvl"
 fi
 }
 wvtag_bin() {
@@ -383,7 +385,7 @@ local extract_label
 extract_label="$1"
 
 if ! [[ "$no_flac" = "1" ]]; then
-	if [[ "$extract_label" = "FLAC" ]] || [[ "$extract_label" = "WAVPACK" ]]; then
+	if [[ "$extract_label" = "FLAC" ]] || [[ "$extract_label" = "FLAC & WAVPACK" ]]; then
 		display_separator
 	fi
 	echo_pre_space "$extract_label conversion"
@@ -1103,7 +1105,7 @@ if ! [[ "$no_flac" = "1" ]]; then
 			# Use official FLAC if available
 			if [[ -n "$flac_bin" ]]; then
 				"$flac_bin" -f --no-keep-foreign-metadata \
-					$default_FLAC_lvl "${files%.*}".wav \
+					$default_flac_lvl "${files%.*}".wav \
 					--tag=TITLE="$tag_song" \
 					--tag=ARTIST="$tag_artist" \
 					--tag=ALBUM="$tag_album" \
@@ -1123,7 +1125,7 @@ if ! [[ "$no_flac" = "1" ]]; then
 			# Use official FLAC if available
 			if [[ -n "$flac_bin" ]]; then
 				"$flac_bin" --totally-silent --no-keep-foreign-metadata -f \
-					$default_FLAC_lvl "${files%.*}".wav \
+					$default_flac_lvl "${files%.*}".wav \
 					--tag=TITLE="$tag_song" \
 					--tag=ARTIST="$tag_artist" \
 					--tag=ALBUM="$tag_album" \
@@ -1147,17 +1149,17 @@ if ! [[ "$no_flac" = "1" ]]; then
 fi
 }
 wav2wavpack() {
-if ! [[ "$no_flac" = "1" ]]; then
+if [[ "$no_flac" != "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
 	# Enconding final WAVPACK
 	if [[ "$verbose" = "1" ]]; then
-		"$wavpack_bin" -y -hhx6 \
+		"$wavpack_bin" -y "$default_wavpack_lvl" \
 			-w Title="$tag_song" \
 			-w Artist="$tag_artist" \
 			-w Album="$tag_album" \
 			-w Year="$tag_date_formated" \
 			"${files%.*}".wav
 	else
-		"$wavpack_bin" -y -q -hhx6 \
+		"$wavpack_bin" -y -q "$default_wavpack_lvl" \
 			-w Title="$tag_song" \
 			-w Artist="$tag_artist" \
 			-w Album="$tag_album" \
@@ -2179,8 +2181,12 @@ if (( "${#lst_vgm2wav[@]}" )); then
 	done
 	wait
 
-	# Flac/tag loop
-	display_convert_title "FLAC"
+	# Flac & WAVPACK + tag loop
+	if [[ "$wavpack_compress" = "1" ]]; then
+		display_convert_title "FLAC & WAVPACK"
+	else
+		display_convert_title "FLAC"
+	fi
 	for files in "${lst_vgm2wav[@]}"; do
 		# Tag
 		# Set case insentive
@@ -2211,50 +2217,16 @@ if (( "${#lst_vgm2wav[@]}" )); then
 			wav_fade_out
 		fi
 
-		# Flac conversion
+		# Flac & wavpack conversion
 		(
-		wav2flac
+		wav2flac \
+		&& wav2wavpack
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
 		fi
 	done
 	wait
-
-	# WAVPACK/tag loop
-	if [[ "$wavpack_compress" = "1" ]]; then
-		display_convert_title "WAVPACK"
-		for files in "${lst_vgm2wav[@]}"; do
-			# Tag
-			# Set case insentive
-			shopt -s nocasematch
-			case "${files[@]##*.}" in
-				*vgm|*vgz)
-					# Set case sentive
-					shopt -u nocasematch
-					# Tag
-					tag_vgm
-				;;
-				*s98)
-					# Set case sentive
-					shopt -u nocasematch
-					# Tag
-					tag_s98
-				;;
-			esac
-			tag_questions
-			tag_album
-
-			# Flac conversion
-			(
-			wav2wavpack
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
-		done
-		wait
-	fi
 fi
 }
 loop_vgmstream() {			# Various machines
