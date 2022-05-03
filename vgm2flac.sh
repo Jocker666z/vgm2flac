@@ -344,10 +344,10 @@ Usage: vgm2flac [options]
   -h|--help               Display this help.
   --fade_out              Force default fade out.
   --no_fade_out           Force no fade out.
-  --no_flac               Force output wav files only.
   --no_normalization      Force no peak db normalization.
   --no_remove_duplicate   Force no remove duplicate files.
   --no_remove_silence     Force no remove silence at start & end of track.
+  --only_wav              Force output wav files only.
   --pal                   Force the tempo reduction to simulate 50hz.
   -v|--verbose            Verbose mode
 
@@ -399,7 +399,7 @@ local extract_label
 
 extract_label="$1"
 
-if ! [[ "$no_flac" = "1" ]]; then
+if ! [[ "$only_wav" = "1" ]]; then
 	if [[ "$extract_label" = "FLAC" ]]; then
 		if [[ "$ape_compress" = "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
 			extract_label="FLAC, APE & WAVPACK"
@@ -506,15 +506,15 @@ if (( "${#lst_wav[@]}" )); then
 	wav_size_in_mb=$(display_size_mb "${lst_wav[@]}")
 fi
 # Get flac size in mb
-if [[ "$no_flac" != "1" ]] && (( "${#lst_flac[@]}" )); then
+if [[ "$only_wav" != "1" ]] && (( "${#lst_flac[@]}" )); then
 	flac_size_in_mb=$(display_size_mb "${lst_flac[@]}")
 fi
 # Get wavpack size in mb
-if [[ "$no_flac" != "1" ]] && [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
+if [[ "$only_wav" != "1" ]] && [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
 	wavpack_size_in_mb=$(display_size_mb "${lst_wavpack[@]}")
 fi
 # Get ape size in mb
-if [[ "$no_flac" != "1" ]] && [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
+if [[ "$only_wav" != "1" ]] && [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
 	ape_size_in_mb=$(display_size_mb "${lst_ape[@]}")
 fi
 
@@ -528,7 +528,7 @@ echo_pre_space "Summary"
 display_separator
 echo_pre_space "SOURCE  - ${#lst_all_files_pass[@]} file(s) - $source_size_in_mb MB"
 echo_pre_space "WAV     - ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
-if [[ "$no_flac" != "1" ]]; then
+if [[ "$only_wav" != "1" ]]; then
 	echo_pre_space "FLAC    - ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
 	if [[ "$wavpack_compress" = "1" ]]; then
 		echo_pre_space "WAVPACK - ${#lst_wavpack[@]} file(s) - $wavpack_size_in_mb MB"
@@ -1118,7 +1118,7 @@ else
 fi
 }
 wav2flac() {
-if ! [[ "$no_flac" = "1" ]]; then
+if ! [[ "$only_wav" = "1" ]]; then
 	# Enconding final flac
 	if [[ "$verbose" = "1" ]]; then
 			# Use official FLAC if available
@@ -1168,7 +1168,7 @@ if ! [[ "$no_flac" = "1" ]]; then
 fi
 }
 wav2wavpack() {
-if [[ "$no_flac" != "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
+if [[ "$only_wav" != "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
 	# Enconding final WAVPACK
 	if [[ "$verbose" = "1" ]]; then
 		"$wavpack_bin" -y "$default_wavpack_lvl" \
@@ -1190,7 +1190,7 @@ if [[ "$no_flac" != "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
 fi
 }
 wav2ape() {
-if [[ "$no_flac" != "1" ]] && [[ "$ape_compress" = "1" ]]; then
+if [[ "$only_wav" != "1" ]] && [[ "$ape_compress" = "1" ]]; then
 	# Enconding final Monkey's Audio
 	if [[ "$verbose" = "1" ]]; then
 		"$wavpack_bin" -y "$default_wavpack_lvl" \
@@ -2678,7 +2678,7 @@ if (( "${#lst_flac[@]}" )); then
 fi
 }
 tag_questions() {
-if ! [[ "$no_flac" = "1" ]]; then
+if ! [[ "$only_wav" = "1" ]]; then
 	if test -z "$tag_game"; then
 		read -r -e -p " Enter the game title: " tag_game
 		display_remove_previous_line
@@ -3175,7 +3175,7 @@ if (( "${#lst_wav[@]}" )); then
 fi
 }
 end_functions() {
-if [[ "$no_flac" = "1" ]]; then
+if [[ "$only_wav" = "1" ]]; then
 	clean_target_validation
 	display_all_in_errors
 	display_end_summary
@@ -3236,9 +3236,6 @@ while [[ $# -gt 0 ]]; do
 	--no_fade_out)
 		no_fade_out="1"														# Set force no fade out
 	;;
-	--no_flac)
-		no_flac="1"															# Set force wav temp. files only
-	;;
 	--no_normalization)
 		no_normalization="1"												# Set force no peak db norm. & channel test
 	;;
@@ -3247,6 +3244,9 @@ while [[ $# -gt 0 ]]; do
 	;;
 	--no_remove_silence)
 		no_remove_silence="1"												# Set force no remove silence
+	;;
+	--only_wav)
+		only_wav="1"														# Set force wav temp. files only
 	;;
 	-v|--verbose)
 		verbose="1"

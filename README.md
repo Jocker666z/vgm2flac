@@ -43,15 +43,16 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* remove duplicate files (diff)
 
 ### Arguments options
+* --add_ape: Compress also in Monkey's Audio.
 * --add_wavpack: Compress also in WAVPACK.
 * --agressive_rm_silent: Force agressive mode for remove silent 85db->58db.
 * -h|--help: Display this help.
 * --fade_out: Force default fade out.
 * --no_fade_out: Force no fade out.
-* --no_flac: Force output wav files only.
 * --no_normalization: Force no peak db normalization.
 * --no_remove_duplicate: Force no remove duplicate files.
 * --no_remove_silence: Force no remove silence at start & end of track.
+* --only_wav: Force output wav files only.
 * -v|--verbose: Verbose mode
 
 ## Files tested
