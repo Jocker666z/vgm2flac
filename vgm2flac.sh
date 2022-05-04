@@ -1253,7 +1253,9 @@ if (( "${#lst_adplay[@]}" )); then
 		wav_fade_out
 		# Flac conversion
 		(
-		wav2flac
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -1305,7 +1307,9 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 			fi
 			# Flac conversion
 			(
-			wav2flac
+			wav2flac \
+			&& wav2wavpack \
+			&& wav2ape
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
@@ -1390,7 +1394,9 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 				wav_remove_silent
 				# Flac conversion
 				(
-				wav2flac
+				wav2flac \
+				&& wav2wavpack \
+				&& wav2ape
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -1457,7 +1463,9 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 				wav_remove_silent
 				# Flac conversion
 				(
-				wav2flac
+				wav2flac \
+				&& wav2wavpack \
+				&& wav2ape
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -1513,7 +1521,9 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 		# Remove silence
 		wav_remove_silent
 		(
-		wav2flac
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -1560,7 +1570,9 @@ if (( "${#lst_ffmpeg_xa[@]}" )); then
 		wav_normalization_channel_test
 		# Flac conversion
 		(
-		wav2flac
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -1674,7 +1686,9 @@ if (( "${#lst_midi[@]}" )); then
 		wav_fade_out
 		# Flac conversion
 		(
-		wav2flac
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -1740,7 +1754,9 @@ if (( "${#lst_nsfplay_nsf[@]}" )); then
 				fi
 				# Flac conversion
 				(
-				wav2flac
+				wav2flac \
+				&& wav2wavpack \
+				&& wav2ape
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -1807,7 +1823,9 @@ if (( "${#lst_nsfplay_nsfe[@]}" )); then
 				fi
 				# Flac conversion
 				(
-				wav2flac
+				wav2flac \
+				&& wav2wavpack \
+				&& wav2ape
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -1882,7 +1900,9 @@ if (( "${#lst_sc68[@]}" )); then
 			wav_fade_out
 			# Flac conversion
 			(
-			wav2flac
+			wav2flac \
+			&& wav2wavpack \
+			&& wav2ape
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
@@ -1936,7 +1956,9 @@ if (( "${#lst_sidplayfp_sid[@]}" )); then
 			wav_fade_out
 			# Flac conversion
 			(
-			wav2flac
+			wav2flac \
+			&& wav2wavpack \
+			&& wav2ape
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
@@ -2093,7 +2115,9 @@ if (( "${#lst_sox[@]}" )); then
 			fi
 			# Flac conversion
 			(
-			wav2flac
+			wav2flac \
+			&& wav2wavpack \
+			&& wav2ape
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
@@ -2188,7 +2212,9 @@ if (( "${#lst_uade[@]}" )); then
 				wav_fade_out
 				# Flac conversion
 				(
-				wav2flac
+				wav2flac \
+				&& wav2wavpack \
+				&& wav2ape
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -2327,7 +2353,9 @@ if (( "${#lst_vgmstream[@]}" )); then
 		fi
 		# Flac conversion
 		(
-		wav2flac
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -2378,7 +2406,9 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 			# Flac conversion
 			display_convert_title "FLAC"
 			(
-			wav2flac
+			wav2flac \
+			&& wav2wavpack \
+			&& wav2ape
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
@@ -2414,7 +2444,9 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 				wav_fade_out
 				# Flac conversion
 				(
-				wav2flac
+				wav2flac \
+				&& wav2wavpack \
+				&& wav2ape
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -2493,7 +2525,9 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 		fi
 		# Flac conversion
 		(
-		wav2flac
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -2549,7 +2583,9 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 		wav_fade_out
 		# Flac conversion
 		(
-		wav2flac
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -2606,7 +2642,9 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 		wav_fade_out
 		# Flac conversion
 		(
-		wav2flac
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
