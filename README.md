@@ -40,6 +40,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* remove audio silence at start & end
 	* apply fade out (if necessary or forced)
 	* WAV encoding in FLAC
+	* optional: also encoding in WAVPACK & Monkes's Audio at best compression level
 	* remove duplicate files (diff)
 
 ### Arguments options
