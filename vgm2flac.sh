@@ -31,7 +31,7 @@ default_ffmpeg_flac_lvl="12"																# ffmpeg FLAC compression level, 0 t
 ## FLAC with flac bin
 default_flac_lvl="--best -e"																# flac bin compression level, must be -0 to -8, --fast, --best & with addition of -e & -p
 ## WAVPACK
-default_wavpack_lvl="-hhx6"
+default_wavpack_lvl="-hhx3"
 ## Monkey's Audio
 default_mac_lvl="-c5000"
 
