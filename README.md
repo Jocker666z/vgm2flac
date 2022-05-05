@@ -32,7 +32,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 * If possible, encoding is done in parallel.
 * If available, the tags are always implemented in the final file.
-* FLAC default quality is: 16 bits with best compression level (use ffmpeg if flac binary is not available).
+* FLAC default quality is: 16 bits with compression level `--best -e`
 * Encoding loop order:
 	* vgm encoding in WAV
 	* false stereo detection (md5 channel test)
@@ -40,7 +40,8 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* remove audio silence at start & end
 	* apply fade out (if necessary or forced)
 	* WAV encoding in FLAC
-	* optional: also encoding in WAVPACK & Monkes's Audio at best compression level
+	* optional: also encoding to WAVPACK with compression level `-hhx3`
+	* optional: also encoding to Monkes's Audio with compression level `-c5000`
 	* remove duplicate files (diff)
 
 ### Arguments options
