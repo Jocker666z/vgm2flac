@@ -1215,6 +1215,9 @@ if (( "${#lst_adplay[@]}" )); then
 	# Bin check & set
 	adplay_bin
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "adplay" "PC adlib"
 
@@ -1274,6 +1277,9 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 		# Local variable
 		local track_name
 
+		# Reset WAV array
+		lst_wav=()
+
 		# User info - Title
 		display_loop_title "bchunk" "Various machines CDDA"
 
@@ -1325,6 +1331,9 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 	# Local variables
 	local file_total_track
 	local total_sub_track
+
+	# Reset WAV array
+	lst_wav=()
 
 	# User info - Title
 	display_loop_title "ffmpeg" "Game Boy, Game Boy Color"
@@ -1414,6 +1423,9 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 	# Local variable
 	local total_sub_track
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "ffmpeg" "PC-Engine"
 
@@ -1482,6 +1494,9 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 	local spc_fading_second
 	local spc_duration_total
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "ffmpeg" "SNES"
 
@@ -1543,6 +1558,9 @@ if (( "${#lst_ffmpeg_xa[@]}" )); then
 	tag_questions
 	tag_album
 
+	# Reset WAV array
+	lst_wav=()
+
 	# Extract WAV
 	display_convert_title "WAV"
 	for files in "${lst_ffmpeg_xa[@]}"; do
@@ -1588,6 +1606,9 @@ if (( "${#lst_midi[@]}" )); then
 	# Local variables
 	local midi_bin
 	local fluidsynth_loop_nb
+
+	# Reset WAV array
+	lst_wav=()
 
 	# User info - Title
 	display_loop_title "fluidsynth/munt" "midi"
@@ -1706,6 +1727,9 @@ if (( "${#lst_nsfplay_nsf[@]}" )); then
 	local file_total_track
 	local total_sub_track
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "nsfplay" "NES"
 
@@ -1777,6 +1801,9 @@ if (( "${#lst_nsfplay_nsfe[@]}" )); then
 	local file_total_track
 	local total_sub_track
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "nsfplay" "NES"
 
@@ -1843,9 +1870,12 @@ if (( "${#lst_sc68[@]}" )); then
 	info68_bin
 	sc68_bin
 
-	# Local variable
+	# Local variables
 	local total_sub_track
 	local track_name
+
+	# Reset WAV array
+	lst_wav=()
 
 	# User info - Title
 	display_loop_title "sc68" "Atari ST"
@@ -1920,6 +1950,9 @@ if (( "${#lst_sidplayfp_sid[@]}" )); then
 	# Local variable
 	local test_duration
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "sidplayfp" "Commodore 64/128"
 
@@ -1972,11 +2005,14 @@ fi
 loop_sox() {				# Various machines
 if (( "${#lst_sox[@]}" )); then
 
-	# Local variable
+	# Local variables
 	local delta
 	local sox_sample_rate_question
 	local sox_channel_question
 	local sox_loop_question
+
+	# Reset WAV array
+	lst_wav=()
 
 	# Test files
 	for files in "${lst_sox[@]}"; do
@@ -2136,6 +2172,9 @@ if (( "${#lst_uade[@]}" )); then
 	local diff_track
 	local file_name
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "uade" "Amiga"
 
@@ -2225,6 +2264,9 @@ if (( "${#lst_vgm2wav[@]}" )); then
 	vgm2wav_bin
 	vgm_tag_bin
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "vgm2wav" "Various machines"
 
@@ -2291,7 +2333,7 @@ if (( "${#lst_vgmstream[@]}" )); then
 	local total_sub_track
 	local force_fade_out
 
-	# Reset wav array
+	# Reset WAV array
 	lst_wav=()
 
 	# User info - Title
@@ -2367,6 +2409,9 @@ loop_zxtune_ay() {			# Amstrad CPC, ZX Spectrum
 if (( "${#lst_zxtune_ay[@]}" )); then
 	# Bin check & set
 	zxtune123_bin
+
+	# Reset WAV array
+	lst_wav=()
 
 	# User info - Title
 	display_loop_title "zxtune" "Amstrad CPC, ZX Spectrum"
@@ -2467,6 +2512,9 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 	local file_name
 	local file_name_random
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "zxtune" "Dreamcast, GBA, N64, NDS, Saturn, PS1, PS2"
 
@@ -2542,6 +2590,9 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	# Local variables
 	local file_name
 
+	# Reset WAV array
+	lst_wav=()
+
 	# User info - Title
 	display_loop_title "zxtune" "Amstrad CPC, Atari ST"
 
@@ -2599,6 +2650,9 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 
 	# Local variables
 	local file_name
+
+	# Reset WAV array
+	lst_wav=()
 
 	# User info - Title
 	display_loop_title "zxtune" "AZX Spectrum"
