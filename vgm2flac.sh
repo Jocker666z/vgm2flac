@@ -2196,32 +2196,27 @@ if (( "${#lst_uade[@]}" )); then
 	list_wav_files
 
 	# Flac loop
-	# If no vgmstream files, if the two loops are linked, assume all Amiga file
-	if (( "${#lst_vgmstream[@]}" )); then
-		force_fade_out="1"
-	else
-		display_convert_title "FLAC"
-		for files in "${lst_wav[@]}"; do
-				# Tag
-				tag_song
-				# Peak normalisation, false stereo detection 
-				wav_normalization_channel_test
-				# Remove silence
-				wav_remove_silent
-				# Fade out
-				wav_fade_out
-				# Flac conversion
-				(
-				wav2flac \
-				&& wav2wavpack \
-				&& wav2ape
-				) &
-				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-					wait -n
-				fi
-		done
-		wait
-	fi
+	display_convert_title "FLAC"
+	for files in "${lst_wav[@]}"; do
+			# Tag
+			tag_song
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
+			# Remove silence
+			wav_remove_silent
+			# Fade out
+			wav_fade_out
+			# Flac conversion
+			(
+			wav2flac \
+			&& wav2wavpack \
+			&& wav2ape
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+	done
+	wait
 fi
 }
 loop_vgm2wav() {			# Various machines
@@ -2295,6 +2290,9 @@ if (( "${#lst_vgmstream[@]}" )); then
 	# Local variables
 	local total_sub_track
 	local force_fade_out
+
+	# Reset wav array
+	lst_wav=()
 
 	# User info - Title
 	display_loop_title "vgmstream" "Various machines"
