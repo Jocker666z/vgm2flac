@@ -987,11 +987,21 @@ fi
 }
 cmd_munt() {
 if [[ "$verbose" = "1" ]]; then
-	"$munt_bin" -m "$munt_rom_path" -r 1 --output-sample-format=1 -p 44100 --src-quality=3 --analog-output-mode=2 -f \
-		--record-max-end-silence=1000 -o "${files%.*}".wav "$files"
+	"$munt_bin" -m "$munt_rom_path" \
+		--renderer-type=0 \
+		--output-sample-format=0 -p 44100 \
+		--src-quality=3 \
+		--analog-output-mode=2 -f \
+		--record-max-end-silence=1000 \
+		-o "${files%.*}".wav "$files"
 else
-	"$munt_bin" -m "$munt_rom_path" -r 1 --output-sample-format=1 -p 44100 --src-quality=3 --analog-output-mode=2 -f \
-		--record-max-end-silence=1000 -o "${files%.*}".wav "$files" &>/dev/null \
+	"$munt_bin" -m "$munt_rom_path" \
+		--renderer-type=0 \
+		--output-sample-format=0 -p 44100 \
+		--src-quality=3 \
+		--analog-output-mode=2 -f \
+		--record-max-end-silence=1000 \
+		-o "${files%.*}".wav "$files" &>/dev/null \
 		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
 fi
 }
