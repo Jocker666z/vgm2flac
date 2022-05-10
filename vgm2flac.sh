@@ -716,19 +716,19 @@ if (( "${#lst_wav[@]}" )); then
 		wav_empty_test=$(sox "$files" -n stat 2>&1 | grep "Maximum amplitude:" | awk '{print $3}')
 		if [ -z "$wav_error_test" ] || [[ "$wav_empty_test" = "0.000000" ]]; then
 			lst_wav_in_error+=( "${files##*/}" )
-			rm "${file%.*}".wav &>/dev/null
+			rm "${files%.*}".wav &>/dev/null
 		fi
 		if (( "${#lst_flac[@]}" )); then
 			lst_flac_in_error+=( "${files##*/}" )
-			rm "${file%.*}".flac &>/dev/null
+			rm "${files%.*}".flac &>/dev/null
 		fi
 		if [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
 			lst_wavpack_in_error+=( "${files##*/}" )
-			rm "${file%.*}".wv &>/dev/null
+			rm "${files%.*}".wv &>/dev/null
 		fi
 		if [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
 			lst_ape_in_error+=( "${files##*/}" )
-			rm "${file%.*}".ape &>/dev/null
+			rm "${files%.*}".ape &>/dev/null
 		fi
 	done
 
