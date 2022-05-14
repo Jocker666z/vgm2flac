@@ -375,12 +375,6 @@ if ! [[ "${#lst_wav_duplicate[@]}" = "0" ]]; then
 	display_separator
 	printf ' %s\n' "${lst_wav_duplicate[@]}"
 fi
-if ! [[ "${#lst_flac_in_error[@]}" = "0" ]]; then
-	display_separator
-	echo_pre_space "FLAC in error:"
-	display_separator
-	printf ' %s\n' "${lst_flac_in_error[@]}"
-fi
 }
 display_loop_title() {
 local command
@@ -717,18 +711,15 @@ if (( "${#lst_wav[@]}" )); then
 		if [ -z "$wav_error_test" ] || [[ "$wav_empty_test" = "0.000000" ]]; then
 			lst_wav_in_error+=( "${files##*/}" )
 			rm "${files%.*}".wav &>/dev/null
-		fi
-		if (( "${#lst_flac[@]}" )); then
-			lst_flac_in_error+=( "${files##*/}" )
-			rm "${files%.*}".flac &>/dev/null
-		fi
-		if [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
-			lst_wavpack_in_error+=( "${files##*/}" )
-			rm "${files%.*}".wv &>/dev/null
-		fi
-		if [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
-			lst_ape_in_error+=( "${files##*/}" )
-			rm "${files%.*}".ape &>/dev/null
+			if [[ "$flac_loop_activated" = "1" ]]; then
+				rm "${files%.*}".flac &>/dev/null
+			fi
+			if [[ "$wavpack_compress" = "1" ]]; then
+				rm "${files%.*}".wv &>/dev/null
+			fi
+			if [[ "$ape_compress" = "1" ]]; then
+				rm "${files%.*}".ape &>/dev/null
+			fi
 		fi
 	done
 
@@ -743,11 +734,13 @@ if (( "${#lst_wav[@]}" )); then
 					if ! [[ "$no_remove_duplicate" = "1" ]]; then
 						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (removed)" )
 						rm "${file2%.*}".wav &>/dev/null
-						rm "${file2%.*}".flac &>/dev/null
-						if [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
+						if [[ "$flac_loop_activated" = "1" ]]; then
+							rm "${file2%.*}".flac &>/dev/null
+						fi
+						if [[ "$wavpack_compress" = "1" ]]; then
 							rm "${file2%.*}".wv &>/dev/null
 						fi
-						if [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
+						if [[ "$ape_compress" = "1" ]]; then
 							rm "${file2%.*}".ape &>/dev/null
 						fi
 					else
