@@ -427,11 +427,10 @@ else
 fi
 
 # If string start by "." add lead 0
-# If string not start by ".", remove all after dot
 if [[ "${size_in_mb:0:1}" == "." ]]; then
 	echo "0$size_in_mb"
 else
-	echo "$size_in_mb" | awk -F"." '{ print $1 }'
+	echo "$size_in_mb"
 fi
 }
 display_start_summary() {
