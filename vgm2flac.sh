@@ -2400,6 +2400,8 @@ if (( "${#lst_vgmstream[@]}" )); then
 		tag_song
 		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
+		# Remove silence
+		wav_remove_silent
 		# Fade out, vgmstream fade out default off, special case for files: his
 		if [[ "$force_fade_out" = "1" ]]; then
 			wav_fade_out
