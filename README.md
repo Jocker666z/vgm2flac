@@ -36,9 +36,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Default decoding/encoding loop:
 	* vgm encoding in WAV
 	* false stereo detection (md5 channel test)
-	* peak normalisation to -1db
-	* optional: remove audio silence at start & end
-	* apply fade out (if necessary or forced)
+	* apply fade out (if necessary or forced), remove audio silence (optional), peak normalisation to -1db
 	* WAV encoding in FLAC
 	* optional: also encoding to WAVPACK with compression level `-hhx3`
 	* optional: also encoding to Monkes's Audio with compression level `-c5000`

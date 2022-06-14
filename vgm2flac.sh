@@ -1263,10 +1263,10 @@ if (( "${#lst_adplay[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
 		# Add fade out
 		wav_fade_out
 		# Flac conversion
@@ -1318,14 +1318,14 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 		for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song="[untitled]"
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
 			# Add fade out
 			if [[ "$force_fade_out" = "1" ]]; then
 				wav_fade_out
 			fi
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
 			# Flac conversion
 			(
 			wav2flac \
@@ -1409,13 +1409,13 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
-				# Peak normalisation, false stereo detection 
-				wav_normalization_channel_test
 				# Fade out
 				imported_sox_fade_out="$xxs_fading_second"
 				wav_fade_out
 				# Remove silence
 				wav_remove_silent
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
 				# Flac conversion
 				(
 				wav2flac \
@@ -1481,13 +1481,13 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
-				# Peak normalisation, false stereo detection 
-				wav_normalization_channel_test
 				# Fade out
 				imported_sox_fade_out="$xxs_fading_second"
 				wav_fade_out
 				# Remove silence
 				wav_remove_silent
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
 				# Flac conversion
 				(
 				wav2flac \
@@ -1542,14 +1542,14 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 	for files in "${lst_ffmpeg_spc[@]}"; do
 		# Tag
 		tag_spc
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
 		# Fade out
 		spc_fading_second=$((spc_fading/1000))
 		imported_sox_fade_out="$spc_fading_second"
 		wav_fade_out
 		# Remove silence
 		wav_remove_silent
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
 		(
 		wav2flac \
 		&& wav2wavpack \
@@ -1714,12 +1714,12 @@ if (( "${#lst_midi[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
 		# Add fade out
 		wav_fade_out
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
 		# Flac conversion
 		(
 		wav2flac \
@@ -1783,14 +1783,14 @@ if (( "${#lst_nsfplay_nsf[@]}" )); then
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
-				# Peak normalisation, false stereo detection 
-				wav_normalization_channel_test
 				# Remove silence
 				wav_remove_silent
 				# Add fade out
 				if [[ "$force_fade_out" = "1" ]]; then
 					wav_fade_out
 				fi
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
 				# Flac conversion
 				(
 				wav2flac \
@@ -1855,14 +1855,14 @@ if (( "${#lst_nsfplay_nsfe[@]}" )); then
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
 			if [ -f "$files" ]; then
-				# Peak normalisation, false stereo detection 
-				wav_normalization_channel_test
 				# Remove silence
 				wav_remove_silent
 				# Add fade out
 				if [[ "$force_fade_out" = "1" ]]; then
 					wav_fade_out
 				fi
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
 				# Flac conversion
 				(
 				wav2flac \
@@ -1937,12 +1937,12 @@ if (( "${#lst_sc68[@]}" )); then
 		for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song="[untitled]"
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
 			# Add fade out
 			wav_fade_out
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
 			# Flac conversion
 			(
 			wav2flac \
@@ -1996,12 +1996,12 @@ if (( "${#lst_sidplayfp_sid[@]}" )); then
 		for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song="[untitled]"
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
 			# Add fade out
 			wav_fade_out
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
 			# Flac conversion
 			(
 			wav2flac \
@@ -2156,14 +2156,14 @@ if (( "${#lst_sox[@]}" )); then
 		for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
 			# Fade out
 			if [[ "$force_fade_out" = "1" ]]; then
 				wav_fade_out
 			fi
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
 			# Flac conversion
 			(
 			wav2flac \
@@ -2254,12 +2254,12 @@ if (( "${#lst_uade[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
 			# Fade out
 			wav_fade_out
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
 			# Flac conversion
 			(
 			wav2flac \
@@ -2320,14 +2320,14 @@ if (( "${#lst_vgm2wav[@]}" )); then
 		tag_questions
 		tag_album
 
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
 		# Add fade out
 		if [[ "$force_fade_out" = "1" ]]; then
 			wav_fade_out
 		fi
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
 
 		# Flac & wavpack conversion
 		(
@@ -2398,14 +2398,14 @@ if (( "${#lst_vgmstream[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
 		# Fade out, vgmstream fade out default off, special case for files: his
 		if [[ "$force_fade_out" = "1" ]]; then
 			wav_fade_out
 		fi
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
 		# Flac conversion
 		(
 		wav2flac \
@@ -2494,12 +2494,12 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 				# Flac filename
 				mv "$sub_track".wav "$sub_track - $tag_song.wav"
 				files="$sub_track - $tag_song.wav"
-				# Peak normalisation, false stereo detection 
-				wav_normalization_channel_test
 				# Remove silence
 				wav_remove_silent
 				# Add fade out
 				wav_fade_out
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
 				# Flac conversion
 				(
 				wav2flac \
@@ -2568,10 +2568,10 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 			if [[ -z "$tag_length" ]]; then
 				# Remove silence
 				wav_remove_silent
-				# Peak normalisation, false stereo detection 
-				wav_normalization_channel_test
 				# Fade out
 				wav_fade_out
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
 			else
 				# Remove silence
 				wav_remove_silent
@@ -2579,10 +2579,10 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 				wav_normalization_channel_test
 			fi
 		else
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
 			# Remove silence
 			wav_remove_silent
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
 		fi
 		# Flac conversion
 		(
@@ -2639,12 +2639,12 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
 		# Add fade out
 		wav_fade_out
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
 		# Flac conversion
 		(
 		wav2flac \
@@ -2701,12 +2701,12 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
 		# Remove silence
 		wav_remove_silent
 		# Add fade out
 		wav_fade_out
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
 		# Flac conversion
 		(
 		wav2flac \
