@@ -516,7 +516,11 @@ elapsed_time_formated="$((diff_in_s/3600))h$((diff_in_s%3600/60))m$((diff_in_s%6
 
 # Print
 display_separator
-echo_pre_space "Summary for $tag_album"
+if [[ "$only_wav" != "1" ]];then
+	echo_pre_space "Summary for $tag_album"
+else
+	echo_pre_space "Summary"
+fi
 display_separator
 echo_pre_space "SOURCE  - ${#lst_all_files_pass[@]} file(s) - $source_size_in_mb MB"
 echo_pre_space "WAV     - ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
