@@ -342,6 +342,7 @@ Usage: vgm2flac [options]
   --add_wavpack           Compress also in WAVPACK.
   -h|--help               Display this help.
   --fade_out              Force default fade out.
+  --force_stereo          Force stereo output.
   --no_fade_out           Force no fade out.
   --no_normalization      Force no peak db normalization.
   --no_remove_duplicate   Force no remove duplicate files.
@@ -831,27 +832,39 @@ if [[ -f "${files%.*}".wav ]]; then
 	local testdb
 	local testdb_diff
 	local db
+	local channel_nb
 	local left_md5
 	local right_md5
 	local afilter
 	local confchan
 
 	# Channel test mono or stereo
-	left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
-	right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
-	if [ "$left_md5" = "$right_md5" ]; then
-		confchan="-channel_layout mono"
+	if [[ "$force_stereo" = "1" ]]; then
+		channel_nb=$(ffprobe -show_entries stream=channels -of compact=p=0:nk=1 -v 0 "${files%.*}".wav)
+		if [[ "$channel_nb" != "2" ]]; then
+			# Encoding Wav
+			ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
+				-channel_layout stereo \
+				-acodec "$default_wav_bit_depth" \
+				-f wav temp-out.wav
+			rm "${files%.*}".wav &>/dev/null
+			mv temp-out.wav "${files%.*}".wav &>/dev/null
+		fi
+	else
+		left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
+		right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
+		if [ "$left_md5" = "$right_md5" ]; then
+			# Encoding Wav
+			ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
+				-channel_layout mono \
+				-acodec "$default_wav_bit_depth" \
+				-f wav temp-out.wav
+			rm "${files%.*}".wav &>/dev/null
+			mv temp-out.wav "${files%.*}".wav &>/dev/null
 
-		# Encoding Wav
-		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
-			$afilter $confchan \
-			-acodec "$default_wav_bit_depth" \
-			-f wav temp-out.wav
-		rm "${files%.*}".wav &>/dev/null
-		mv temp-out.wav "${files%.*}".wav &>/dev/null
-
-		# Record for summary
-		lst_wav_in_mono+=( "${files%.*}.wav" )
+			# Record for summary
+			lst_wav_in_mono+=( "${files%.*}.wav" )
+		fi
 	fi
 
 	# Volume normalization
@@ -3321,6 +3334,9 @@ while [[ $# -gt 0 ]]; do
 	;;
 	--fade_out)
 		force_fade_out="1"													# Set force default fade out
+	;;
+	--force_stereo)
+		force_stereo="1"													# Set force stereo output
 	;;
 	--no_fade_out)
 		no_fade_out="1"														# Set force no fade out
