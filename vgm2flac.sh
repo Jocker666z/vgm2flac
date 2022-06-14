@@ -64,7 +64,6 @@ ext_bchunk_iso="bin|img|iso"
 ext_ffmpeg_gbs="gbs"
 ext_ffmpeg_hes="hes"
 ext_ffmpeg_spc="spc"
-ext_ffmpeg_xa="xa"
 ext_midi="mid"
 ext_nsfplay_nsf="nsf"
 ext_nsfplay_nsfe="nsfe"
@@ -474,7 +473,6 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "Various machines RAW" "${lst_sox[@]}"
 	fetched_stat "Various machines SF" "${lst_zxtune_xsf[@]}"
 	fetched_stat "Various machines VGM" "${lst_vgm2wav[@]}"
-	fetched_stat "XA ADPCM" "${lst_ffmpeg_xa[@]}"
 	fetched_stat "ZX Spectrum" "${lst_zxtune_zx_spectrum[@]}"
 
 else
@@ -592,7 +590,6 @@ mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg_spc < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_spc')$' 2>/dev/null | sort)
-mapfile -t lst_ffmpeg_xa < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_xa')$' 2>/dev/null | sort)
 mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort)
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_nsfplay_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsf')$' 2>/dev/null | sort)
@@ -667,7 +664,6 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
-				"${lst_ffmpeg_xa[@]}" \
 				"${lst_nsfplay_nsf[@]}" \
 				"${lst_nsfplay_nsfe[@]}" \
 				"${lst_sc68[@]}" \
@@ -963,14 +959,6 @@ else
 		-acodec "$default_wav_bit_depth" \
 		-ar 32000 \
 		-f wav "${files%.*}".wav \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
-fi
-}
-cmd_ffmpeg_xa() {
-if [[ "$verbose" = "1" ]]; then
-	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec "$default_wav_bit_depth" -map_metadata -1 -f wav "${files%.*}".wav
-else
-	ffmpeg $ffmpeg_log_lvl -y -i "$files" -acodec "$default_wav_bit_depth" -map_metadata -1 -f wav "${files%.*}".wav \
 		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
 fi
 }
@@ -1550,58 +1538,6 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 		wav_remove_silent
 		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
-		(
-		wav2flac \
-		&& wav2wavpack \
-		&& wav2ape
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
-	done
-	wait
-
-fi
-}
-loop_ffmpeg_xa() {			# PS1/CD-i XA
-if (( "${#lst_ffmpeg_xa[@]}" )); then
-
-	# User info - Title
-	display_loop_title "ffmpeg" "PS1/CD-i XA"
-
-	# Tag
-	tag_questions
-	tag_album
-
-	# Reset WAV array
-	lst_wav=()
-
-	# Extract WAV
-	display_convert_title "WAV"
-	for files in "${lst_ffmpeg_xa[@]}"; do
-		(
-		cmd_ffmpeg_xa
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
-	done
-	wait
-
-	# Flac loop
-	display_convert_title "FLAC"
-	for files in "${lst_wav[@]}"; do
-		# Tag
-		tag_song
-		# Remove silence
-		wav_remove_silent
-		# Add fade out
-		if [[ "$force_fade_out" = "1" ]]; then
-			wav_fade_out
-		fi
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
-		# Flac conversion
 		(
 		wav2flac \
 		&& wav2wavpack \
@@ -3385,7 +3321,6 @@ loop_bchunk
 loop_ffmpeg_gbs
 loop_ffmpeg_hes
 loop_ffmpeg_spc
-loop_ffmpeg_xa
 loop_midi
 loop_nsfplay_nsf
 loop_nsfplay_nsfe
