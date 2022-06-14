@@ -1136,7 +1136,7 @@ fi
 }
 wav2flac() {
 if ! [[ "$only_wav" = "1" ]]; then
-	# Enconding final flac
+	# Encoding final flac
 	if [[ "$verbose" = "1" ]]; then
 			# Use official FLAC if available
 			if [[ -n "$flac_bin" ]]; then
@@ -1186,7 +1186,7 @@ fi
 }
 wav2wavpack() {
 if [[ "$only_wav" != "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
-	# Enconding final WAVPACK
+	# Encoding final WAVPACK
 	if [[ "$verbose" = "1" ]]; then
 		"$wavpack_bin" -y "$default_wavpack_lvl" \
 			-w Title="$tag_song" \
@@ -1208,14 +1208,11 @@ fi
 }
 wav2ape() {
 if [[ "$only_wav" != "1" ]] && [[ "$ape_compress" = "1" ]]; then
-	# Enconding final Monkey's Audio
+	# Encoding final Monkey's Audio
 	if [[ "$verbose" = "1" ]]; then
-		"$wavpack_bin" -y "$default_wavpack_lvl" \
-			-w Title="$tag_song" \
-			-w Artist="$tag_artist" \
-			-w Album="$tag_album" \
-			-w Year="$tag_date_formated" \
-			"${files%.*}".wav
+		"$mac_bin" "${files%.*}".wav "${files%.*}".ape \
+			"$default_mac_lvl" \
+			-t "Artist=${tag_artist}|Album=${tag_album}|Title=${tag_song}|Year=${tag_date_formated}"
 	else
 		"$mac_bin" "${files%.*}".wav "${files%.*}".ape \
 			"$default_mac_lvl" \
