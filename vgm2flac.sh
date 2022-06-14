@@ -540,7 +540,9 @@ if (( "${#lst_all_files_pass[@]}" )); then
 			echo_pre_space "APE     - ${#lst_ape[@]} file(s) - $ape_size_in_mb MB"
 		fi
 	fi
-	echo_pre_space "Mono    - ${#lst_wav_in_mono[@]} file(s)"
+	if [[ "$force_stereo" != "1" ]]; then
+		echo_pre_space "Mono    - ${#lst_wav_in_mono[@]} file(s)"
+	fi
 	echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
 	echo_pre_space "Encoding duration  - $elapsed_time_formated"
 fi

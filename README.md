@@ -124,6 +124,7 @@ These files are available here https://github.com/Jocker666z/vgm2flac-dep/raw/ma
 ## Notable sites, source of audio files
 * Atari: http://sndh.atari.org/
 * Commodore 64: https://hvsc.c64.org/
+* Various VGM: https://vgmrips.net/
 
 ## Holy reading
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
