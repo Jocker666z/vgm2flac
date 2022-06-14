@@ -340,13 +340,13 @@ Usage: vgm2flac [options]
                           Without option treat current directory.
   --add_ape               Compress also in Monkey's Audio.
   --add_wavpack           Compress also in WAVPACK.
-  --agressive_rm_silent   Force agressive mode for remove silent 85db->58db.
   -h|--help               Display this help.
   --fade_out              Force default fade out.
   --no_fade_out           Force no fade out.
   --no_normalization      Force no peak db normalization.
   --no_remove_duplicate   Force no remove duplicate files.
-  --no_remove_silence     Force no remove silence at start & end of track.
+  --remove_silence        Remove silence at start & end of track (85db).
+  --remove_silence_more   Remove silence agressive mode (58db).
   --only_wav              Force output wav files only.
   --pal                   Force the tempo reduction to simulate 50hz.
   -v|--verbose            Verbose mode
@@ -761,7 +761,7 @@ fi
 # Audio treatment
 wav_remove_silent() {
 if [[ -f "${files%.*}".wav ]]; then
-	if ! [[ "$no_remove_silence" = "1" ]]; then
+	if [[ "$remove_silence" = "1" ]]; then
 
 		# Local variable
 		local test_duration
@@ -3315,9 +3315,6 @@ while [[ $# -gt 0 ]]; do
 			exit
 		fi
 	;;
-	--agressive_rm_silent)													# Set agressive mode for remove silent 85db->58db
-		agressive_silence="1"
-	;;
 	-h|--help)																# Help
 		cmd_usage
 		exit
@@ -3334,8 +3331,12 @@ while [[ $# -gt 0 ]]; do
 	--no_remove_duplicate)
 		no_remove_duplicate="1"												# Set force no remove duplicate files
 	;;
-	--no_remove_silence)
-		no_remove_silence="1"												# Set force no remove silence
+	--remove_silence)
+		remove_silence="1"													# Set force no remove silence
+	;;
+	--remove_silence_more)													# Set agressive mode for remove silent 85db->58db
+		remove_silence="1"
+		agressive_silence="1"
 	;;
 	--only_wav)
 		only_wav="1"														# Set force wav temp. files only

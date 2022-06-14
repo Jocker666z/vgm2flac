@@ -33,11 +33,11 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * If possible, encoding is done in parallel.
 * If available, the tags are always implemented in the final file.
 * FLAC default quality is: 16 bits with compression level `--best -e`
-* Encoding loop order:
+* Default decoding/encoding loop:
 	* vgm encoding in WAV
 	* false stereo detection (md5 channel test)
 	* peak normalisation to -1db
-	* remove audio silence at start & end
+	* optional: remove audio silence at start & end
 	* apply fade out (if necessary or forced)
 	* WAV encoding in FLAC
 	* optional: also encoding to WAVPACK with compression level `-hhx3`
@@ -47,13 +47,12 @@ Simply launch vgm2flac command in directory with vgm files supported.
 ### Arguments options
 * --add_ape: Compress also in Monkey's Audio.
 * --add_wavpack: Compress also in WAVPACK.
-* --agressive_rm_silent: Force agressive mode for remove silent 85db->58db.
 * -h|--help: Display this help.
 * --fade_out: Force default fade out.
 * --no_fade_out: Force no fade out.
 * --no_normalization: Force no peak db normalization.
-* --no_remove_duplicate: Force no remove duplicate files.
-* --no_remove_silence: Force no remove silence at start & end of track.
+* --remove_silence: Remove silence at start & end of track (85db).
+* --remove_silence_more: Remove silence agressive mode (58db).
 * --only_wav: Force output wav files only.
 * -v|--verbose: Verbose mode
 
