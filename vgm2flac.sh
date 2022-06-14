@@ -448,7 +448,9 @@ if (( "${#lst_all_files_pass[@]}" )); then
 				echo_pre_space "${label} files: ${#files[@]} ($(display_size_mb "${files[@]}") MB)"
 
 			else
-				echo_pre_space "${label}; $(echo "${files[@]##*.}" | awk -v RS="[ \n]+" '!n[$0]++' | awk -v RS="" '{gsub (/\n/,"|")}1') files : ${#files[@]} ($(display_size_mb "${files[@]}") MB)"
+				echo_pre_space "${label}; $(echo "${files[@]##*.}" \
+								| awk -v RS="[ \n]+" '!n[$0]++' \
+								| awk -v RS="" '{gsub (/\n/,"|")}1') files : ${#files[@]} ($(display_size_mb "${files[@]}") MB)"
 			fi
 		fi
 	}
@@ -477,65 +479,71 @@ if (( "${#lst_all_files_pass[@]}" )); then
 
 else
 	display_separator
-	echo_pre_space "${#lst_all_files_pass[@]} Fetched files"
+	if (( "${#lst_all_files_pass[@]}" )); then
+		echo_pre_space "${#lst_all_files_pass[@]} files compatible"
+	else
+		echo_pre_space "No compatible files"
+	fi
 
 fi
 }
 display_end_summary() {
-local source_size_in_mb
-local wav_size_in_mb
-local flac_size_in_mb
-local wavpack_size_in_mb
-local diff_in_s
-local elapsed_time_formated
-
-# Get source size in mb
 if (( "${#lst_all_files_pass[@]}" )); then
-	source_size_in_mb=$(display_size_mb "${lst_all_files_pass[@]}")
-fi
-# Get wav size in mb
-if (( "${#lst_wav[@]}" )); then
-	wav_size_in_mb=$(display_size_mb "${lst_wav[@]}")
-fi
-# Get flac size in mb
-if [[ "$only_wav" != "1" ]] && (( "${#lst_flac[@]}" )); then
-	flac_size_in_mb=$(display_size_mb "${lst_flac[@]}")
-fi
-# Get wavpack size in mb
-if [[ "$only_wav" != "1" ]] && [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
-	wavpack_size_in_mb=$(display_size_mb "${lst_wavpack[@]}")
-fi
-# Get ape size in mb
-if [[ "$only_wav" != "1" ]] && [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
-	ape_size_in_mb=$(display_size_mb "${lst_ape[@]}")
-fi
+	local source_size_in_mb
+	local wav_size_in_mb
+	local flac_size_in_mb
+	local wavpack_size_in_mb
+	local diff_in_s
+	local elapsed_time_formated
 
-# Timer
-diff_in_s=$(( timer_stop - timer_start ))
-elapsed_time_formated="$((diff_in_s/3600))h$((diff_in_s%3600/60))m$((diff_in_s%60))s"
+	# Get source size in mb
+	if (( "${#lst_all_files_pass[@]}" )); then
+		source_size_in_mb=$(display_size_mb "${lst_all_files_pass[@]}")
+	fi
+	# Get wav size in mb
+	if (( "${#lst_wav[@]}" )); then
+		wav_size_in_mb=$(display_size_mb "${lst_wav[@]}")
+	fi
+	# Get flac size in mb
+	if [[ "$only_wav" != "1" ]] && (( "${#lst_flac[@]}" )); then
+		flac_size_in_mb=$(display_size_mb "${lst_flac[@]}")
+	fi
+	# Get wavpack size in mb
+	if [[ "$only_wav" != "1" ]] && [[ "$wavpack_compress" = "1" ]] && (( "${#lst_wavpack[@]}" )); then
+		wavpack_size_in_mb=$(display_size_mb "${lst_wavpack[@]}")
+	fi
+	# Get ape size in mb
+	if [[ "$only_wav" != "1" ]] && [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
+		ape_size_in_mb=$(display_size_mb "${lst_ape[@]}")
+	fi
 
-# Print
-display_separator
-if [[ "$only_wav" != "1" ]];then
-	echo_pre_space "Summary for $tag_album"
-else
-	echo_pre_space "Summary"
-fi
-display_separator
-echo_pre_space "SOURCE  - ${#lst_all_files_pass[@]} file(s) - $source_size_in_mb MB"
-echo_pre_space "WAV     - ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
-if [[ "$only_wav" != "1" ]]; then
-	echo_pre_space "FLAC    - ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
-	if [[ "$wavpack_compress" = "1" ]]; then
-		echo_pre_space "WAVPACK - ${#lst_wavpack[@]} file(s) - $wavpack_size_in_mb MB"
+	# Timer
+	diff_in_s=$(( timer_stop - timer_start ))
+	elapsed_time_formated="$((diff_in_s/3600))h$((diff_in_s%3600/60))m$((diff_in_s%60))s"
+
+	# Print
+	display_separator
+	if [[ "$only_wav" != "1" ]];then
+		echo_pre_space "Summary for $tag_album"
+	else
+		echo_pre_space "Summary"
 	fi
-	if [[ "$ape_compress" = "1" ]]; then
-		echo_pre_space "APE     - ${#lst_ape[@]} file(s) - $ape_size_in_mb MB"
+	display_separator
+	echo_pre_space "SOURCE  - ${#lst_all_files_pass[@]} file(s) - $source_size_in_mb MB"
+	echo_pre_space "WAV     - ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
+	if [[ "$only_wav" != "1" ]]; then
+		echo_pre_space "FLAC    - ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
+		if [[ "$wavpack_compress" = "1" ]]; then
+			echo_pre_space "WAVPACK - ${#lst_wavpack[@]} file(s) - $wavpack_size_in_mb MB"
+		fi
+		if [[ "$ape_compress" = "1" ]]; then
+			echo_pre_space "APE     - ${#lst_ape[@]} file(s) - $ape_size_in_mb MB"
+		fi
 	fi
+	echo_pre_space "Mono    - ${#lst_wav_in_mono[@]} file(s)"
+	echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
+	echo_pre_space "Encoding duration  - $elapsed_time_formated"
 fi
-echo_pre_space "Mono    - ${#lst_wav_in_mono[@]} file(s)"
-echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
-echo_pre_space "Encoding duration  - $elapsed_time_formated"
 }
 progress_bar() {
 # Local variables
