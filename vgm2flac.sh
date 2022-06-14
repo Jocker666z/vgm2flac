@@ -2400,8 +2400,6 @@ if (( "${#lst_vgmstream[@]}" )); then
 		tag_song
 		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
-		# Remove silence
-		wav_remove_silent
 		# Fade out, vgmstream fade out default off, special case for files: his
 		if [[ "$force_fade_out" = "1" ]]; then
 			wav_fade_out
@@ -3309,8 +3307,8 @@ wvtag_bin
 mac_bin
 
 # Arguments variables
-while [[ $# -gt 0 ]]; do
-	key="$1"
+vgm2flac_arg=( "$@" )
+for key in "${vgm2flac_arg[@]}"; do
 	case "$key" in
 	--add_ape)																# Set Monkey's Audio compress too
 		if [[ -n "$mac_bin" ]]; then
@@ -3368,8 +3366,7 @@ while [[ $# -gt 0 ]]; do
 		cmd_usage
 		exit
 	;;
-esac
-shift
+	esac
 done
 
 # Files source check & set
