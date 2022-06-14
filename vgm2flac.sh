@@ -3125,31 +3125,36 @@ local ape_target_directory
 # Get tag, mkdir & mv
 # If number of wav > 0
 if (( "${#lst_wav[@]}" )); then
-	# If tag exist add () & replace eventualy "/" & ":" in string
-	tag_game_dir=$(echo "$tag_game" \
-					| sed s#/#-#g \
-					| sed s#:#-#g)
-	if ! [[ "$tag_machine" = "NULL" ]]; then
-		tag_machine_dir=$(echo "$tag_machine" \
+	if [[ "$only_wav" != "1" ]];then
+		# If tag exist add () & replace eventualy "/" & ":" in string
+		tag_game_dir=$(echo "$tag_game" \
 						| sed s#/#-#g \
-						| sed s#:#-#g \
-						| sed 's/\(.*\)/\(\1\)/')
+						| sed s#:#-#g)
+		if ! [[ "$tag_machine" = "NULL" ]]; then
+			tag_machine_dir=$(echo "$tag_machine" \
+							| sed s#/#-#g \
+							| sed s#:#-#g \
+							| sed 's/\(.*\)/\(\1\)/')
+		fi
+		if ! [[ "$tag_date" = "NULL" ]]; then
+			tag_date_dir=$(echo "$tag_date" \
+							| sed s#/#-#g \
+							| sed s#:#-#g \
+							| sed 's/\(.*\)/\(\1\)/')
+		fi
+		if [[ -n "$tag_pc_sound_module" ]]; then
+			tag_pc_sound_module_dir=$(echo "$tag_pc_sound_module" \
+									| sed s#/#-#g \
+									| sed s#:#-#g \
+									| sed 's/\(.*\)/\(\1\)/')
+		fi
+		# Raw name of target directory
+		target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_pc_sound_module_dir" \
+							| sed 's/ *$//')
+	else
+		# Raw name of target directory
+		target_directory=$(echo "NO_TAG")
 	fi
-	if ! [[ "$tag_date" = "NULL" ]]; then
-		tag_date_dir=$(echo "$tag_date" \
-						| sed s#/#-#g \
-						| sed s#:#-#g \
-						| sed 's/\(.*\)/\(\1\)/')
-	fi
-	if [[ -n "$tag_pc_sound_module" ]]; then
-		tag_pc_sound_module_dir=$(echo "$tag_pc_sound_module" \
-								| sed s#/#-#g \
-								| sed s#:#-#g \
-								| sed 's/\(.*\)/\(\1\)/')
-	fi
-	# Raw name of target directory
-	target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_pc_sound_module_dir" \
-						| sed 's/ *$//')
 
 	# Final WAV target directory
 	wav_target_directory="${PWD}/WAV-${target_directory}"
