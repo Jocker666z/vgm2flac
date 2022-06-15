@@ -3035,7 +3035,7 @@ nsfplay_default_max_duration=$((xxs_default_max_duration*1000))
 }
 tag_s98() {					# NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1
 # Tag extract
-strings "$files" > "$vgm2flac_cache_tag"
+strings -e S "$files" > "$vgm2flac_cache_tag"
 
 tag_song=$(< "$vgm2flac_cache_tag" grep -i -a title | sed 's/^.*=//' | head -1)
 if [[ -z "$tag_song" ]]; then
@@ -3141,7 +3141,7 @@ fi
 }
 tag_xfs() {					# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
 # Tag extract
-strings "$files" | sed -n '/TAG/,$p' > "$vgm2flac_cache_tag"
+strings -e S "$files" | sed -n '/TAG/,$p' > "$vgm2flac_cache_tag"
 
 tag_song=$(< "$vgm2flac_cache_tag" grep -i -a title= | sed 's/^.*=//')
 if [[ -z "$tag_song" ]]; then
