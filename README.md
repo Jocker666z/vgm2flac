@@ -38,12 +38,14 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* false stereo detection (md5 channel test)
 	* apply fade out (if necessary or forced), remove audio silence (optional), peak normalisation to -1db
 	* WAV encoding in FLAC
-	* optional: also encoding to WAVPACK with compression level `-hhx3`
-	* optional: also encoding to Monkes's Audio with compression level `-c5000`
+	* optional: also compress to Monkes's Audio at level `-c5000`
+	* optional: also encoding to Opus at 256kb
+	* optional: also compress to WAVPACK at level `-hhx3`
 	* remove duplicate files (diff)
 
 ### Arguments options
 * --add_ape: Compress also in Monkey's Audio.
+* --add_opus: Compress also in opus at 256k.
 * --add_wavpack: Compress also in WAVPACK.
 * -h|--help: Display this help.
 * --fade_out: Force default fade out.

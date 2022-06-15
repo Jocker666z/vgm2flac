@@ -34,6 +34,8 @@ default_flac_lvl="--best -e"																# flac bin compression level, must b
 default_wavpack_lvl="-hhx4"
 ## Monkey's Audio
 default_mac_lvl="-c5000"
+## Opus
+default_opus_bitrate="256"
 
 # Input
 ## Atari ST
@@ -57,7 +59,7 @@ vgm2wav_loops="2"
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
-ext_input_exclude="ape|flac|m4a|mp3|mkv|txth|wav|wv"
+ext_input_exclude="ape|flac|m4a|mp3|mkv|opus|txth|wav|wv"
 ext_adplay="hsq|imf|sdb|sqx|wlf"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
@@ -211,6 +213,15 @@ else
 	exit
 fi
 }
+opusenc_bin() {
+local bin_name="opusenc"
+local system_bin_location
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	opusenc_bin="$system_bin_location"
+fi
+}
 sc68_bin() {
 local bin_name="sc68"
 local system_bin_location
@@ -338,6 +349,7 @@ Bash tool for vgm/chiptune encoding to flac
 Usage: vgm2flac [options]
                           Without option treat current directory.
   --add_ape               Compress also in Monkey's Audio.
+  --add_opus              Compress also in Opus at 256k.
   --add_wavpack           Compress also in WAVPACK.
   -h|--help               Display this help.
   --fade_out              Force default fade out.
@@ -493,6 +505,8 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	local wav_size_in_mb
 	local flac_size_in_mb
 	local wavpack_size_in_mb
+	local ape_size_in_mb
+	local opus_size_in_mb
 	local diff_in_s
 	local elapsed_time_formated
 
@@ -516,6 +530,10 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	if [[ "$only_wav" != "1" ]] && [[ "$ape_compress" = "1" ]] && (( "${#lst_ape[@]}" )); then
 		ape_size_in_mb=$(display_size_mb "${lst_ape[@]}")
 	fi
+	# Get opus size in mb
+	if [[ "$only_wav" != "1" ]] && [[ "$opus_compress" = "1" ]] && (( "${#lst_opus[@]}" )); then
+		opus_size_in_mb=$(display_size_mb "${lst_opus[@]}")
+	fi
 
 	# Timer
 	diff_in_s=$(( timer_stop - timer_start ))
@@ -538,6 +556,9 @@ if (( "${#lst_all_files_pass[@]}" )); then
 		fi
 		if [[ "$ape_compress" = "1" ]]; then
 			echo_pre_space "APE     - ${#lst_ape[@]} file(s) - $ape_size_in_mb MB"
+		fi
+		if [[ "$opus_compress" = "1" ]]; then
+			echo_pre_space "OPUS    - ${#lst_opus[@]} file(s) - $opus_size_in_mb MB"
 		fi
 	fi
 	if [[ "$force_stereo" != "1" ]]; then
@@ -702,6 +723,9 @@ mapfile -t lst_wavpack < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egre
 list_ape_files() {
 mapfile -t lst_ape < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('ape')$' 2>/dev/null | sort)
 }
+list_opus_files() {
+mapfile -t lst_opus < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('opus')$' 2>/dev/null | sort)
+}
 
 # Files cleaning
 clean_target_validation() {
@@ -730,6 +754,9 @@ if (( "${#lst_wav[@]}" )); then
 			if [[ "$ape_compress" = "1" ]]; then
 				rm "${files%.*}".ape &>/dev/null
 			fi
+			if [[ "$opus_compress" = "1" ]]; then
+				rm "${files%.*}".opus &>/dev/null
+			fi
 		fi
 	done
 
@@ -753,6 +780,9 @@ if (( "${#lst_wav[@]}" )); then
 						if [[ "$ape_compress" = "1" ]]; then
 							rm "${file2%.*}".ape &>/dev/null
 						fi
+						if [[ "$opus_compress" = "1" ]]; then
+							rm "${file2%.*}".opus &>/dev/null
+						fi
 					else
 						lst_wav_duplicate+=( "${file1##*/} = ${file2##*/} (keep)" )
 					fi
@@ -766,6 +796,7 @@ if (( "${#lst_wav[@]}" )); then
 	list_flac_files
 	list_wavpack_files
 	list_ape_files
+	list_opus_files
 fi
 }
 
@@ -1219,6 +1250,32 @@ if [[ "$only_wav" != "1" ]] && [[ "$ape_compress" = "1" ]]; then
 			-t "Artist=${tag_artist}|Album=${tag_album}|Title=${tag_song}|Year=${tag_date_formated}" &>/dev/null \
 			&& echo_pre_space "✓ APE     <- $(basename "${files%.*}").wav" \
 			|| echo_pre_space "x APE     <- $(basename "${files%.*}").wav"
+	fi
+fi
+}
+wav2opus() {
+if [[ "$only_wav" != "1" ]] && [[ "$opus_compress" = "1" ]]; then
+	# Encoding final Opus
+	if [[ "$verbose" = "1" ]]; then
+		"$opusenc_bin" \
+		--bitrate "$default_opus_bitrate" --vbr \
+			--discard-comments --discard-pictures \
+			--title "${tag_song}" \
+			--artist "${tag_artist}" \
+			--album "${tag_album}" \
+			--date "${tag_date_formated}" \
+			"${files%.*}".wav "${files%.*}".opus
+	else
+		"$opusenc_bin" \
+		--bitrate "$default_opus_bitrate" --vbr \
+			--discard-comments --discard-pictures \
+			--title "${tag_song}" \
+			--artist "${tag_artist}" \
+			--album "${tag_album}" \
+			--date "${tag_date_formated}" \
+			"${files%.*}".wav "${files%.*}".opus &>/dev/null \
+			&& echo_pre_space "✓ OPUS    <- $(basename "${files%.*}").wav" \
+			|| echo_pre_space "x OPUS    <- $(basename "${files%.*}").wav"
 	fi
 fi
 }
@@ -2311,8 +2368,8 @@ if (( "${#lst_vgmstream[@]}" )); then
 		# Ignore txtp
 		test_ext_file="${files##*.}"
 		if ! [[ "${test_ext_file^^}" =~ "TXTP" ]]; then
-			#total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //' | awk '{ print $1 - 1 }')
-			total_sub_track=$("$vgmstream_cli_bin" -m "$files" | grep -i -a "stream count" | sed 's/^.*: //')
+			total_sub_track=$("$vgmstream_cli_bin" -m "$files" \
+							| grep -i -a "stream count" | sed 's/^.*: //')
 		fi
 		# Record output name
 		if [[ -z "$total_sub_track" ]] || [[ "$total_sub_track" = "1" ]]; then
@@ -2357,7 +2414,8 @@ if (( "${#lst_vgmstream[@]}" )); then
 		(
 		wav2flac \
 		&& wav2wavpack \
-		&& wav2ape
+		&& wav2ape \
+		&& wav2opus
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -3132,6 +3190,7 @@ local target_directory
 local flac_target_directory
 local wavpack_target_directory
 local ape_target_directory
+local opus_target_directory
 
 # Get tag, mkdir & mv
 # If number of wav > 0
@@ -3229,6 +3288,22 @@ if (( "${#lst_wav[@]}" )); then
 		done
 	fi
 
+	# Final Opus target directory
+	if (( "${#lst_opus[@]}" )); then
+		opus_target_directory="${PWD}/OPUS-${target_directory}"
+		if [ ! -d "$opus_target_directory" ]; then
+			mkdir "$opus_target_directory" &>/dev/null
+		# If target exist add date +%s after dir name
+		else
+			opus_target_directory="${opus_target_directory}-$(date +%s)"
+			mkdir "$opus_target_directory" &>/dev/null
+		fi
+		# mv files
+		for files in "${lst_opus[@]}"; do
+			mv "$files" "$opus_target_directory" &>/dev/null
+		done
+	fi
+
 fi
 }
 end_functions() {
@@ -3259,6 +3334,7 @@ metaflac_bin
 wavpack_bin
 wvtag_bin
 mac_bin
+opusenc_bin
 
 # Arguments variables
 vgm2flac_arg=( "$@" )
@@ -3269,6 +3345,14 @@ for key in "${vgm2flac_arg[@]}"; do
 			ape_compress="1"
 		else
 			echo_pre_space "fail, monkeys-audio binary not installed"
+			exit
+		fi
+	;;
+	--add_opus)																# Set Opus compress too
+		if [[ -n "$opusenc_bin" ]]; then
+			opus_compress="1"
+		else
+			echo_pre_space "fail, opusenc binary not installed"
 			exit
 		fi
 	;;
