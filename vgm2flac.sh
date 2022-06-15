@@ -877,7 +877,6 @@ if [[ -f "${files%.*}".wav ]]; then
 	local left_md5
 	local right_md5
 	local afilter
-	local confchan
 
 	# Channel test mono or stereo
 	if [[ "$force_stereo" = "1" ]]; then
@@ -3239,7 +3238,7 @@ if (( "${#lst_wav[@]}" )); then
 							| sed 's/ *$//')
 	else
 		# Raw name of target directory
-		target_directory=$(echo "NO_TAG")
+		target_directory="NO_TAG"
 	fi
 
 	# Final WAV target directory
