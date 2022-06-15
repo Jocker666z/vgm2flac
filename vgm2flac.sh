@@ -1329,7 +1329,8 @@ if (( "${#lst_adplay[@]}" )); then
 		(
 		wav2flac \
 		&& wav2wavpack \
-		&& wav2ape
+		&& wav2ape \
+		&& wav2opus
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -1476,7 +1477,8 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 				(
 				wav2flac \
 				&& wav2wavpack \
-				&& wav2ape
+				&& wav2ape \
+				&& wav2opus
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -1548,7 +1550,8 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 				(
 				wav2flac \
 				&& wav2wavpack \
-				&& wav2ape
+				&& wav2ape \
+				&& wav2opus
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -1609,7 +1612,8 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 		(
 		wav2flac \
 		&& wav2wavpack \
-		&& wav2ape
+		&& wav2ape \
+		&& wav2opus
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -1728,7 +1732,8 @@ if (( "${#lst_midi[@]}" )); then
 		(
 		wav2flac \
 		&& wav2wavpack \
-		&& wav2ape
+		&& wav2ape \
+		&& wav2opus
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -1799,7 +1804,8 @@ if (( "${#lst_nsfplay_nsf[@]}" )); then
 				(
 				wav2flac \
 				&& wav2wavpack \
-				&& wav2ape
+				&& wav2ape \
+				&& wav2opus
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -1871,7 +1877,8 @@ if (( "${#lst_nsfplay_nsfe[@]}" )); then
 				(
 				wav2flac \
 				&& wav2wavpack \
-				&& wav2ape
+				&& wav2ape \
+				&& wav2opus
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -1951,7 +1958,8 @@ if (( "${#lst_sc68[@]}" )); then
 			(
 			wav2flac \
 			&& wav2wavpack \
-			&& wav2ape
+			&& wav2ape \
+			&& wav2opus
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
@@ -2010,7 +2018,8 @@ if (( "${#lst_sidplayfp_sid[@]}" )); then
 			(
 			wav2flac \
 			&& wav2wavpack \
-			&& wav2ape
+			&& wav2ape \
+			&& wav2opus
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
@@ -2172,7 +2181,8 @@ if (( "${#lst_sox[@]}" )); then
 			(
 			wav2flac \
 			&& wav2wavpack \
-			&& wav2ape
+			&& wav2ape \
+			&& wav2opus
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
@@ -2337,7 +2347,8 @@ if (( "${#lst_vgm2wav[@]}" )); then
 		(
 		wav2flac \
 		&& wav2wavpack \
-		&& wav2ape
+		&& wav2ape \
+		&& wav2opus
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -2471,7 +2482,8 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 			(
 			wav2flac \
 			&& wav2wavpack \
-			&& wav2ape
+			&& wav2ape \
+			&& wav2opus
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
@@ -2509,7 +2521,8 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 				(
 				wav2flac \
 				&& wav2wavpack \
-				&& wav2ape
+				&& wav2ape \
+				&& wav2opus
 				) &
 				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 					wait -n
@@ -2593,7 +2606,8 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 		(
 		wav2flac \
 		&& wav2wavpack \
-		&& wav2ape
+		&& wav2ape \
+		&& wav2opus
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -2654,7 +2668,8 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 		(
 		wav2flac \
 		&& wav2wavpack \
-		&& wav2ape
+		&& wav2ape \
+		&& wav2opus
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -2716,7 +2731,8 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 		(
 		wav2flac \
 		&& wav2wavpack \
-		&& wav2ape
+		&& wav2ape \
+		&& wav2opus
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
