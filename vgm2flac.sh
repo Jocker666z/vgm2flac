@@ -59,7 +59,7 @@ vgm2wav_loops="2"
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
-ext_input_exclude="ape|flac|m4a|mp3|mkv|opus|txth|wav|wv"
+ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|txth|wav|wv"
 ext_adplay="hsq|imf|sdb|sqx|wlf"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"

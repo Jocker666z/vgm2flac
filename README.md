@@ -38,9 +38,9 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* false stereo detection (md5 channel test)
 	* apply fade out (if necessary or forced), remove audio silence (optional), peak normalisation to -1db
 	* WAV encoding in FLAC
-	* optional: also compress to Monkes's Audio at level `-c5000`
-	* optional: also encoding to Opus at 256kb
-	* optional: also compress to WAVPACK at level `-hhx3`
+	* optional: compress to Monkes's Audio at level `-c5000`
+	* optional: encoding to Opus at 256kb
+	* optional: compress to WAVPACK at level `-hhx3`
 	* remove duplicate files (diff)
 
 ### Arguments options
@@ -186,7 +186,7 @@ su -c "make install" -m "root"
 ```
 
 ### vgmstream-cli
-Build dependencies: `git build-essential cmake audacious-dev libao-dev libvorbis-dev libmpg123-dev libgtk-3-dev`
+Build dependencies: `git build-essential cmake audacious-dev libsvtav1enc1 libao-dev libvorbis-dev libmpg123-dev libgtk-3-dev`
 ```
 git clone https://github.com/losnoco/vgmstream && cd vgmstream
 mkdir build && cd build && cmake .. 
