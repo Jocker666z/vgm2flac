@@ -198,7 +198,7 @@ su -c "make install" -m "root"
 Build dependencies: `git build-essential udacious-dev libao-dev libvorbis-dev libmpg123-dev`
 ```
 cd
-git clone https://gitlab.com/heikkiorsila/bencodetools && cd bencodetools
+git clone https://gitlab.com/jocker666z/libzakalwe && cd libzakalwe
 ./configure
 make -j"$(nproc)"
 su -c "make install" -m "root"
