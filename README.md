@@ -195,17 +195,18 @@ su -c "make install" -m "root"
 ```
 
 ### uade
-Build dependencies: `git build-essential udacious-dev libao-dev libvorbis-dev libmpg123-dev`
+Build dependencies: `git build-essential sparse audacious-dev libao-dev libvorbis-dev libmpg123-dev`
 ```
-cd
-git clone https://gitlab.com/jocker666z/libzakalwe && cd libzakalwe
-./configure
-make -j"$(nproc)"
+git clone https://gitlab.com/heikkiorsila/bencodetools && cd bencodetools
+./configure && make -j"$(nproc)"
 su -c "make install" -m "root"
-cd
+cd ..
+git clone https://gitlab.com/hors/libzakalwe && cd libzakalwe
+./configure && make -j"$(nproc)"
+su -c "make install" -m "root"
+cd ..
 git clone https://gitlab.com/uade-music-player/uade && cd uade
-./configure
-make -j"$(nproc)"
+./configure && make -j"$(nproc)"
 su -c "make install" -m "root"
 ```
 
