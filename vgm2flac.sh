@@ -1709,7 +1709,7 @@ if (( "${#lst_mednafen_snsf[@]}" )); then
 			snsf_duration="300"
 		# Add 5s, the start-up gap of mednafen
 		else
-			snsf_duration="$(($tag_length + 5))"
+			snsf_duration="$(( $tag_length + 5 ))"
 		fi
 		# Extract WAV
 		cmd_mednafen_snsf
@@ -3308,7 +3308,8 @@ fi
 # SNSF & N64, get tag lenght for test in loop, notag=notimepoint -> fadeout
 if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ] \
    || [ "${files##*.}" = "minisnsf" ] || [ "${files##*.}" = "snsf" ]; then
-	tag_length=$(< "$vgm2flac_cache_tag" grep -i -a length= | sed 's/^.*=//')
+	tag_length=$(< "$vgm2flac_cache_tag" grep -i -a length= | sed 's/^.*=//' \
+					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')
 
 	if [ "${files##*.}" = "minisnsf" ] || [ "${files##*.}" = "snsf" ]; then
 		# SNSF case duration format is m:s
