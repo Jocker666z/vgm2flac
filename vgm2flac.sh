@@ -192,7 +192,8 @@ system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	mac_bin="$system_bin_location"
-	mac_version="Monkey's Audio $(mac 2>&1 | head -1 | awk -F"[()]" '{print $2}' | tr -d ' ') $default_mac_lvl"
+	mac_version="Monkey's Audio $(mac 2>&1 | head -1 \
+					| awk -F"[()]" '{print $2}' | tr -d ' ') $default_mac_lvl"
 fi
 }
 munt_bin() {
@@ -469,9 +470,7 @@ if (( "${#lst_all_files_pass[@]}" )); then
 
 		if (( "${#files[@]}" )); then
 			if [[ "$label" = "Amiga" ]]; then
-
 				echo_pre_space "${label} files: ${#files[@]} ($(display_size_mb "${files[@]}") MB)"
-
 			else
 				echo_pre_space "${label}; $(echo "${files[@]##*.}" \
 								| awk -v RS="[ \n]+" '!n[$0]++' \
@@ -491,7 +490,8 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "Game Boy, Game Boy Color" "${lst_ffmpeg_gbs[@]}"
 	fetched_stat "NES" "${lst_nsfplay_nsf[@]}"
 	fetched_stat "NES" "${lst_nsfplay_nsfe[@]}"
-	fetched_stat "SNES" "${lst_ffmpeg_spc[@]}"
+	fetched_stat "SNES SPC" "${lst_ffmpeg_spc[@]}"
+	fetched_stat "SNES SNSF" "${lst_mednafen_snsf[@]}"
 	fetched_stat "PC AdLib" "${lst_adplay[@]}"
 	fetched_stat "PC Engine, TurboGrafx-16" "${lst_ffmpeg_hes[@]}"
 	fetched_stat "PC midi" "${lst_midi[@]}"
@@ -832,7 +832,9 @@ if [[ -f "${files%.*}".wav ]]; then
 		fi
 
 		# Remove silence from audio files while leaving gaps, if audio during more than 10s
-		test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
+		test_duration=$(ffprobe -i "${files%.*}".wav \
+						-show_format -v quiet | grep duration \
+						| sed 's/.*=//' | cut -f1 -d".")
 		if ! [[ "$test_duration" = "N/A" ]]; then			 # If not a bad file
 			if [[ "$test_duration" -gt 10 ]]; then
 				# Remove silence at start & end
@@ -859,7 +861,9 @@ if [[ -f "${files%.*}".wav ]]; then
 		local sox_fade_in
 
 		# Out fade, if audio during more than 10s
-		test_duration=$(ffprobe -i "${files%.*}".wav -show_format -v quiet | grep duration | sed 's/.*=//' | cut -f1 -d".")
+		test_duration=$(ffprobe -i "${files%.*}".wav \
+						-show_format -v quiet | grep duration \
+						| sed 's/.*=//' | cut -f1 -d".")
 		if ! [[ "$test_duration" = "N/A" ]]; then			 # If not a bad file
 			if [[ "$test_duration" -gt 10 ]]; then
 				duration=$(soxi -d "${files%.*}".wav)
@@ -870,9 +874,11 @@ if [[ -f "${files%.*}".wav ]]; then
 					local sox_fade_out="0:$imported_sox_fade_out"
 				fi
 				if [[ "$verbose" = "1" ]]; then
-					sox "${files%.*}".wav temp-out.wav fade t "$sox_fade_in" "$duration" "$sox_fade_out"
+					sox "${files%.*}".wav temp-out.wav \
+						fade t "$sox_fade_in" "$duration" "$sox_fade_out"
 				else
-					sox "${files%.*}".wav temp-out.wav fade t "$sox_fade_in" "$duration" "$sox_fade_out" &>/dev/null
+					sox "${files%.*}".wav temp-out.wav \
+						fade t "$sox_fade_in" "$duration" "$sox_fade_out" &>/dev/null
 				fi
 				rm "${files%.*}".wav &>/dev/null
 				mv temp-out.wav "${files%.*}".wav &>/dev/null
@@ -1136,17 +1142,21 @@ fi
 }
 cmd_sox() {
 if [[ "$verbose" = "1" ]]; then
-	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" -L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop"
+	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
+		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop"
 else
-	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" -L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" &>/dev/null \
+	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
+		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" &>/dev/null \
 		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
 fi
 }
 cmd_uade() {
 if [[ "$verbose" = "1" ]]; then
-	"$uade123_bin" --filter=A1200 --force-led=0 --one --silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav
+	"$uade123_bin" --filter=A1200 --force-led=0 --one \
+		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav
 else
-	"$uade123_bin" --filter=A1200 --force-led=0 --one --silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav &>/dev/null \
+	"$uade123_bin" --filter=A1200 --force-led=0 --one \
+		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav &>/dev/null \
 		&& echo_pre_space "✓ WAV <- ${file_name##*/}" || echo_pre_space "x WAV <- ${file_name##*/}"
 fi
 }
