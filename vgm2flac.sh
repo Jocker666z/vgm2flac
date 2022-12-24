@@ -1707,8 +1707,9 @@ if (( "${#lst_mednafen_snsf[@]}" )); then
 		# Consider SNSF not have tag_length, or force 5min time out
 		if [[ -z "$tag_length" ]]; then
 			snsf_duration="300"
+		# Add 5s, the start-up gap of mednafen
 		else
-			snsf_duration="$tag_length"
+			snsf_duration="$(($tag_length + 5))"
 		fi
 		# Extract WAV
 		cmd_mednafen_snsf
@@ -1722,13 +1723,13 @@ if (( "${#lst_mednafen_snsf[@]}" )); then
 		tag_questions
 		tag_album
 
+		# Remove silence
+		wav_remove_silent
 		# Fade out
 		if [[ -n "$tag_fade" ]]; then
 			imported_sox_fade_out="$tag_fade"
 			wav_fade_out
 		fi
-		# Remove silence
-		wav_remove_silent
 		# Peak normalisation, false stereo detection 
 		wav_normalization_channel_test
 		# Flac conversion
