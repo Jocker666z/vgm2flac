@@ -6,13 +6,14 @@ Bash tool for encoding various video game music files to FLAC.
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`bc adplay bc bchunk ffmpeg ffprobe fluidsynth find info68 munt nsfplay sc68 sidplayfp sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
+`bc adplay bc bchunk ffmpeg ffprobe fluidsynth find info68 mednafen munt nsfplay sc68 sidplayfp sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
 
 You will be able to run vgm2flac even if some dependencies are missing. The script will warn you if a dependency is not met depending on the file format to convert.
 
 * ffmpeg must be compiled with: `--enable-libgme --enable-libopenmpt --enable-nonfree`
 * adplay: https://github.com/adplug/adplay-unix
 * fluidsynth: https://www.fluidsynth.org/
+* mednafen: https://mednafen.github.io/
 * munt: https://github.com/munt/munt
 * nsfplay: https://github.com/bbbradsmith/nsfplay
 * sc68 & info68:
@@ -76,7 +77,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo GameCube: adx, cfn, dsp, hps, adp, thp, mus
 * Nintendo N64: usf, miniusf
 * Nintendo NES: nsf, nsfe
-* Nintendo SNES: spc
+* Nintendo SNES: spc, minisnsf, snsf
 * Nintendo Switch: acb/awb, adx, bgm, bfstm, bfwav, bwav, hca, kno, ktss, lopus, wem
 * Nintendo Wii: ads, adx, brstm, lwav, mus
 * Sega Game Gear: vgm, vgz
@@ -103,6 +104,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 If you want to use a specific soundfont the parameter `fluidsynth_soundfont=""` has to be filled in at the beginning of the script.
 
 Recommended soundfonts:
+* Arachno SoundFont - https://www.arachnosoft.com/main/soundfont.php
 * Roland MT-32 - https://www.hedsound.com/2019/06/mt32-cm64l-sf2-for-everyone.html
 * Roland SC-55 (EmperorGrieferus version) - https://drive.google.com/file/d/1G53wKnIBMONgOVx0gCOWrBlJaXsyaKml/view
 * Sound Blaster 16 - https://github.com/Mindwerks/opl3-soundfont
@@ -120,6 +122,9 @@ For use correct track duration, you have 2 solutions:
 In most cases the music is converted without problems, but you may need to add the Kernal, BASIC, and Chargen ROM files to the configuration file of sidplayfp.
 These files are available here https://github.com/Jocker666z/vgm2flac-dep/raw/main/C64-ROM.tar.bz2
 
+## snsf files
+Here the conversion is highly experimental, it is done while reading the file, this is the only way I found to do it. So you will have to be patient.
+
 ## Known error
 * unrepeatable usf/miniusf decoding stuck = zxtune123 bug
 
@@ -135,6 +140,7 @@ These files are available here https://github.com/Jocker666z/vgm2flac-dep/raw/ma
 * NSF spec: https://wiki.nesdev.org/w/index.php/NSF
 * NSFe spec: https://wiki.nesdev.org/w/index.php/NSFe
 * SGC spec: https://ocremix.org/info/SGC_Format_Specification
+* SNSF spec: https://snsf.caitsith2.net/snsf%20spec.txt
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
 * https://wiki.archlinux.org/index.php/FluidSynth
@@ -156,6 +162,14 @@ Build dependencies: `git build-essential`
 git clone https://github.com/bbbradsmith/nsfplay && cd nsfplay/contrib
 make -j"$(nproc)"
 cp nsf2wav /home/$USER/.local/bin
+```
+
+### mednafen
+Build dependencies: `git build-essential pkg-config libasound2-dev libcdio-dev libsdl1.2-dev libsndfile1-dev zlib1g-dev`
+```
+git clone https://github.com/libretro-mirrors/mednafen-git && cd mednafen-git
+./configure && make -j"$(nproc)"
+su -c "make install" -m "root"
 ```
 
 ### sc68 & info68

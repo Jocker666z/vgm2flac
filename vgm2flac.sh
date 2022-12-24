@@ -66,6 +66,7 @@ ext_bchunk_iso="bin|img|iso"
 ext_ffmpeg_gbs="gbs"
 ext_ffmpeg_hes="hes"
 ext_ffmpeg_spc="spc"
+ext_mednafen_snsf="minisnsf|snsf"
 ext_midi="mid"
 ext_nsfplay_nsf="nsf"
 ext_nsfplay_nsfe="nsfe"
@@ -170,6 +171,18 @@ system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	metaflac_bin="$system_bin_location"
+fi
+}
+mednafen_bin() {
+local bin_name="mednafen"
+local system_bin_location
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	sc68_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
 fi
 }
 mac_bin() {
@@ -625,6 +638,7 @@ mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_gbs')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort)
 mapfile -t lst_ffmpeg_spc < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_spc')$' 2>/dev/null | sort)
+mapfile -t lst_mednafen_snsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mednafen_snsf')$' 2>/dev/null | sort)
 mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort)
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
 mapfile -t lst_nsfplay_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsf')$' 2>/dev/null | sort)
@@ -699,6 +713,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
+				"${lst_mednafen_snsf[@]}" \
 				"${lst_nsfplay_nsf[@]}" \
 				"${lst_nsfplay_nsfe[@]}" \
 				"${lst_sc68[@]}" \
@@ -821,7 +836,11 @@ if [[ -f "${files%.*}".wav ]]; then
 		if ! [[ "$test_duration" = "N/A" ]]; then			 # If not a bad file
 			if [[ "$test_duration" -gt 10 ]]; then
 				# Remove silence at start & end
-				sox "${files%.*}".wav temp-out.wav silence 1 0.2 -"$silent_db_cut"d reverse silence 1 0.2 -"$silent_db_cut"d reverse
+				sox "${files%.*}".wav temp-out.wav \
+					silence 1 0.2 -"$silent_db_cut"d \
+					reverse \
+					silence 1 0.2 -"$silent_db_cut"d \
+					reverse
 				rm "${files%.*}".wav &>/dev/null
 				mv temp-out.wav "${files%.*}".wav &>/dev/null
 			fi
@@ -1020,6 +1039,29 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$fluidsynth_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" &>/dev/null \
 		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+fi
+}
+cmd_mednafen_snsf() {
+# Keep 48kHz for prevent audio glitch
+if [[ "$verbose" = "1" ]]; then
+	timeout "$snsf_duration" \
+		mednafen \
+		-sound 1 \
+		-sound.device sexyal-literal-default \
+		-sound.volume 100 \
+		-sound.rate 48000 \
+		-soundrecord "${files%.*}".wav \
+		"$files"
+else
+	timeout "$snsf_duration" \
+		mednafen \
+		-sound 1 \
+		-sound.device sexyal-literal-default \
+		-sound.volume 100 \
+		-sound.rate 48000 \
+		-soundrecord "${files%.*}".wav \
+		"$files" &>/dev/null \
+		|| echo_pre_space "✓ WAV <- ${files##*/}"
 fi
 }
 cmd_munt() {
@@ -1561,7 +1603,7 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 	done
 fi
 }
-loop_ffmpeg_spc() {			# SNES
+loop_ffmpeg_spc() {			# SNES SPC
 if (( "${#lst_ffmpeg_spc[@]}" )); then
 	# Local variable
 	local spc_fading_second
@@ -1571,7 +1613,7 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "ffmpeg" "SNES"
+	display_loop_title "ffmpeg" "SNES SPC"
 
 	# Extract WAV
 	display_convert_title "WAV"
@@ -1620,6 +1662,80 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 	done
 	wait
 
+fi
+}
+loop_mednafen_snsf() {		# SNES SNSF
+if (( "${#lst_mednafen_snsf[@]}" )); then
+	# Bin check & set
+	mednafen_bin
+
+	# Local variables
+	local file_name
+	local file_name_random
+
+	# Reset WAV array
+	lst_wav=()
+
+	# Force remove silence
+	remove_silence="1"
+
+	# User info - Title
+	display_loop_title "mednafen" "SNES SNSF"
+
+	# Wav loop
+	display_convert_title "WAV"
+	for files in "${lst_mednafen_snsf[@]}"; do
+		# Tag
+		tag_xfs
+		if [[ "$files" = "${lst_mednafen_snsf[0]}" ]];then
+			if [[ -z "$tag_machine" ]]; then
+				tag_machine="SNES"
+			fi
+			tag_questions
+			tag_album
+		fi
+		# Consider SNSF not have tag_length, or force 5min time out
+		if [[ -z "$tag_length" ]]; then
+			snsf_duration="300"
+		else
+			snsf_duration="$tag_length"
+		fi
+		# Extract WAV
+		cmd_mednafen_snsf
+	done
+
+	# Flac/tag loop
+	display_convert_title "FLAC"
+	for files in "${lst_mednafen_snsf[@]}"; do
+		# Tag
+		tag_xfs
+		tag_questions
+		tag_album
+
+		# Fade out
+		if [[ -n "$tag_fade" ]]; then
+			imported_sox_fade_out="$tag_fade"
+			wav_fade_out
+		fi
+		# Remove silence
+		wav_remove_silent
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
+		# Flac conversion
+		(
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape \
+		&& wav2opus
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Reset remove silence
+	unset "$remove_silence"
 fi
 }
 loop_midi() {				# midi
@@ -3140,6 +3256,9 @@ if [[ -z "$tag_game" && -z "$tag_machine" && -z "$tag_date" ]]; then
 fi
 }
 tag_xfs() {					# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
+# Local variables
+local tag_length_format
+
 # Tag extract
 strings -e S "$files" | sed -n '/TAG/,$p' > "$vgm2flac_cache_tag"
 
@@ -3175,9 +3294,22 @@ elif [[ "${files##*.}" = "dsf" ]]; then
 	tag_machine="Dreamcast"
 fi
 
-# N64, get tag lenght for test in loop, notag=notimepoint -> fadeout
-if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ]; then
+# SNSF & N64, get tag lenght for test in loop, notag=notimepoint -> fadeout
+if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ] \
+   || [ "${files##*.}" = "minisnsf" ] || [ "${files##*.}" = "snsf" ]; then
 	tag_length=$(< "$vgm2flac_cache_tag" grep -i -a length= | sed 's/^.*=//')
+
+	if [ "${files##*.}" = "minisnsf" ] || [ "${files##*.}" = "snsf" ]; then
+		# SNSF case duration format is m:s
+		tag_length_format=$(echo "$tag_length" | grep -o ":" | wc -l)
+		# Total duration in s
+		if [[ "$tag_length_format" = "1" ]]; then
+			tag_length=$(echo "$tag_length" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')
+		fi
+
+		# Fade out
+		tag_fade=$(< "$vgm2flac_cache_tag" grep -i -a fade= | sed 's/^.*=//')
+	fi
 fi
 }
 
@@ -3436,6 +3568,7 @@ loop_bchunk
 loop_ffmpeg_gbs
 loop_ffmpeg_hes
 loop_ffmpeg_spc
+loop_mednafen_snsf
 loop_midi
 loop_nsfplay_nsf
 loop_nsfplay_nsfe
