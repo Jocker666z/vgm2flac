@@ -16,7 +16,7 @@ export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script
 # Others
 core_dependency=(awk bc ffmpeg ffprobe find sed sox soxi xxd)
 ffmpeg_log_lvl="-hide_banner -loglevel quiet"												# ffmpeg log level
-nprocessor=$(nproc --all)																	# Set number of processor
+nprocessor=$(grep -cE 'processor' /proc/cpuinfo)											# Set number of processor
 
 # Output
 ## WAV
