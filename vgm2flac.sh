@@ -838,13 +838,23 @@ if [[ -f "${files%.*}".wav ]]; then
 		if ! [[ "$test_duration" = "N/A" ]]; then			 # If not a bad file
 			if [[ "$test_duration" -gt 10 ]]; then
 				# Remove silence at start & end
-				sox "${files%.*}".wav temp-out.wav \
-					silence 1 0.2 -"$silent_db_cut"d \
-					reverse \
-					silence 1 0.2 -"$silent_db_cut"d \
-					reverse
-				rm "${files%.*}".wav &>/dev/null
-				mv temp-out.wav "${files%.*}".wav &>/dev/null
+				if [[ "$verbose" = "1" ]]; then
+					sox -V3 "${files%.*}".wav temp-out.wav \
+						silence 1 0.2 -"$silent_db_cut"d \
+						reverse \
+						silence 1 0.2 -"$silent_db_cut"d \
+						reverse
+					rm "${files%.*}".wav &>/dev/null
+					mv temp-out.wav "${files%.*}".wav
+				else
+					sox "${files%.*}".wav temp-out.wav \
+						silence 1 0.2 -"$silent_db_cut"d \
+						reverse \
+						silence 1 0.2 -"$silent_db_cut"d \
+						reverse
+					rm "${files%.*}".wav &>/dev/null
+					mv temp-out.wav "${files%.*}".wav &>/dev/null
+				fi
 			fi
 		fi
 
@@ -874,7 +884,7 @@ if [[ -f "${files%.*}".wav ]]; then
 					local sox_fade_out="0:$imported_sox_fade_out"
 				fi
 				if [[ "$verbose" = "1" ]]; then
-					sox "${files%.*}".wav temp-out.wav \
+					sox -V3 "${files%.*}".wav temp-out.wav \
 						fade t "$sox_fade_in" "$duration" "$sox_fade_out"
 				else
 					sox "${files%.*}".wav temp-out.wav \
@@ -1117,7 +1127,7 @@ fi
 cmd_sc68() {
 if [[ "$verbose" = "1" ]]; then
 	"$sc68_bin" -l "$sc68_loops" -c -t "$sub_track" "$sc68_files" > "$sub_track".raw \
-		&& sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$sub_track - $track_name".wav
+		&& sox -V3  -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$sub_track - $track_name".wav
 else
 	"$sc68_bin" -qqq -l "$sc68_loops" -c -t "$sub_track" "$sc68_files" > "$sub_track".raw \
 		&& sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$sub_track - $track_name".wav \
@@ -1142,7 +1152,7 @@ fi
 }
 cmd_sox() {
 if [[ "$verbose" = "1" ]]; then
-	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
+	sox -V3  -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
 		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop"
 else
 	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
@@ -2375,7 +2385,7 @@ if (( "${#lst_uade[@]}" )); then
 			wait
 			# Contruct one file with all subsongs
 			if [[ "$verbose" = "1" ]]; then
-				sox $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav"
+				sox -V3  $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav"
 			else
 				sox $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav" &>/dev/null \
 					&& echo_pre_space "✓ WAV <- ${file_name##*/}-full" \
