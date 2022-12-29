@@ -2487,7 +2487,6 @@ loop_vgmstream() {			# Various machines
 if (( "${#lst_vgmstream[@]}" )); then
 	# Local variables
 	local total_sub_track
-	local force_fade_out
 
 	# Reset WAV array
 	lst_wav=()
@@ -2541,7 +2540,7 @@ if (( "${#lst_vgmstream[@]}" )); then
 		tag_song
 		# Remove silence
 		wav_remove_silent
-		# Fade out, vgmstream fade out default off, special case for files: his
+		# Fade out, vgmstream fade out default off, special case for files: his & argument force
 		if [[ "$force_fade_out" = "1" ]]; then
 			wav_fade_out
 		fi
