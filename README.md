@@ -49,7 +49,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * --add_opus: Compress also in opus at 256k.
 * --add_wavpack: Compress also in WAVPACK.
 * -h|--help: Display this help.
-* --fade_out: Force default fade out.
+* --force_fade_out: Force default fade out.
 * --force_stereo: Force stereo output.
 * --no_fade_out: Force no fade out.
 * --no_normalization: Force no peak db normalization.

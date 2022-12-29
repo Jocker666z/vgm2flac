@@ -366,7 +366,7 @@ Usage: vgm2flac [options]
   --add_opus              Compress also in Opus at 256k.
   --add_wavpack           Compress also in WAVPACK.
   -h|--help               Display this help.
-  --fade_out              Force default fade out.
+  --force_fade_out        Force default fade out.
   --force_stereo          Force stereo output.
   --no_fade_out           Force no fade out.
   --no_normalization      Force no peak db normalization.
@@ -3536,7 +3536,7 @@ for key in "${vgm2flac_arg[@]}"; do
 		cmd_usage
 		exit
 	;;
-	--fade_out)
+	--force_fade_out)
 		force_fade_out="1"													# Set force default fade out
 	;;
 	--force_stereo)
