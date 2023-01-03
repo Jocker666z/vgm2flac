@@ -80,12 +80,13 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo SNES: spc, minisnsf, snsf
 * Nintendo Switch: acb/awb, adx, bgm, bfstm, bfwav, bwav, hca, kno, ktss, lopus, wem
 * Nintendo Wii: ads, adx, brstm, lwav, mus
+* Sharp X1, Turbo, Turbo Z: s98
 * Sega Game Gear: vgm, vgz
 * Sega Mark III/Master System: vgm, vgz
 * Sega Mega Drive/Genesis: vgm, vgz
 * Sega Saturn: minissf, ssf
 * Sega Dreamcast: adx, dsf, spsd, str
-* NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1: s98
+* NEC PC-Engine: s98
 * Sony Playstation: psf, minipsf, pona, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, sps, svag, vag, vpk, sng, vgs
 * Sony Playstation 3: aa3, adx, at3, cps, genh, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem
