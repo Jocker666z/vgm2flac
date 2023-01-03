@@ -59,7 +59,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * -v|--verbose: Verbose mode
 
 ## Files tested
-* 3DO : aif
+* 3DO : aif, aifc, str
 * Amiga: 8svx, aam, bd, core, cust, dw, gmc, mcr, mdat, mod, np3, rjp, sa, sb, scumm, sfx, xm
 * Amstrad CPC: ay, ym
 * Atari ST: snd, sndh, ym
@@ -135,6 +135,7 @@ Here the conversion is highly experimental, it is done while reading the file, t
 
 ## Holy reading
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
+* GSF spec: https://www.caitsith2.com/gsf/gsf%20spec.txt
 * HES spec: http://www.purose.net/befis/download/nezplug/hesspec.txt
 * KSS spec: https://ocremix.org/info/KSS_Format_Specification
 * NSF spec: https://wiki.nesdev.org/w/index.php/NSF
