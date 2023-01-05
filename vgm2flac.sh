@@ -61,6 +61,7 @@ vgmstream_loops="1"																			# Number of loop made by vgmstream
 # Extensions
 ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|txth|wav|wv"
 ext_adplay="hsq|imf|sdb|sqx|wlf"
+ext_asapconv="sap"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
 ext_ffmpeg_gbs="gbs"
@@ -88,6 +89,18 @@ system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
 	adplay_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
+fi
+}
+asapconv_bin() {
+local bin_name="asapconv"
+local system_bin_location
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	asapconv_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
 	exit
@@ -631,26 +644,27 @@ local vgmstream_test_result
 local uade_test_result
 local progress_counter
 
-mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort)
-mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort)
-mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort)
-mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort)
-mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_gbs')$' 2>/dev/null | sort)
-mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort)
-mapfile -t lst_ffmpeg_spc < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_spc')$' 2>/dev/null | sort)
-mapfile -t lst_mednafen_snsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mednafen_snsf')$' 2>/dev/null | sort)
-mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort)
-mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort)
-mapfile -t lst_nsfplay_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsf')$' 2>/dev/null | sort)
-mapfile -t lst_nsfplay_nsfe < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsfe')$' 2>/dev/null | sort)
-mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort)
-mapfile -t lst_sidplayfp_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sidplayfp_sid')$' 2>/dev/null | sort)
-mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort)
-mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort)
-mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort)
-mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort)
-mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort)
-mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort)
+mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort -V)
+mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort -V)
+mapfile -t lst_asapconv < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_asapconv')$' 2>/dev/null | sort -V)
+mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort -V)
+mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort -V)
+mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_gbs')$' 2>/dev/null | sort -V)
+mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort -V)
+mapfile -t lst_ffmpeg_spc < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_spc')$' 2>/dev/null | sort -V)
+mapfile -t lst_mednafen_snsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mednafen_snsf')$' 2>/dev/null | sort -V)
+mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort -V)
+mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort -V)
+mapfile -t lst_nsfplay_nsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsf')$' 2>/dev/null | sort -V)
+mapfile -t lst_nsfplay_nsfe < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_nsfplay_nsfe')$' 2>/dev/null | sort -V)
+mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sc68')$' 2>/dev/null | sort -V)
+mapfile -t lst_sidplayfp_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sidplayfp_sid')$' 2>/dev/null | sort -V)
+mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort -V)
+mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort -V)
+mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort -V)
+mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort -V)
+mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort -V)
+mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort -V)
 
 # bin/cue clean
 if [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If cue = 1
@@ -709,6 +723,7 @@ fi
 
 # Combine pass array
 lst_all_files_pass+=( "${lst_adplay[@]}" \
+				"${lst_asapconv[@]}" \
 				"${lst_bchunk_iso[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
@@ -727,19 +742,19 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_uade[@]}" )
 }
 list_wav_files() {
-mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort)
+mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort -V)
 }
 list_flac_files() {
-mapfile -t lst_flac < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('flac')$' 2>/dev/null | sort)
+mapfile -t lst_flac < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('flac')$' 2>/dev/null | sort -V)
 }
 list_wavpack_files() {
-mapfile -t lst_wavpack < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wv')$' 2>/dev/null | sort)
+mapfile -t lst_wavpack < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wv')$' 2>/dev/null | sort -V)
 }
 list_ape_files() {
-mapfile -t lst_ape < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('ape')$' 2>/dev/null | sort)
+mapfile -t lst_ape < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('ape')$' 2>/dev/null | sort -V)
 }
 list_opus_files() {
-mapfile -t lst_opus < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('opus')$' 2>/dev/null | sort)
+mapfile -t lst_opus < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('opus')$' 2>/dev/null | sort -V)
 }
 
 # Files cleaning
@@ -977,6 +992,14 @@ if [[ "$verbose" = "1" ]]; then
 	"$adplay_bin" "$files" -v --device "${files%.*}".wav --output=disk
 else
 	"$adplay_bin" "$files" --device "${files%.*}".wav --output=disk &>/dev/null \
+		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+fi
+}
+cmd_asapconv() {
+if [[ "$verbose" = "1" ]]; then
+	"$asapconv_bin" -o "%s - $file_name" "$files"
+else
+	"$asapconv_bin" -o "%s - $file_name" "$files" &>/dev/null \
 		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
 fi
 }
@@ -1365,6 +1388,66 @@ if (( "${#lst_adplay[@]}" )); then
 		# Extract WAV
 		(
 		cmd_adplay
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Generate wav array
+	list_wav_files
+
+	# Flac loop
+	display_convert_title "FLAC"
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song
+		# Remove silence
+		wav_remove_silent
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
+		# Add fade out
+		wav_fade_out
+		# Flac conversion
+		(
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape \
+		&& wav2opus
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+fi
+}
+loop_asapconv() {			# Atari XL/XE
+if (( "${#lst_asapconv[@]}" )); then
+	# Bin check & set
+	asapconv_bin
+
+	# Reset WAV array
+	lst_wav=()
+
+	# User info - Title
+	display_loop_title "asapconv" "Atari XL/XE"
+
+	# Tag
+	tag_machine="Atari XL/XE"
+	tag_sap
+	tag_questions
+	tag_album
+
+	# Wav loop
+	display_convert_title "WAV"
+	for files in "${lst_asapconv[@]}"; do
+		# Filename contruction
+		file_name=$(basename "${files%.*}.wav")
+		# Extract WAV
+		(
+		cmd_asapconv
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -3190,6 +3273,14 @@ if [[ -z "$tag_game" && -z "$tag_machine" && -z "$tag_date" ]]; then
 	tag_date=$(< "$vgm2flac_cache_tag" grep -i -a year | sed 's/^.*=//' | head -1)
 fi
 }
+tag_sap() {					# Atari XL/XE
+# Tag extract
+strings -e S "$files" | head -15 > "$vgm2flac_cache_tag"
+
+tag_artist=$(< "$vgm2flac_cache_tag" grep -i -a "AUTHOR" | awk -F'"' '$0=$2')
+tag_game=$(< "$vgm2flac_cache_tag" grep -i -a NAME | awk -F'"' '$0=$2')
+tag_date=$(< "$vgm2flac_cache_tag" grep -i -a DATE | awk -F'"' '$0=$2')
+}
 tag_sid() {					# Commodore 64/128
 # Tag extract by hexdump
 if [[ -z "$tag_artist" ]]; then
@@ -3585,6 +3676,7 @@ timer_start=$(date +%s)
 
 # Encoding/tag loop
 loop_adplay
+loop_asapconv
 loop_bchunk
 loop_ffmpeg_gbs
 loop_ffmpeg_hes

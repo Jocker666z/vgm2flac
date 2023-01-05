@@ -6,12 +6,13 @@ Bash tool for encoding various video game music files to FLAC.
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`bc adplay bc bchunk ffmpeg ffprobe fluidsynth find info68 mednafen munt nsfplay sc68 sidplayfp sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
+`adplay asapconv bc bchunk ffmpeg ffprobe fluidsynth find info68 mednafen munt nsfplay sc68 sidplayfp sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
 
 You will be able to run vgm2flac even if some dependencies are missing. The script will warn you if a dependency is not met depending on the file format to convert.
 
 * ffmpeg must be compiled with: `--enable-libgme --enable-libopenmpt --enable-nonfree`
 * adplay: https://github.com/adplug/adplay-unix
+* asapconv: https://asap.sourceforge.net/
 * fluidsynth: https://www.fluidsynth.org/
 * mednafen: https://mednafen.github.io/
 * munt: https://github.com/munt/munt
@@ -63,6 +64,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Amiga: 8svx, aam, bd, core, cust, dw, gmc, mcr, mdat, mod, np3, rjp, sa, sb, scumm, sfx, xm
 * Amstrad CPC: ay, ym
 * Atari ST: snd, sndh, ym
+* Atari XL/XE: sap
 * Philips CD-i: xa
 * Commodore C64/128: sid
 * Fujitsu FM-7, FM Towns: s98
@@ -130,7 +132,8 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * unrepeatable usf/miniusf decoding stuck = zxtune123 bug
 
 ## Notable sites, source of audio files
-* Atari: http://sndh.atari.org/
+* Atari ST: http://sndh.atari.org/
+* Atari XL/XE: https://asma.atari.org/
 * Commodore 64: https://hvsc.c64.org/
 * Various VGM: https://vgmrips.net/
 
@@ -142,6 +145,7 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * NSF spec: https://wiki.nesdev.org/w/index.php/NSF
 * NSFe spec: https://wiki.nesdev.org/w/index.php/NSFe
 * SGC spec: https://ocremix.org/info/SGC_Format_Specification
+* SAP spec: https://asap.sourceforge.net/sap-format.html
 * SNSF spec: https://snsf.caitsith2.net/snsf%20spec.txt
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
@@ -150,6 +154,16 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * http://www.vgmpf.com/
 
 ## Dependencies installation:
+### asap
+Build dependencies: `wget build-essential`
+```
+wget https://sourceforge.net/projects/asap/files/asap/5.2.0/asap-5.2.0.tar.gz/download -O asap-5.2.0.tar.gz
+tar -xf asap-5.2.0.tar.gz
+cd asap-5.2.0
+make -j"$(nproc)"
+su -c "make install" -m "root"
+```
+
 ### munt
 Build dependencies: `git build-essential cmake libpulse-dev libasound2-dev libjack-jackd2-dev`
 ```
