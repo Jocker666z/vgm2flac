@@ -3278,8 +3278,17 @@ tag_sap() {					# Atari XL/XE
 strings -e S "$files" | head -15 > "$vgm2flac_cache_tag"
 
 tag_artist=$(< "$vgm2flac_cache_tag" grep -i -a "AUTHOR" | awk -F'"' '$0=$2')
+if [[ "$tag_artist" = "<?>" ]]; then
+	unset tag_artist
+fi
 tag_game=$(< "$vgm2flac_cache_tag" grep -i -a NAME | awk -F'"' '$0=$2')
+if [[ "$tag_game" = "<?>" ]]; then
+	unset tag_game
+fi
 tag_date=$(< "$vgm2flac_cache_tag" grep -i -a DATE | awk -F'"' '$0=$2')
+if [[ "$tag_date" = "<?>" ]]; then
+	unset tag_date
+fi
 }
 tag_sid() {					# Commodore 64/128
 # Tag extract by hexdump
