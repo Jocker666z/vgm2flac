@@ -60,7 +60,7 @@ vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
 ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|txth|wav|wv"
-ext_adplay="hsq|imf|sdb|sqx|wlf"
+ext_adplay="hsc|hsq|imf|sdb|sqx|wlf"
 ext_asapconv="sap"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
@@ -1149,11 +1149,11 @@ fi
 }
 cmd_sc68() {
 if [[ "$verbose" = "1" ]]; then
-	"$sc68_bin" -l "$sc68_loops" -c -t "$sub_track" "$sc68_files" > "$sub_track".raw \
-		&& sox -V3  -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$final_file_name".wav
+	"$sc68_bin" -qqq -l "$sc68_loops" -t "$sub_track" "$sc68_files" --stdout \
+		| sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer - "$final_file_name".wav
 else
-	"$sc68_bin" -qqq -l "$sc68_loops" -c -t "$sub_track" "$sc68_files" > "$sub_track".raw \
-		&& sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$final_file_name".wav \
+	"$sc68_bin" -qqq -l "$sc68_loops" -t "$sub_track" "$sc68_files" --stdout \
+		| sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer - "$final_file_name".wav \
 		&& echo_pre_space "✓ WAV <- $final_file_name" || echo_pre_space "x WAV <- $final_file_name"
 fi
 }
@@ -2152,11 +2152,6 @@ if (( "${#lst_sc68[@]}" )); then
 			fi
 		done
 		wait
-
-		# Clean raw
-		for files in *.raw; do
-			rm "$files"
-		done
 
 		# Generate wav array
 		list_wav_files
