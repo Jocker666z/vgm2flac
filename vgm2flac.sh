@@ -2908,7 +2908,7 @@ if (( "${#lst_zxtune_v2m[@]}" )); then
 	display_loop_title "zxtune" "PC Farbrausch V2M"
 
 	# Tag
-	tag_machine="PC V2M"
+	tag_machine="PC"
 	tag_pc_sound_module="Farbrausch V2M"
 	tag_questions
 	tag_album
