@@ -61,7 +61,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 ## Files tested
 * 3DO : aif, aifc, str
-* Amiga: 8svx, aam, ahx, bd, core, cust, dw, fc14, gmc, mcr, mdat, mod, np3, rjp, sa, sb, sc68, scumm, sfx, xm
+* Amiga: 8svx, aam, ahx, bd, bp, core, cust, dw, fc14, gmc, mcr, mdat, mod, np3, rjp, sa, sb, sc68, scumm, sfx, xm
 * Amstrad CPC: ay, ym
 * Atari ST: snd, sndh, ym
 * Atari XL/XE: sap
@@ -97,7 +97,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Playstation Vita: at9, sab
 * Panasonic 3DO: aifc, pona, str
 * Philips CD-i: grn
-* PC: apc, bik, bnk, d00, hsc, hsq, fsb, his, imc, imf, logg, mab, mid, mod, sab, sdb, snds, smk, sqx, txtp, wem, wlf, xwb
+* PC: apc, bik, bnk, d00, hsc, hsq, fsb, his, imc, imf, logg, mab, mid, mod, rad, sab, sdb, snds, smk, sqx, txtp, wem, wlf, xwb
 * Various machines: vgm, vgz
 * Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
 * ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp
@@ -135,6 +135,7 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * Atari ST: http://sndh.atari.org/
 * Atari XL/XE: https://asma.atari.org/
 * Commodore 64: https://hvsc.c64.org/
+* Music from keygens, cracks, trainers, intros: http://www.keygenmusic.net/
 * Various VGM: https://vgmrips.net/
 
 ## Holy reading
