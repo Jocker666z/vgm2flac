@@ -71,7 +71,7 @@ ext_mednafen_snsf="minisnsf|snsf"
 ext_midi="mid"
 ext_nsfplay_nsf="nsf"
 ext_nsfplay_nsfe="nsfe"
-ext_sc68="snd|sndh"
+ext_sc68="sc68|snd|sndh"
 ext_sidplayfp_sid="sid"
 ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
@@ -2123,7 +2123,7 @@ if (( "${#lst_sc68[@]}" )); then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "sc68" "Atari ST"
+	display_loop_title "sc68" "Atari ST / Amiga"
 
 	for sc68_files in "${lst_sc68[@]}"; do
 		# Tag extract
