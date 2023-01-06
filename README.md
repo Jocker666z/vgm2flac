@@ -97,7 +97,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Playstation Vita: at9, sab
 * Panasonic 3DO: aifc, pona, str
 * Philips CD-i: grn
-* PC: apc, bik, bnk, d00, hsc, hsq, fsb, his, imc, imf, logg, mab, mid, mod, rad, sab, sdb, snds, smk, sqx, txtp, v2m, wem, wlf, xwb
+* PC: amd, apc, bik, bnk, d00, hsc, hsq, fsb, his, imc, imf, logg, mab, mid, mod, rad, sab, sdb, snds, smk, sqx, txtp, v2m, wem, wlf, xwb
 * Various machines: vgm, vgz
 * Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
 * ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp
