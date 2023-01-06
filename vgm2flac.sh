@@ -79,6 +79,7 @@ ext_vgm2wav="s98|vgm|vgz"
 ext_zxtune_ay="ay"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
+ext_zxtune_v2m="v2m"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 
 # Bin check and set variable
@@ -664,6 +665,7 @@ mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egre
 mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort -V)
+mapfile -t lst_zxtune_v2m < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_v2m')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort -V)
 
 # bin/cue clean
@@ -738,6 +740,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_zxtune_ay[@]}" \
 				"${lst_zxtune_xsf[@]}" \
 				"${lst_zxtune_ym[@]}" \
+				"${lst_zxtune_v2m[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" \
 				"${lst_uade[@]}" )
 }
@@ -1239,7 +1242,7 @@ else
 		&& echo_pre_space "✓ WAV <- $sub_track - ${ay##*/}" || echo_pre_space "x WAV <- $sub_track - ${ay##*/}"
 fi
 }
-cmd_zxtune_xfs_ym_zxspectrum() {
+cmd_zxtune_xfs_ym_v2m_zxspectrum() {
 if [[ "$verbose" = "1" ]]; then
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files" \
 		&& mv output-"$file_name_random".wav "$file_name".wav
@@ -2890,6 +2893,70 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	wait
 fi
 }
+loop_zxtune_v2m() {			# PC Farbrausch V2M
+if (( "${#lst_zxtune_v2m[@]}" )); then
+	# Bin check & set
+	zxtune123_bin
+
+	# Local variables
+	local file_name
+
+	# Reset WAV array
+	lst_wav=()
+
+	# User info - Title
+	display_loop_title "zxtune" "PC Farbrausch V2M"
+
+	# Tag
+	tag_machine="PC V2M"
+	tag_pc_sound_module="Farbrausch V2M"
+	tag_questions
+	tag_album
+	
+	# Wav loop
+	display_convert_title "WAV"
+	for files in "${lst_zxtune_v2m[@]}"; do
+		# Filename contruction
+		file_name=$(basename "${files%.*}")
+		file_name_random=$(( RANDOM % 10000 ))
+		# Extract WAV
+		(
+		cmd_zxtune_xfs_ym_v2m_zxspectrum
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Generate wav array
+	list_wav_files
+
+	# Flac loop
+	display_convert_title "FLAC"
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song
+		# Remove silence
+		wav_remove_silent
+		# Add fade out
+		wav_fade_out
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
+		# Flac conversion
+		(
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape \
+		&& wav2opus
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+fi
+}
 loop_zxtune_zx_spectrum() {	# ZX Spectrum
 if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 	# Bin check & set
@@ -2902,7 +2969,7 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "zxtune" "AZX Spectrum"
+	display_loop_title "zxtune" "ZX Spectrum"
 
 	# Tag
 	tag_machine="ZX Spectrum"
@@ -3704,6 +3771,7 @@ loop_vgm2wav
 loop_zxtune_ay
 loop_zxtune_xfs
 loop_zxtune_ym
+loop_zxtune_v2m
 loop_zxtune_zx_spectrum
 loop_uade
 loop_vgmstream
