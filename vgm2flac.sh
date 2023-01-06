@@ -38,7 +38,7 @@ default_mac_lvl="-c5000"
 default_opus_bitrate="256"
 
 # Input
-## Atari ST
+## Atari ST / Amiga
 sc68_loops="1"
 ## Commodore 64/128
 hvsc_directory=""																			# Directory containing extracted archive of https://hvsc.c64.org/downloads
@@ -1150,11 +1150,11 @@ fi
 cmd_sc68() {
 if [[ "$verbose" = "1" ]]; then
 	"$sc68_bin" -l "$sc68_loops" -c -t "$sub_track" "$sc68_files" > "$sub_track".raw \
-		&& sox -V3  -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$sub_track - $track_name".wav
+		&& sox -V3  -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$final_file_name".wav
 else
 	"$sc68_bin" -qqq -l "$sc68_loops" -c -t "$sub_track" "$sc68_files" > "$sub_track".raw \
-		&& sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$sub_track - $track_name".wav \
-		&& echo_pre_space "✓ WAV <- $sub_track - $track_name" || echo_pre_space "x WAV <- $sub_track - $track_name"
+		&& sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$sub_track".raw "$final_file_name".wav \
+		&& echo_pre_space "✓ WAV <- $final_file_name" || echo_pre_space "x WAV <- $final_file_name"
 fi
 }
 cmd_sidplayfp() {
@@ -2126,15 +2126,8 @@ if (( "${#lst_sc68[@]}" )); then
 	display_loop_title "sc68" "Atari ST / Amiga"
 
 	for sc68_files in "${lst_sc68[@]}"; do
-		# Tag extract
-		"$info68_bin" -A "$sc68_files" > "$vgm2flac_cache_tag"
-		if [[ -z "$tag_game" && -z "$tag_artist" && -z "$tag_machine" ]]; then
-			tag_game=$(< "$vgm2flac_cache_tag" grep -i -a title: | sed 's/^.*: //' | head -1)
-			tag_artist=$(< "$vgm2flac_cache_tag" grep -i -a artist: | sed 's/^.*: //' | head -1)
-			tag_date=$(< "$vgm2flac_cache_tag" grep -i -a year: | sed 's/^.*: //' | head -1)
-		fi
-
 		# Tag
+		tag_sc68
 		tag_questions
 		tag_album
 
@@ -2144,7 +2137,13 @@ if (( "${#lst_sc68[@]}" )); then
 		# Extract WAV
 		display_convert_title "WAV"
 		for sub_track in $(seq -w 1 "$total_sub_track"); do
+			# Filename contruction
 			track_name=$(basename "${sc68_files%.*}")
+			if [[ "$total_sub_track" -gt "1" ]]; then
+				final_file_name="$sub_track - $track_name"
+			else
+				final_file_name="$track_name"
+			fi
 			(
 			cmd_sc68
 			) &
@@ -3288,6 +3287,15 @@ fi
 tag_date=$(< "$vgm2flac_cache_tag" grep -i -a DATE | awk -F'"' '$0=$2')
 if [[ "$tag_date" = "<?>" ]]; then
 	unset tag_date
+fi
+}
+tag_sc68() {				# Atari ST / Amiga
+# Tag extract
+"$info68_bin" -A "$sc68_files" > "$vgm2flac_cache_tag"
+if [[ -z "$tag_game" && -z "$tag_artist" && -z "$tag_machine" ]]; then
+	tag_game=$(< "$vgm2flac_cache_tag" grep -i -a title: | sed 's/^.*: //' | head -1)
+	tag_artist=$(< "$vgm2flac_cache_tag" grep -i -a artist: | sed 's/^.*: //' | head -1)
+	tag_date=$(< "$vgm2flac_cache_tag" grep -i -a year: | sed 's/^.*: //' | head -1)
 fi
 }
 tag_sid() {					# Commodore 64/128
