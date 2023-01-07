@@ -3342,11 +3342,11 @@ tag_artist=$(< "$vgm2flac_cache_tag" grep -i -a "AUTHOR" | awk -F'"' '$0=$2')
 if [[ "$tag_artist" = "<?>" ]]; then
 	unset tag_artist
 fi
-tag_game=$(< "$vgm2flac_cache_tag" grep -i -a NAME | awk -F'"' '$0=$2')
+tag_game=$(< "$vgm2flac_cache_tag" grep -i -a "NAME" | awk -F'"' '$0=$2')
 if [[ "$tag_game" = "<?>" ]]; then
 	unset tag_game
 fi
-tag_date=$(< "$vgm2flac_cache_tag" grep -i -a DATE | awk -F'"' '$0=$2')
+tag_date=$(< "$vgm2flac_cache_tag" grep -i -a "DATE" | awk -F'"' '$0=$2')
 if [[ "$tag_date" = "<?>" ]]; then
 	unset tag_date
 fi
