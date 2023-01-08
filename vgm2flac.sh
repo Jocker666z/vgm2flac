@@ -1484,7 +1484,6 @@ if (( "${#lst_adplay[@]}" )); then
 	# Tag
 	tag_machine="PC"
 	tag_pc_sound_module="AdLib"
-	tag_adlib
 	tag_questions
 
 	# Wav loop
