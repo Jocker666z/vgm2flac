@@ -59,7 +59,7 @@ vgm2wav_loops="2"
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
-ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|txth|wav|wv"
+ext_vgms_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|spc|txth|wav|wv"
 ext_adplay="amd|d00|hsc|hsq|imf|rad|sdb|sqx|wlf"
 ext_asapconv="sap"
 ext_bchunk_cue="cue"
@@ -689,7 +689,7 @@ if (( "${#lst_all_files[@]}" )); then
 		for files in "${lst_all_files[@]}"; do
 
 			# Test file
-			if ! [[ ${ext_input_exclude[*]} =~ ${files##*.} ]]; then
+			if ! [[ ${ext_vgms_input_exclude[*]} =~ ${files##*.} ]]; then
 				if (( "${#uade123_bin}" )); then
 					uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
 				fi
