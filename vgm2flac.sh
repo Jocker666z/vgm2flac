@@ -453,21 +453,32 @@ display_separator
 }
 display_convert_title() {
 local extract_label
+local label
 
 extract_label="$1"
 
 if ! [[ "$only_wav" = "1" ]]; then
+	# Label construction
 	if [[ "$extract_label" = "FLAC" ]]; then
 		if [[ "$ape_compress" = "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
-			extract_label="FLAC, APE & WAVPACK"
+			label="FLAC, APE & WAVPACK"
 		elif [[ "$ape_compress" = "0" ]] && [[ "$wavpack_compress" = "1" ]]; then
-			extract_label="FLAC & WAVPACK"
+			label="FLAC & WAVPACK"
 		elif [[ "$ape_compress" = "1" ]] && [[ "$wavpack_compress" = "0" ]]; then
-			extract_label="FLAC & APE"
+			label="FLAC & APE"
+		elif [[ "$ape_compress" = "0" ]] && [[ "$wavpack_compress" = "0" ]]; then
+			label="FLAC"
 		fi
 		display_separator
 	fi
-	echo_pre_space "$extract_label conversion"
+	# Display
+	if [[ "$extract_label" = "FLAC" ]]; then
+		echo_pre_space "$label conversion"
+	elif [[ "$extract_label" = "WAV" ]]; then
+		echo_pre_space "WAV conversion"
+	elif [[ "$extract_label" = "LINE" ]]; then
+		echo_pre_space "Conversion"
+	fi
 	display_separator
 fi
 }
@@ -597,22 +608,22 @@ if (( "${#lst_all_files_pass[@]}" )); then
 		echo_pre_space "Summary"
 	fi
 	display_separator
-	echo_pre_space "SOURCE  - ${#lst_all_files_pass[@]} file(s) - $source_size_in_mb MB"
-	echo_pre_space "WAV     - ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
+	echo_pre_space "SOURCE    <- ${#lst_all_files_pass[@]} file(s) - $source_size_in_mb MB"
+	echo_pre_space "WAV       <- ${#lst_wav[@]} file(s) - $wav_size_in_mb MB"
 	if [[ "$only_wav" != "1" ]]; then
-		echo_pre_space "FLAC    - ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
+		echo_pre_space "FLAC      <- ${#lst_flac[@]} file(s) - $flac_size_in_mb MB"
 		if [[ "$wavpack_compress" = "1" ]]; then
-			echo_pre_space "WAVPACK - ${#lst_wavpack[@]} file(s) - $wavpack_size_in_mb MB"
+			echo_pre_space "WAVPACK   <- ${#lst_wavpack[@]} file(s) - $wavpack_size_in_mb MB"
 		fi
 		if [[ "$ape_compress" = "1" ]]; then
-			echo_pre_space "APE     - ${#lst_ape[@]} file(s) - $ape_size_in_mb MB"
+			echo_pre_space "APE       <- ${#lst_ape[@]} file(s) - $ape_size_in_mb MB"
 		fi
 		if [[ "$opus_compress" = "1" ]]; then
-			echo_pre_space "OPUS    - ${#lst_opus[@]} file(s) - $opus_size_in_mb MB"
+			echo_pre_space "OPUS      <- ${#lst_opus[@]} file(s) - $opus_size_in_mb MB"
 		fi
 	fi
 	if [[ "$force_stereo" != "1" ]]; then
-		echo_pre_space "Mono    - ${#lst_wav_in_mono[@]} file(s)"
+		echo_pre_space "Mono      <- ${#lst_wav_in_mono[@]} file(s)"
 	fi
 	echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
 	echo_pre_space "Encoding duration  - $elapsed_time_formated"
@@ -1018,7 +1029,8 @@ if [[ "$verbose" = "1" ]]; then
 	"$adplay_bin" "$files" -v --device "${files%.*}".wav --output=disk
 else
 	"$adplay_bin" "$files" --device "${files%.*}".wav --output=disk &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_asapconv() {
@@ -1026,7 +1038,8 @@ if [[ "$verbose" = "1" ]]; then
 	"$asapconv_bin" -o "%s - $file_name" "$files"
 else
 	"$asapconv_bin" -o "%s - $file_name" "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_bchunk() {
@@ -1034,7 +1047,7 @@ if [[ "$verbose" = "1" ]]; then
 	"$bchunk_bin" -v -w "${lst_bchunk_iso[0]}" "${lst_bchunk_cue[0]}" "$track_name"-Track-
 else
 	"$bchunk_bin" -w "${lst_bchunk_iso[0]}" "${lst_bchunk_cue[0]}" "$track_name"-Track- &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${lst_bchunk_iso##*/}" || echo_pre_space "x WAV <- ${lst_bchunk_iso##*/}"
+		&& echo_pre_space "✓ WAV     <- ${lst_bchunk_iso##*/}" || echo_pre_space "x WAV     <- ${lst_bchunk_iso##*/}"
 fi
 }
 cmd_ffmpeg_gbs() {
@@ -1052,8 +1065,8 @@ else
 		-acodec "$default_wav_bit_depth" \
 		-ar 44100 \
 		-f wav "$sub_track - $tag_song".wav \
-		&& echo_pre_space "✓ WAV <- $sub_track - $tag_song" \
-		|| echo_pre_space "x WAV <- $sub_track - $tag_song"
+		&& echo_pre_space "✓ WAV     <- $sub_track - $tag_song" \
+		|| echo_pre_space "x WAV     <- $sub_track - $tag_song"
 fi
 }
 cmd_ffmpeg_hes() {
@@ -1069,8 +1082,8 @@ else
 		-acodec "$default_wav_bit_depth" \
 		-map_metadata -1 \
 		-f wav "$sub_track - $tag_song".wav \
-		&& echo_pre_space "✓ WAV <- $sub_track - $tag_song" \
-		|| echo_pre_space "x WAV <- $sub_track - $tag_song"
+		&& echo_pre_space "✓ WAV     <- $sub_track - $tag_song" \
+		|| echo_pre_space "x WAV     <- $sub_track - $tag_song"
 fi
 }
 cmd_ffmpeg_spc() {
@@ -1087,7 +1100,7 @@ else
 		-acodec "$default_wav_bit_depth" \
 		-ar 32000 \
 		-f wav "${files%.*}".wav \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_fluidsynth_loop1() {
@@ -1095,7 +1108,7 @@ if [[ "$verbose" = "1" ]]; then
 	"$fluidsynth_bin" -v -F "${files%.*}".wav "$fluidsynth_soundfont" "$files"
 else
 	"$fluidsynth_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_fluidsynth_loop2() {
@@ -1103,7 +1116,7 @@ if [[ "$verbose" = "1" ]]; then
 	"$fluidsynth_bin" -v -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" "$files"
 else
 	"$fluidsynth_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_mednafen_snsf() {
@@ -1126,7 +1139,7 @@ else
 		-sound.rate 48000 \
 		-soundrecord "${files%.*}".wav \
 		"$files" &>/dev/null \
-		|| echo_pre_space "✓ WAV <- ${files##*/}"
+		|| echo_pre_space "✓ WAV     <- ${files##*/}"
 fi
 }
 cmd_munt() {
@@ -1146,7 +1159,7 @@ else
 		--analog-output-mode=2 -f \
 		--record-max-end-silence=1000 \
 		-o "${files%.*}".wav "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_nsfplay_nsf() {
@@ -1158,7 +1171,7 @@ else
 	"$nsfplay_bin" --fade_ms="$xxs_fading_msecond" --length_ms="$xxs_duration_msecond" --samplerate=44100 --quiet \
 		--track="$sub_track" "$nsf" "$sub_track".wav &>/dev/null \
 		&& mv "$sub_track".wav "$sub_track - $tag_song".wav \
-		&& echo_pre_space "✓ WAV <- $sub_track - $tag_song" || echo_pre_space "x WAV <- $sub_track - $tag_song"
+		&& echo_pre_space "✓ WAV     <- $sub_track - $tag_song" || echo_pre_space "x WAV     <- $sub_track - $tag_song"
 fi
 }
 cmd_nsfplay_nsfe() {
@@ -1170,7 +1183,7 @@ else
 	"$nsfplay_bin" --length_ms="$nsfplay_default_max_duration" --samplerate=44100 --quiet \
 		--track="$sub_track" "$nsfe" "$sub_track".wav &>/dev/null \
 		&& mv "$sub_track".wav "$sub_track - $tag_song".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV <- $sub_track - $tag_song" || echo_pre_space "x WAV <- $sub_track - $tag_song"
+		&& echo_pre_space "✓ WAV     <- $sub_track - $tag_song" || echo_pre_space "x WAV     <- $sub_track - $tag_song"
 fi
 }
 cmd_sc68() {
@@ -1180,7 +1193,7 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$sc68_bin" -qqq -l "$sc68_loops" -t "$sub_track" "$sc68_files" --stdout \
 		| sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer - "$final_file_name".wav \
-		&& echo_pre_space "✓ WAV <- $final_file_name" || echo_pre_space "x WAV <- $final_file_name"
+		&& echo_pre_space "✓ WAV     <- $final_file_name" || echo_pre_space "x WAV     <- $final_file_name"
 fi
 }
 cmd_sidplayfp() {
@@ -1188,7 +1201,7 @@ if [[ "$verbose" = "1" ]]; then
 	"$sidplayfp_bin" -w "$files"
 else
 	"$sidplayfp_bin" -q -w "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_sidplayfp_duration() {
@@ -1196,7 +1209,7 @@ if [[ "$verbose" = "1" ]]; then
 	"$sidplayfp_bin" "$files" -w -t"$sid_default_max_duration"
 else
 	"$sidplayfp_bin" "$files" -q -w -t"$sid_default_max_duration" &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_sox() {
@@ -1206,7 +1219,7 @@ if [[ "$verbose" = "1" ]]; then
 else
 	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
 		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_uade() {
@@ -1216,7 +1229,7 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$uade123_bin" --filter=A1200 --force-led=0 --one \
 		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${file_name##*/}" || echo_pre_space "x WAV <- ${file_name##*/}"
+		&& echo_pre_space "✓ WAV     <- ${file_name##*/}" || echo_pre_space "x WAV     <- ${file_name##*/}"
 fi
 }
 cmd_vgm2wav() {
@@ -1226,7 +1239,7 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$vgm2wav_bin" --samplerate "$vgm2wav_samplerate" --bps "$vgm2wav_bit_depth" --loops "$vgm2wav_loops" \
 		"$files" "${files%.*}".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_vgmstream() {
@@ -1234,7 +1247,7 @@ if [[ "$verbose" = "1" ]]; then
 	"$vgmstream_cli_bin" -l "$vgmstream_loops" -o "${files%.*}".wav "$files"
 else
 	"$vgmstream_cli_bin" -l "$vgmstream_loops" -o "${files%.*}".wav "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_vgmstream_multi_track() {
@@ -1242,7 +1255,7 @@ if [[ "$verbose" = "1" ]]; then
 	"$vgmstream_cli_bin" -l "$vgmstream_loops" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
 else
 	"$vgmstream_cli_bin" -l "$vgmstream_loops" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files%.*}-$sub_track" || echo_pre_space "x WAV <- ${files%.*}-$sub_track"
+		&& echo_pre_space "✓ WAV     <- ${files%.*}-$sub_track" || echo_pre_space "x WAV     <- ${files%.*}-$sub_track"
 fi
 }
 cmd_zxtune_ay() {
@@ -1252,7 +1265,7 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$ay" &>/dev/null \
 		&& mv output-"$file_name_random".wav "$tag_song".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${ay##*/}" || echo_pre_space "x WAV <- ${ay##*/}"
+		&& echo_pre_space "✓ WAV     <- ${ay##*/}" || echo_pre_space "x WAV     <- ${ay##*/}"
 fi
 }
 cmd_zxtune_ay_multi_track() {
@@ -1262,7 +1275,7 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$ay"?#"$sub_track" &>/dev/null \
 		&& mv output-"$file_name_random".wav "$sub_track".wav \
-		&& echo_pre_space "✓ WAV <- $sub_track - ${ay##*/}" || echo_pre_space "x WAV <- $sub_track - ${ay##*/}"
+		&& echo_pre_space "✓ WAV     <- $sub_track - ${ay##*/}" || echo_pre_space "x WAV     <- $sub_track - ${ay##*/}"
 fi
 }
 cmd_zxtune_xfs_ym_v2m_zxspectrum() {
@@ -1272,7 +1285,7 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files" &>/dev/null \
 		&& mv output-"$file_name_random".wav "$file_name".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV <- ${files##*/}" || echo_pre_space "x WAV <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 wav2flac() {
@@ -1319,8 +1332,8 @@ if ! [[ "$only_wav" = "1" ]]; then
 					-metadata artist="$tag_artist" \
 					-metadata date="$tag_date_formated" \
 					"${files%.*}".flac \
-					&& echo_pre_space "✓ FLAC <- $(basename "${files%.*}").wav" \
-					|| echo_pre_space "x FLAC <- $(basename "${files%.*}").wav"
+					&& echo_pre_space "✓ FLAC    <- $(basename "${files%.*}").wav" \
+					|| echo_pre_space "x FLAC    <- $(basename "${files%.*}").wav"
 			fi
 	fi
 fi
@@ -1405,30 +1418,17 @@ if (( "${#lst_adplay[@]}" )); then
 	# Tag
 	tag_machine="PC"
 	tag_pc_sound_module="AdLib"
+	tag_adlib
 	tag_questions
-	tag_album
 
 	# Wav loop
-	display_convert_title "WAV"
+	display_convert_title "LINE"
 	for files in "${lst_adplay[@]}"; do
-		# Extract WAV
-		(
-		cmd_adplay
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
-	done
-	wait
-
-	# Generate wav array
-	list_wav_files
-
-	# Flac loop
-	display_convert_title "FLAC"
-	for files in "${lst_wav[@]}"; do
 		# Tag
-		tag_song
+		tag_adlib
+		tag_album
+		# Extract WAV
+		cmd_adplay
 		# Remove silence
 		wav_remove_silent
 		# Peak normalisation, false stereo detection 
@@ -1447,6 +1447,9 @@ if (( "${#lst_adplay[@]}" )); then
 		fi
 	done
 	wait
+
+	# Reset
+	unset tag_pc_sound_module
 fi
 }
 loop_asapconv() {			# Atari XL/XE
@@ -1985,6 +1988,9 @@ if (( "${#lst_midi[@]}" )); then
 		fi
 	done
 	wait
+
+	# Reset
+	unset tag_pc_sound_module
 fi
 }
 loop_nsfplay_nsf() {		# NES
@@ -2225,7 +2231,7 @@ if (( "${#lst_sc68[@]}" )); then
 			total_sub_track=$(< "$vgm2flac_cache_tag" grep -i -a track: | sed 's/^.*: //' | tail -1)
 
 			# Extract WAV
-			display_convert_title "WAV"
+			display_convert_title "LINE"
 			# Filename contruction
 			track_name=$(basename "${sc68_files%.*}")
 			final_file_name="$track_name"
@@ -2236,7 +2242,6 @@ if (( "${#lst_sc68[@]}" )); then
 
 			# Flac loop
 			if [[ -f "${files}" ]]; then
-			display_convert_title "FLAC"
 				# Remove silence
 				wav_remove_silent
 				# Add fade out
@@ -2537,8 +2542,8 @@ if (( "${#lst_uade[@]}" )); then
 				sox -V3  $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav"
 			else
 				sox $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav" &>/dev/null \
-					&& echo_pre_space "✓ WAV <- ${file_name##*/}-full" \
-					|| echo_pre_space "x WAV <- ${file_name##*/}-full"
+					&& echo_pre_space "✓ WAV     <- ${file_name##*/}-full" \
+					|| echo_pre_space "x WAV     <- ${file_name##*/}-full"
 			fi
 			all_sub_track=()
 		fi
@@ -3024,6 +3029,9 @@ if (( "${#lst_zxtune_v2m[@]}" )); then
 		fi
 	done
 	wait
+
+	# Reset
+	unset tag_pc_sound_module
 fi
 }
 loop_zxtune_zx_spectrum() {	# ZX Spectrum
@@ -3308,10 +3316,29 @@ else
 	xxs_fading_msecond=$((default_wav_fade_out*1000))
 fi
 }
-#tag_adlib() {				# PC AdLib
-## Tag extract
-#timeout 0.01 "$adplay_bin" "$file" --output=null &> "$vgm2flac_cache_tag"
-#}
+tag_adlib() {				# PC AdLib
+# Tag extract
+timeout 0.01 "$adplay_bin" "$files" --output=null &> "$vgm2flac_cache_tag"
+
+mapfile -t source_tag < <( cat "$vgm2flac_cache_tag" )
+for line in "${source_tag[@]}"; do
+	if [[ "$line" == "Title"* ]]; then
+		tag_song=$(echo "$line" | sed 's/^.*: //')
+	fi
+	if [[ "$line" == "Author"* ]]; then
+		tag_artist=$(echo "$line" | sed 's/^.*: //')
+	fi
+done
+
+if [[ -z "$tag_artist" ]]; then
+	tag_artist="Unknown"
+fi
+# If output dir set -> tag_game = filename
+# Consider is chiptune no vgm
+if [[ -n "$force_output_dir" ]]; then
+	tag_game=$(basename "${files%.*}")
+fi
+}
 tag_ay() {					# Amstrad CPC, ZX Spectrum
 # Tag extract
 if [[ "$total_sub_track" = "0" ]] || [[ -z "$total_sub_track" ]]; then
@@ -3450,6 +3477,7 @@ if [[ "${sc68_files##*.}" = "sc68" ]]; then
 	if [[ -z "$tag_date" ]]; then
 		tag_date=$(< "$vgm2flac_cache_tag" grep -i -a year: | sed 's/^.*: //' | head -1)
 	fi
+	# Consider is chiptune no vgm
 	tag_game=$(basename "${sc68_files%.*}")
 fi
 }
@@ -3625,7 +3653,7 @@ local opus_target_directory
 
 # If output dir set
 if [[ -n "$force_output_dir" ]]; then
- tag_game="$force_output_dir"
+	tag_game="$force_output_dir"
 fi
 
 # Get tag, mkdir & mv
