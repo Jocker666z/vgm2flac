@@ -83,32 +83,34 @@ ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 # Extensions exclude
 ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|txth|wav|wv"
 ext_all_raw="${ext_input_exclude}| \
-		${ext_adplay}| \
-		${ext_asapconv}| \
-		${ext_bchunk_cue}| \
-		${ext_bchunk_iso}| \
-		${ext_ffmpeg_gbs}| \
-		${ext_ffmpeg_spc}| \
-		${ext_mednafen_snsf}| \
-		${ext_midi}| \
-		${ext_nsfplay_nsf}| \
-		${ext_nsfplay_nsfe}| \
-		${ext_sc68}| \
-		${ext_sidplayfp_sid}| \
-		${ext_sox}| \
-		${ext_playlist}| \
-		${ext_vgm2wav}| \
-		${ext_zxtune_ay}| \
-		${ext_zxtune_xsf}| \
-		${ext_zxtune_ym}| \
-		${ext_zxtune_v2m}| \
-		${ext_zxtune_zx_spectrum}"
+			 ${ext_adplay}| \
+			 ${ext_asapconv}| \
+			 ${ext_bchunk_cue}| \
+			 ${ext_bchunk_iso}| \
+			 ${ext_ffmpeg_gbs}| \
+			 ${ext_ffmpeg_spc}| \
+			 ${ext_mednafen_snsf}| \
+			 ${ext_midi}| \
+			 ${ext_nsfplay_nsf}| \
+			 ${ext_nsfplay_nsfe}| \
+			 ${ext_sc68}| \
+			 ${ext_sidplayfp_sid}| \
+			 ${ext_sox}| \
+			 ${ext_playlist}| \
+			 ${ext_vgm2wav}| \
+			 ${ext_zxtune_ay}| \
+			 ${ext_zxtune_xsf}| \
+			 ${ext_zxtune_ym}| \
+			 ${ext_zxtune_v2m}| \
+			 ${ext_zxtune_zx_spectrum}"
 ext_vgms_input_exclude="${ext_all_raw//[[:blank:]]/}"
 
 # Bin check and set variable
 adplay_bin() {
-local bin_name="adplay"
+local bin_name
 local system_bin_location
+
+bin_name="adplay"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -119,8 +121,10 @@ else
 fi
 }
 asapconv_bin() {
-local bin_name="asapconv"
+local bin_name
 local system_bin_location
+
+bin_name="asapconv"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -131,8 +135,10 @@ else
 fi
 }
 bchunk_bin() {
-local bin_name="bchunk"
+local bin_name
 local system_bin_location
+
+bin_name="bchunk"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -160,8 +166,10 @@ if (( "${#command_fail[@]}" )); then
 fi
 }
 flac_bin() {
-local bin_name="flac"
+local bin_name
 local system_bin_location
+
+bin_name="flac"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -170,9 +178,13 @@ if test -n "$system_bin_location"; then
 fi
 }
 fluidsynth_bin() {
-local bin_name="fluidsynth"
+local bin_name
 local system_bin_location
+
+bin_name="fluidsynth"
 system_bin_location=$(command -v $bin_name)
+
+
 if test -n "$system_bin_location"; then
 	if [[ -z "$fluidsynth_soundfont" ]]; then
 		echo_pre_space "Warning, the variable (fluidsynth_soundfont) indicating the location"
@@ -190,8 +202,10 @@ else
 fi
 }
 info68_bin() {
-local bin_name="info68"
+local bin_name
 local system_bin_location
+
+bin_name="info68"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -202,8 +216,10 @@ else
 fi
 }
 metaflac_bin() {
-local bin_name="metaflac"
+local bin_name
 local system_bin_location
+
+bin_name="metaflac"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -211,8 +227,10 @@ if test -n "$system_bin_location"; then
 fi
 }
 mednafen_bin() {
-local bin_name="mednafen"
+local bin_name
 local system_bin_location
+
+bin_name="mednafen"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -223,8 +241,10 @@ else
 fi
 }
 mac_bin() {
-local bin_name="mac"
+local bin_name
 local system_bin_location
+
+bin_name="mac"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -234,8 +254,10 @@ if test -n "$system_bin_location"; then
 fi
 }
 munt_bin() {
-local bin_name="mt32emu-smf2wav"
+local bin_name
 local system_bin_location
+
+bin_name="mt32emu-smf2wav"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -253,8 +275,10 @@ else
 fi
 }
 nsfplay_bin() {
-local bin_name="nsf2wav"
+local bin_name
 local system_bin_location
+
+bin_name="nsf2wav"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -265,8 +289,10 @@ else
 fi
 }
 opusenc_bin() {
-local bin_name="opusenc"
+local bin_name
 local system_bin_location
+
+bin_name="opusenc"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -274,8 +300,10 @@ if test -n "$system_bin_location"; then
 fi
 }
 sc68_bin() {
-local bin_name="sc68"
+local bin_name
 local system_bin_location
+
+bin_name="sc68"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -286,8 +314,10 @@ else
 fi
 }
 sidplayfp_bin() {
-local bin_name="sidplayfp"
+local bin_name
 local system_bin_location
+
+bin_name="sidplayfp"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -305,8 +335,10 @@ if [[ -n "$hvsc_directory" ]]; then
 fi
 }
 vgm2wav_bin() {
-local bin_name="vgm2wav"
+local bin_name
 local system_bin_location
+
+bin_name="vgm2wav"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -328,8 +360,10 @@ else
 fi
 }
 vgm_tag_bin() {
-local bin_name="vgm_tag"
+local bin_name
 local system_bin_location
+
+bin_name="vgm_tag"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -340,8 +374,10 @@ else
 fi
 }
 uade123_bin() {
-local bin_name="uade123"
+local bin_name
 local system_bin_location
+
+bin_name="uade123"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -351,8 +387,10 @@ else
 fi
 }
 wavpack_bin() {
-local bin_name="wavpack"
+local bin_name
 local system_bin_location
+
+bin_name="wavpack"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -361,8 +399,10 @@ if test -n "$system_bin_location"; then
 fi
 }
 wvtag_bin() {
-local bin_name="wvtag"
+local bin_name
 local system_bin_location
+
+bin_name="wvtag"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -370,8 +410,10 @@ if test -n "$system_bin_location"; then
 fi
 }
 zxtune123_bin() {
-local bin_name="zxtune123"
+local bin_name
 local system_bin_location
+
+bin_name="zxtune123"
 system_bin_location=$(command -v $bin_name)
 
 if test -n "$system_bin_location"; then
@@ -1047,7 +1089,8 @@ if [[ "$verbose" = "1" ]]; then
 	"$bchunk_bin" -v -w "${lst_bchunk_iso[0]}" "${lst_bchunk_cue[0]}" "$track_name"-Track-
 else
 	"$bchunk_bin" -w "${lst_bchunk_iso[0]}" "${lst_bchunk_cue[0]}" "$track_name"-Track- &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${lst_bchunk_iso##*/}" || echo_pre_space "x WAV     <- ${lst_bchunk_iso##*/}"
+		&& echo_pre_space "✓ WAV     <- ${lst_bchunk_iso##*/}" \
+		|| echo_pre_space "x WAV     <- ${lst_bchunk_iso##*/}"
 fi
 }
 cmd_ffmpeg_gbs() {
@@ -1100,7 +1143,8 @@ else
 		-acodec "$default_wav_bit_depth" \
 		-ar 32000 \
 		-f wav "${files%.*}".wav \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_fluidsynth_loop1() {
@@ -1108,7 +1152,8 @@ if [[ "$verbose" = "1" ]]; then
 	"$fluidsynth_bin" -v -F "${files%.*}".wav "$fluidsynth_soundfont" "$files"
 else
 	"$fluidsynth_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_fluidsynth_loop2() {
@@ -1116,7 +1161,8 @@ if [[ "$verbose" = "1" ]]; then
 	"$fluidsynth_bin" -v -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" "$files"
 else
 	"$fluidsynth_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_mednafen_snsf() {
@@ -1159,19 +1205,23 @@ else
 		--analog-output-mode=2 -f \
 		--record-max-end-silence=1000 \
 		-o "${files%.*}".wav "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_nsfplay_nsf() {
 if [[ "$verbose" = "1" ]]; then
-	"$nsfplay_bin" --fade_ms="$xxs_fading_msecond" --length_ms="$xxs_duration_msecond" --samplerate=44100 \
+	"$nsfplay_bin" --fade_ms="$xxs_fading_msecond" \
+		--length_ms="$xxs_duration_msecond" --samplerate=44100 \
 		--track="$sub_track" "$nsf" "$sub_track".wav \
 		&& mv "$sub_track".wav "$sub_track - $tag_song".wav
 else
-	"$nsfplay_bin" --fade_ms="$xxs_fading_msecond" --length_ms="$xxs_duration_msecond" --samplerate=44100 --quiet \
+	"$nsfplay_bin" --fade_ms="$xxs_fading_msecond" --samplerate=44100 \
+		--length_ms="$xxs_duration_msecond" --quiet \
 		--track="$sub_track" "$nsf" "$sub_track".wav &>/dev/null \
 		&& mv "$sub_track".wav "$sub_track - $tag_song".wav \
-		&& echo_pre_space "✓ WAV     <- $sub_track - $tag_song" || echo_pre_space "x WAV     <- $sub_track - $tag_song"
+		&& echo_pre_space "✓ WAV     <- $sub_track - $tag_song" \
+		|| echo_pre_space "x WAV     <- $sub_track - $tag_song"
 fi
 }
 cmd_nsfplay_nsfe() {
@@ -1183,7 +1233,8 @@ else
 	"$nsfplay_bin" --length_ms="$nsfplay_default_max_duration" --samplerate=44100 --quiet \
 		--track="$sub_track" "$nsfe" "$sub_track".wav &>/dev/null \
 		&& mv "$sub_track".wav "$sub_track - $tag_song".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- $sub_track - $tag_song" || echo_pre_space "x WAV     <- $sub_track - $tag_song"
+		&& echo_pre_space "✓ WAV     <- $sub_track - $tag_song" \
+		|| echo_pre_space "x WAV     <- $sub_track - $tag_song"
 fi
 }
 cmd_sc68() {
@@ -1193,7 +1244,8 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$sc68_bin" -qqq -l "$sc68_loops" -t "$sub_track" "$sc68_files" --stdout \
 		| sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer - "$final_file_name".wav \
-		&& echo_pre_space "✓ WAV     <- $final_file_name" || echo_pre_space "x WAV     <- $final_file_name"
+		&& echo_pre_space "✓ WAV     <- $final_file_name" \
+		|| echo_pre_space "x WAV     <- $final_file_name"
 fi
 }
 cmd_sidplayfp() {
@@ -1201,7 +1253,8 @@ if [[ "$verbose" = "1" ]]; then
 	"$sidplayfp_bin" -w "$files"
 else
 	"$sidplayfp_bin" -q -w "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_sidplayfp_duration() {
@@ -1209,7 +1262,8 @@ if [[ "$verbose" = "1" ]]; then
 	"$sidplayfp_bin" "$files" -w -t"$sid_default_max_duration"
 else
 	"$sidplayfp_bin" "$files" -q -w -t"$sid_default_max_duration" &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_sox() {
@@ -1219,27 +1273,32 @@ if [[ "$verbose" = "1" ]]; then
 else
 	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
 		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_uade() {
 if [[ "$verbose" = "1" ]]; then
 	"$uade123_bin" --filter=A1200 --force-led=0 --one \
-		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav
+		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" \
+		-f "$file_name".wav
 else
 	"$uade123_bin" --filter=A1200 --force-led=0 --one \
-		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" -f "$file_name".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${file_name##*/}" || echo_pre_space "x WAV     <- ${file_name##*/}"
+		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" \
+		-f "$file_name".wav &>/dev/null \
+		&& echo_pre_space "✓ WAV     <- ${file_name##*/}" \
+		|| echo_pre_space "x WAV     <- ${file_name##*/}"
 fi
 }
 cmd_vgm2wav() {
 if [[ "$verbose" = "1" ]]; then
-	"$vgm2wav_bin" --samplerate "$vgm2wav_samplerate" --bps "$vgm2wav_bit_depth" --loops "$vgm2wav_loops" \
-		"$files" "${files%.*}".wav
+	"$vgm2wav_bin" --samplerate "$vgm2wav_samplerate" --bps "$vgm2wav_bit_depth" \
+		--loops "$vgm2wav_loops" "$files" "${files%.*}".wav
 else
-	"$vgm2wav_bin" --samplerate "$vgm2wav_samplerate" --bps "$vgm2wav_bit_depth" --loops "$vgm2wav_loops" \
-		"$files" "${files%.*}".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+	"$vgm2wav_bin" --samplerate "$vgm2wav_samplerate" --bps "$vgm2wav_bit_depth" \
+		--loops "$vgm2wav_loops" "$files" "${files%.*}".wav &>/dev/null \
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_vgmstream() {
@@ -1247,15 +1306,19 @@ if [[ "$verbose" = "1" ]]; then
 	"$vgmstream_cli_bin" -l "$vgmstream_loops" -o "${files%.*}".wav "$files"
 else
 	"$vgmstream_cli_bin" -l "$vgmstream_loops" -o "${files%.*}".wav "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_vgmstream_multi_track() {
 if [[ "$verbose" = "1" ]]; then
-	"$vgmstream_cli_bin" -l "$vgmstream_loops" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files"
+	"$vgmstream_cli_bin" -l "$vgmstream_loops" -s "$sub_track" \
+		-o "${files%.*}"-"$sub_track".wav "$files"
 else
-	"$vgmstream_cli_bin" -l "$vgmstream_loops" -s "$sub_track" -o "${files%.*}"-"$sub_track".wav "$files" &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files%.*}-$sub_track" || echo_pre_space "x WAV     <- ${files%.*}-$sub_track"
+	"$vgmstream_cli_bin" -l "$vgmstream_loops" -s "$sub_track" \
+		-o "${files%.*}"-"$sub_track".wav "$files" &>/dev/null \
+		&& echo_pre_space "✓ WAV     <- ${files%.*}-$sub_track" \
+		|| echo_pre_space "x WAV     <- ${files%.*}-$sub_track"
 fi
 }
 cmd_zxtune_ay() {
@@ -1265,7 +1328,8 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$ay" &>/dev/null \
 		&& mv output-"$file_name_random".wav "$tag_song".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${ay##*/}" || echo_pre_space "x WAV     <- ${ay##*/}"
+		&& echo_pre_space "✓ WAV     <- ${ay##*/}" \
+		|| echo_pre_space "x WAV     <- ${ay##*/}"
 fi
 }
 cmd_zxtune_ay_multi_track() {
@@ -1275,7 +1339,8 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$ay"?#"$sub_track" &>/dev/null \
 		&& mv output-"$file_name_random".wav "$sub_track".wav \
-		&& echo_pre_space "✓ WAV     <- $sub_track - ${ay##*/}" || echo_pre_space "x WAV     <- $sub_track - ${ay##*/}"
+		&& echo_pre_space "✓ WAV     <- $sub_track - ${ay##*/}" \
+		|| echo_pre_space "x WAV     <- $sub_track - ${ay##*/}"
 fi
 }
 cmd_zxtune_xfs_ym_v2m_zxspectrum() {
@@ -1285,7 +1350,8 @@ if [[ "$verbose" = "1" ]]; then
 else
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files" &>/dev/null \
 		&& mv output-"$file_name_random".wav "$file_name".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${files##*/}" || echo_pre_space "x WAV     <- ${files##*/}"
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 wav2flac() {
@@ -1831,7 +1897,7 @@ if (( "${#lst_mednafen_snsf[@]}" )); then
 			snsf_duration="300"
 		# Add 5s, the start-up gap of mednafen
 		else
-			snsf_duration="$(( $tag_length + 5 ))"
+			snsf_duration="$(( tag_length + 5 ))"
 		fi
 		# Extract WAV
 		cmd_mednafen_snsf
