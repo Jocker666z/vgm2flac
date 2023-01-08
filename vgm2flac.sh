@@ -59,7 +59,6 @@ vgm2wav_loops="2"
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
-ext_vgms_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|spc|txth|wav|wv"
 ext_adplay="amd|d00|hsc|hsq|imf|rad|sdb|sqx|wlf"
 ext_asapconv="sap"
 ext_bchunk_cue="cue"
@@ -81,6 +80,30 @@ ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|mi
 ext_zxtune_ym="ym"
 ext_zxtune_v2m="v2m"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
+# Extensions exclude
+ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|txth|wav|wv"
+ext_all_raw="${ext_input_exclude}| \
+		${ext_adplay}| \
+		${ext_asapconv}| \
+		${ext_bchunk_cue}| \
+		${ext_bchunk_iso}| \
+		${ext_ffmpeg_gbs}| \
+		${ext_ffmpeg_spc}| \
+		${ext_mednafen_snsf}| \
+		${ext_midi}| \
+		${ext_nsfplay_nsf}| \
+		${ext_nsfplay_nsfe}| \
+		${ext_sc68}| \
+		${ext_sidplayfp_sid}| \
+		${ext_sox}| \
+		${ext_playlist}| \
+		${ext_vgm2wav}| \
+		${ext_zxtune_ay}| \
+		${ext_zxtune_xsf}| \
+		${ext_zxtune_ym}| \
+		${ext_zxtune_v2m}| \
+		${ext_zxtune_zx_spectrum}"
+ext_vgms_input_exclude="${ext_all_raw//[[:blank:]]/}"
 
 # Bin check and set variable
 adplay_bin() {
