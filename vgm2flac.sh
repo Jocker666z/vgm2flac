@@ -59,7 +59,7 @@ vgm2wav_loops="2"
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
-ext_adplay="amd|d00|hsc|hsq|imf|rad|sdb|sqx|wlf"
+ext_adplay="adl|amd|d00|got|hsc|hsq|imf|ksm|rad|sdb|sqx|wlf"
 ext_asapconv="sap"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
