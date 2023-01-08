@@ -38,7 +38,7 @@ default_mac_lvl="-c5000"
 default_opus_bitrate="256"
 
 # Input
-## Atari ST / Amiga
+## Atari ST
 sc68_loops="1"
 ## Commodore 64/128
 hvsc_directory=""																			# Directory containing extracted archive of https://hvsc.c64.org/downloads
@@ -385,10 +385,10 @@ Usage: vgm2flac [options]
   --no_fade_out           Force no fade out.
   --no_normalization      Force no peak db normalization.
   --no_remove_duplicate   Force no remove duplicate files.
+  -o|--output <dirname>   Force output directory name.
+  --only_wav              Force output wav files only.
   --remove_silence        Remove silence at start & end of track (85db).
   --remove_silence_more   Remove silence agressive mode (58db).
-  --only_wav              Force output wav files only.
-  --pal                   Force the tempo reduction to simulate 50hz.
   -v|--verbose            Verbose mode
 
 EOF
@@ -1368,7 +1368,7 @@ fi
 }
 
 # Convert loop
-loop_adplay() {				# PC adlib
+loop_adplay() {				# PC AdLib
 if (( "${#lst_adplay[@]}" )); then
 	# Bin check & set
 	adplay_bin
@@ -1377,11 +1377,11 @@ if (( "${#lst_adplay[@]}" )); then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "adplay" "PC adlib"
+	display_loop_title "adplay" "PC AdLib"
 
 	# Tag
 	tag_machine="PC"
-	tag_pc_sound_module="Adlib"
+	tag_pc_sound_module="AdLib"
 	tag_questions
 	tag_album
 
@@ -2126,63 +2126,109 @@ if (( "${#lst_sc68[@]}" )); then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "sc68" "Atari ST / Amiga"
+	display_loop_title "sc68" "Atari ST (YM2149)"
 
+	# Tag
+	tag_machine="Atari ST"
+
+	# .snd, .sndh loop
 	for sc68_files in "${lst_sc68[@]}"; do
-		# Tag
-		tag_sc68
-		tag_questions
-		tag_album
+		if [[ "${sc68_files##*.}" = "snd" ]] || [[ "${sc68_files##*.}" = "sndh" ]]; then
+			# Tag
+			tag_sc68
+			tag_questions
+			tag_album
 
-		# Get total track
-		total_sub_track=$(< "$vgm2flac_cache_tag" grep -i -a track: | sed 's/^.*: //' | tail -1)
+			# Get total track
+			total_sub_track=$(< "$vgm2flac_cache_tag" grep -i -a track: | sed 's/^.*: //' | tail -1)
 
-		# Extract WAV
-		display_convert_title "WAV"
-		for sub_track in $(seq -w 1 "$total_sub_track"); do
+			# Extract WAV
+			display_convert_title "WAV"
+			for sub_track in $(seq -w 1 "$total_sub_track"); do
+				# Filename contruction
+				track_name=$(basename "${sc68_files%.*}")
+				if [[ "$total_sub_track" -gt "1" ]]; then
+					final_file_name="$sub_track - $track_name"
+				else
+					final_file_name="$track_name"
+				fi
+				(
+				cmd_sc68
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+					wait -n
+				fi
+			done
+			wait
+
+			# Generate wav array
+			list_wav_files
+
+			# Flac loop
+			display_convert_title "FLAC"
+			for files in "${lst_wav[@]}"; do
+				# Tag
+				tag_song="[untitled]"
+				# Remove silence
+				wav_remove_silent
+				# Add fade out
+				wav_fade_out
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
+				# Flac conversion
+				(
+				wav2flac \
+				&& wav2wavpack \
+				&& wav2ape \
+				&& wav2opus
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+					wait -n
+				fi
+			done
+			wait
+		fi
+	done
+
+	# .sc68 loop
+	for sc68_files in "${lst_sc68[@]}"; do
+		if [[ "${sc68_files##*.}" = "sc68" ]]; then
+			# Tag
+			tag_sc68
+			tag_questions
+			tag_album
+
+			# Get total track
+			total_sub_track=$(< "$vgm2flac_cache_tag" grep -i -a track: | sed 's/^.*: //' | tail -1)
+
+			# Extract WAV
+			display_convert_title "WAV"
 			# Filename contruction
 			track_name=$(basename "${sc68_files%.*}")
-			if [[ "$total_sub_track" -gt "1" ]]; then
-				final_file_name="$sub_track - $track_name"
-			else
-				final_file_name="$track_name"
-			fi
-			(
+			final_file_name="$track_name"
 			cmd_sc68
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
-		done
-		wait
 
-		# Generate wav array
-		list_wav_files
+			# wav Filename
+			files="${sc68_files%.*}.wav"
 
-		# Flac loop
-		display_convert_title "FLAC"
-		for files in "${lst_wav[@]}"; do
-			# Tag
-			tag_song="[untitled]"
-			# Remove silence
-			wav_remove_silent
-			# Add fade out
-			wav_fade_out
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
-			# Flac conversion
-			(
-			wav2flac \
-			&& wav2wavpack \
-			&& wav2ape \
-			&& wav2opus
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
+			# Flac loop
+			if [[ -f "${files}" ]]; then
+			display_convert_title "FLAC"
+				# Remove silence
+				wav_remove_silent
+				# Add fade out
+				wav_fade_out
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
+				# Flac conversion
+				wav2flac \
+				&& wav2wavpack \
+				&& wav2ape \
+				&& wav2opus
 			fi
-		done
-		wait
+		fi
 	done
+
 fi
 }
 loop_sidplayfp_sid() {		# Commodore 64/128
@@ -3084,34 +3130,43 @@ fi
 }
 tag_questions() {
 if ! [[ "$only_wav" = "1" ]]; then
+
+	# Game
 	if test -z "$tag_game"; then
-		read -r -e -p " Enter the game title: " tag_game
+		read -r -e -p " Enter the game or album title: " tag_game
 		display_remove_previous_line
 		if test -z "$tag_game"; then
-			tag_game="unknown"
+			tag_game="Unknown"
 		fi
 	fi
+
+	# Artist
 	if test -z "$tag_artist"; then
 		read -r -e -p " Enter the audio artist: " tag_artist
 		display_remove_previous_line
 		if test -z "$tag_artist"; then
-			tag_artist="unknown"
+			tag_artist="Unknown"
 		fi
 	fi
-	if test -z "$tag_date"; then
+
+	# Date
+	if [[ -z "$tag_date" ]] && [[ "$tag_q_date_pass" != "1" ]]; then
 		read -r -e -p " Enter the release date: " tag_date
 		display_remove_previous_line
-		if test -z "$tag_date"; then
+		tag_q_date_pass="1"
+		if [[ -z "$tag_date" ]]; then
 			tag_date="NULL"
-			tag_date_formated=""
-		else
+			unset tag_date_formated
+		elif [[ -z "$tag_date" ]] && [[ "$tag_date" != "NULL" ]]; then
 			tag_date_formated="$tag_date"
 		fi
-	elif [[ "$tag_date" = "NULL" ]]; then
-		tag_date_formated=""
-	else
-		tag_date_formated="$tag_date"
+	#elif [[ "$tag_date" = "NULL" ]]; then
+		#unset tag_date_formated
+	#elif [[ -n "$tag_date" ]] && [[ "$tag_date" != "NULL" ]]; then
+		#tag_date_formated="$tag_date"
 	fi
+
+	# Machine
 	if test -z "$tag_machine"; then
 		read -r -e -p " Enter the release platform: " tag_machine
 		display_remove_previous_line
@@ -3230,6 +3285,10 @@ else
 	xxs_fading_msecond=$((default_wav_fade_out*1000))
 fi
 }
+#tag_adlib() {				# PC AdLib
+## Tag extract
+#timeout 0.01 "$adplay_bin" "$file" --output=null &> "$vgm2flac_cache_tag"
+#}
 tag_ay() {					# Amstrad CPC, ZX Spectrum
 # Tag extract
 if [[ "$total_sub_track" = "0" ]] || [[ -z "$total_sub_track" ]]; then
@@ -3351,13 +3410,24 @@ if [[ "$tag_date" = "<?>" ]]; then
 	unset tag_date
 fi
 }
-tag_sc68() {				# Atari ST / Amiga
+tag_sc68() {				# Atari ST
 # Tag extract
 "$info68_bin" -A "$sc68_files" > "$vgm2flac_cache_tag"
-if [[ -z "$tag_game" && -z "$tag_artist" && -z "$tag_machine" ]]; then
-	tag_game=$(< "$vgm2flac_cache_tag" grep -i -a title: | sed 's/^.*: //' | head -1)
+if [[ "${sc68_files##*.}" = "sc68" ]]; then
+	tag_song=$(< "$vgm2flac_cache_tag" grep -i -a title: | sed 's/^.*: //' | head -1)
+	if [[ "$tag_song" = "N/A" ]]; then
+		unset tag_song
+	fi
 	tag_artist=$(< "$vgm2flac_cache_tag" grep -i -a artist: | sed 's/^.*: //' | head -1)
-	tag_date=$(< "$vgm2flac_cache_tag" grep -i -a year: | sed 's/^.*: //' | head -1)
+	if [[ -z "$tag_artist" ]]; then
+		tag_artist="Unknown"
+	elif [ "$tag_artist" = "N/A" ]; then
+		tag_artist="Unknown"
+	fi
+	if [[ -z "$tag_date" ]]; then
+		tag_date=$(< "$vgm2flac_cache_tag" grep -i -a year: | sed 's/^.*: //' | head -1)
+	fi
+	tag_game=$(basename "${sc68_files%.*}")
 fi
 }
 tag_sid() {					# Commodore 64/128
@@ -3530,6 +3600,11 @@ local wavpack_target_directory
 local ape_target_directory
 local opus_target_directory
 
+# If output dir set
+if [[ -n "$force_output_dir" ]]; then
+ tag_game="$force_output_dir"
+fi
+
 # Get tag, mkdir & mv
 # If number of wav > 0
 if (( "${#lst_wav[@]}" )); then
@@ -3558,7 +3633,7 @@ if (( "${#lst_wav[@]}" )); then
 		fi
 		# Raw name of target directory
 		target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_pc_sound_module_dir" \
-							| sed 's/ *$//')
+							| tr -s ' ' )
 	else
 		# Raw name of target directory
 		target_directory="NO_TAG"
@@ -3675,9 +3750,9 @@ mac_bin
 opusenc_bin
 
 # Arguments variables
-vgm2flac_arg=( "$@" )
-for key in "${vgm2flac_arg[@]}"; do
-	case "$key" in
+while [[ $# -gt 0 ]]; do
+	vgm2flac_args="$1"
+	case "$vgm2flac_args" in
 	--add_ape)																# Set Monkey's Audio compress too
 		if [[ -n "$mac_bin" ]]; then
 			ape_compress="1"
@@ -3721,15 +3796,19 @@ for key in "${vgm2flac_arg[@]}"; do
 	--no_remove_duplicate)
 		no_remove_duplicate="1"												# Set force no remove duplicate files
 	;;
+	-o|--output)															# Set force output dir
+		shift
+		force_output_dir="$1"
+	;;
+	--only_wav)
+		only_wav="1"														# Set force wav temp. files only
+	;;
 	--remove_silence)
 		remove_silence="1"													# Set force no remove silence
 	;;
 	--remove_silence_more)													# Set agressive mode for remove silent 85db->58db
 		remove_silence="1"
 		agressive_silence="1"
-	;;
-	--only_wav)
-		only_wav="1"														# Set force wav temp. files only
 	;;
 	-v|--verbose)
 		verbose="1"
@@ -3743,6 +3822,7 @@ for key in "${vgm2flac_arg[@]}"; do
 		exit
 	;;
 	esac
+	shift
 done
 
 # Files source check & set

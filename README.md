@@ -46,18 +46,22 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* remove duplicate files (diff)
 
 ### Arguments options
-* --add_ape: Compress also in Monkey's Audio.
-* --add_opus: Compress also in opus at 256k.
-* --add_wavpack: Compress also in WAVPACK.
-* -h|--help: Display this help.
-* --force_fade_out: Force default fade out.
-* --force_stereo: Force stereo output.
-* --no_fade_out: Force no fade out.
-* --no_normalization: Force no peak db normalization.
-* --remove_silence: Remove silence at start & end of track (85db).
-* --remove_silence_more: Remove silence agressive mode (58db).
-* --only_wav: Force output wav files only.
-* -v|--verbose: Verbose mode
+```
+  --add_ape               Compress also in Monkey's Audio.
+  --add_opus              Compress also in Opus at 256k.
+  --add_wavpack           Compress also in WAVPACK.
+  -h|--help               Display this help.
+  --force_fade_out        Force default fade out.
+  --force_stereo          Force stereo output.
+  --no_fade_out           Force no fade out.
+  --no_normalization      Force no peak db normalization.
+  --no_remove_duplicate   Force no remove duplicate files.
+  -o|--output <dirname>   Force output directory name.
+  --only_wav              Force output wav files only.
+  --remove_silence        Remove silence at start & end of track (85db).
+  --remove_silence_more   Remove silence agressive mode (58db).
+  -v|--verbose            Verbose mode
+```
 
 ## Files tested
 * 3DO : aif, aifc, str
@@ -147,6 +151,7 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * NSFe spec: https://wiki.nesdev.org/w/index.php/NSFe
 * SGC spec: https://ocremix.org/info/SGC_Format_Specification
 * SAP spec: https://asap.sourceforge.net/sap-format.html
+* SC68 spec: http://sc68.atari.org/developers_fileformat.html
 * SNSF spec: https://snsf.caitsith2.net/snsf%20spec.txt
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
