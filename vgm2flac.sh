@@ -22,7 +22,7 @@ nprocessor=$(grep -cE 'processor' /proc/cpuinfo)											# Set number of proce
 ## WAV
 default_wav_bit_depth="pcm_s16le"															# Wav bit depth must be pcm_s16le, pcm_s24le or pcm_s32le
 default_wav_fade_out="6"																	# Fade out value in second, apply to all file during more than 10s
-default_peakdb_norm="1"																		# Peak db normalization option, this value is written as positive but is used in negative, e.g. 4 = -4
+default_peakdb_norm="1"																		# Peak db normalization option, this value is written as positive but is used as negative, e.g. 4 = -4
 default_silent_db_cut="85"																	# Silence db value for cut file
 default_agressive_silent_db_cut="58"														# Agressive silence db value for cut file
 ## FLAC with ffmpeg
@@ -66,6 +66,7 @@ ext_bchunk_iso="bin|img|iso"
 ext_ffmpeg_gbs="gbs"
 ext_ffmpeg_hes="hes"
 ext_ffmpeg_spc="spc"
+ext_mdx2wav="mdx"
 ext_mednafen_snsf="minisnsf|snsf"
 ext_midi="mid"
 ext_nsfplay_nsf="nsf"
@@ -89,6 +90,7 @@ ext_all_raw="${ext_input_exclude}| \
 			 ${ext_bchunk_iso}| \
 			 ${ext_ffmpeg_gbs}| \
 			 ${ext_ffmpeg_spc}| \
+			 ${ext_mdx2wav}| \
 			 ${ext_mednafen_snsf}| \
 			 ${ext_midi}| \
 			 ${ext_nsfplay_nsf}| \
@@ -332,6 +334,20 @@ if [[ -n "$hvsc_directory" ]]; then
 		echo_pre_space "Read documentation."
 		exit
 	fi
+fi
+}
+mdx2wav_bin() {
+local bin_name
+local system_bin_location
+
+bin_name="simple_mdx2wav"
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	mdx2wav_bin="$system_bin_location"
+else
+	echo "Break, $bin_name is not installed"
+	exit
 fi
 }
 vgm2wav_bin() {
@@ -597,7 +613,7 @@ else
 	if (( "${#lst_all_files_pass[@]}" )); then
 		echo_pre_space "${#lst_all_files_pass[@]} files compatible"
 	else
-		echo_pre_space "No compatible files"
+		echo_pre_space "No extra compatible files"
 	fi
 
 fi
@@ -729,6 +745,7 @@ mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_gbs')$' 2>/dev/null | sort -V)
 mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort -V)
 mapfile -t lst_ffmpeg_spc < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_spc')$' 2>/dev/null | sort -V)
+mapfile -t lst_mdx2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mdx2wav')$' 2>/dev/null | sort -V)
 mapfile -t lst_mednafen_snsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mednafen_snsf')$' 2>/dev/null | sort -V)
 mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort -V)
 mapfile -t lst_m3u < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_playlist')$' 2>/dev/null | sort -V)
@@ -806,6 +823,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
+				"${lst_mdx2wav[@]}" \
 				"${lst_mednafen_snsf[@]}" \
 				"${lst_nsfplay_nsf[@]}" \
 				"${lst_nsfplay_nsfe[@]}" \
@@ -1161,6 +1179,15 @@ if [[ "$verbose" = "1" ]]; then
 	"$fluidsynth_bin" -v -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" "$files"
 else
 	"$fluidsynth_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" &>/dev/null \
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
+fi
+}
+cmd_mdx2wav() {
+if [[ "$verbose" = "1" ]]; then
+	"$mdx2wav_bin" -i "$files" -o "${files%.*}".wav
+else
+	"$mdx2wav_bin" -i "$files" -o "${files%.*}".wav &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
 		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
@@ -1861,6 +1888,63 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 
 fi
 }
+loop_mdx2wav() {			# Sharp X68000
+if (( "${#lst_mdx2wav[@]}" )); then
+	# Bin check & set
+	mdx2wav_bin
+
+	# Reset WAV array
+	lst_wav=()
+
+	# Tag
+	tag_machine="Sharp X68000"
+	tag_questions
+	tag_album
+
+
+	# User info - Title
+	display_loop_title "mdx2wav" "Sharp X68000"
+
+	# Wav loop
+	display_convert_title "WAV"
+	for files in "${lst_mdx2wav[@]}"; do
+		(
+		cmd_mdx2wav
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Generate wav array
+	list_wav_files
+
+	# Flac loop
+	display_convert_title "FLAC"
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song
+		# Remove silence
+		wav_remove_silent
+		# Fade out
+		wav_fade_out
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
+		# Flac conversion
+		(
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape \
+		&& wav2opus
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+fi
+}
 loop_mednafen_snsf() {		# SNES SNSF
 if (( "${#lst_mednafen_snsf[@]}" )); then
 	# Bin check & set
@@ -2058,7 +2142,7 @@ if (( "${#lst_midi[@]}" )); then
 	unset tag_pc_sound_module
 fi
 }
-loop_nsfplay_nsf() {		# NES
+loop_nsfplay_nsf() {		# NES nsf
 if (( "${#lst_nsfplay_nsf[@]}" )); then
 	# Bin check & set
 	nsfplay_bin
@@ -2133,7 +2217,7 @@ if (( "${#lst_nsfplay_nsf[@]}" )); then
 	done
 fi
 }
-loop_nsfplay_nsfe() {		# NES
+loop_nsfplay_nsfe() {		# NES nsfe
 if (( "${#lst_nsfplay_nsfe[@]}" )); then
 	# Bin check & set
 	nsfplay_bin
@@ -3956,6 +4040,7 @@ loop_bchunk
 loop_ffmpeg_gbs
 loop_ffmpeg_hes
 loop_ffmpeg_spc
+loop_mdx2wav
 loop_mednafen_snsf
 loop_midi
 loop_nsfplay_nsf

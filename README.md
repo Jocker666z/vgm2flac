@@ -21,6 +21,7 @@ You will be able to run vgm2flac even if some dependencies are missing. The scri
 	* original source: https://sourceforge.net/projects/sc68/
 	* prefered version: https://github.com/Jocker666z/sc68
 * sidplayfp: https://github.com/libsidplayfp/sidplayfp
+* portable mdx: https://github.com/yosshin4004/portable_mdx
 * vgm2wav: https://github.com/ValleyBell/libvgm
 * vgmstream-cli: https://github.com/losnoco/vgmstream
 * vgmtag: https://github.com/vgmrips/vgmtools
@@ -65,9 +66,9 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 ## Files tested
 * 3DO : aif, aifc, str
-* Amiga: 8svx, aam, ahx, bd, bp, core, cust, dw, fc13, fc14, gmc, mcr, mdat, mod, np3, rjp, sa, sb, sc68, scumm, sfx, xm
+* Amiga: 8svx, aam, ahx, bd, bp, core, cust, dw, fc13, fc14, gmc, mcr, mdat, mod, np3, rjp, sa, sb, scumm, sfx, xm
 * Amstrad CPC: ay, ym
-* Atari ST: snd, sndh, ym
+* Atari ST: sc68, snd, sndh, ym
 * Atari XL/XE: sap
 * Philips CD-i: xa
 * Commodore C64/128: sid
@@ -86,19 +87,19 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Nintendo SNES: spc, minisnsf, snsf
 * Nintendo Switch: acb/awb, adx, bgm, bfstm, bfwav, bwav, hca, kno, ktss, lopus, wem
 * Nintendo Wii: ads, adx, brstm, lwav, mus
+* Sharp X68000: mdx
 * Sharp X1, Turbo, Turbo Z: s98
 * Sega Game Gear: vgm, vgz
 * Sega Mark III/Master System: vgm, vgz
 * Sega Mega Drive/Genesis: vgm, vgz
 * Sega Saturn: minissf, ssf
 * Sega Dreamcast: adx, dsf, spsd, str
-* NEC PC-Engine: s98
 * Sony Playstation: psf, minipsf, pona, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, sps, svag, vag, vpk, sng, vgs
-* Sony Playstation 3: aa3, adx, at3, cps, genh, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem
+* Sony Playstation 3: aa3, adx, at3, cps, genh, hca, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem
 * Sony Playstation 4: at9, sab, wem
+* Sony Playstation Vita: at9, sab
 * Sony PSP: at3, txtp
-* Playstation Vita: at9, sab
 * Panasonic 3DO: aifc, pona, str
 * Philips CD-i: grn
 * PC: apc, bik, bnk, fsb, his, imc, logg, mab, mid, mod, sab, sdb, snds, smk, txtp, v2m, wem, xwb
@@ -144,10 +145,17 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * Various VGM: https://vgmrips.net/
 
 ## Holy reading
+* https://wiki.archlinux.org/index.php/FluidSynth
+* http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
+* http://www.vgmpf.com/
+* https://vgmrips.net/wiki/Main_Page
+
+## Files specification
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
 * GSF spec: https://www.caitsith2.com/gsf/gsf%20spec.txt
 * HES spec: http://www.purose.net/befis/download/nezplug/hesspec.txt
 * KSS spec: https://ocremix.org/info/KSS_Format_Specification
+* MDX spec: https://github.com/vampirefrog/mdxtools/blob/master/docs/MDX.md
 * NSF spec: https://wiki.nesdev.org/w/index.php/NSF
 * NSFe spec: https://wiki.nesdev.org/w/index.php/NSFe
 * SGC spec: https://ocremix.org/info/SGC_Format_Specification
@@ -156,9 +164,6 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * SNSF spec: https://snsf.caitsith2.net/snsf%20spec.txt
 * SPC spec: https://ocremix.org/info/SPC_Format_Specification
 * PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
-* https://wiki.archlinux.org/index.php/FluidSynth
-* http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
-* http://www.vgmpf.com/
 
 ## Dependencies installation:
 ### asap
@@ -203,6 +208,14 @@ git clone https://github.com/Jocker666z/sc68 && cd sc68
 tools/svn-bootstrap.sh && ./configure LDFLAGS="-static"
 make -j"$(nproc)"
 su -c "make install" -m "root"
+```
+
+### Portable mdx
+Build dependencies: `git build-essential`
+```
+git clone https://github.com/yosshin4004/portable_mdx
+bash -c 'cd portable_mdx/examples/simple_mdx2wav && bash build.sh'
+cp portable_mdx/examples/simple_mdx2wav/simple_mdx2wav /home/$USER/.local/bin/
 ```
 
 ### vgm_tag
