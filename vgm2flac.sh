@@ -2841,7 +2841,16 @@ if (( "${#lst_vgmstream[@]}" )); then
 	display_loop_title "vgmstream" "Various machines"
 
 	# Tag
-	tag_questions
+	# No prompt message during extraction if several loop launched
+	if [[ "${#lst_all_files_pass[@]}" = "${#lst_vgmstream[@]}" ]]; then
+		tag_questions
+	else
+		tag_game="Unknown"
+		tag_artist="Unknown"
+		tag_date="NULL"
+		tag_machine="NULL"
+		unset tag_sound_module
+	fi
 	tag_album
 
 	display_convert_title "WAV"
