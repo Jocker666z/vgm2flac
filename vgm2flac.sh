@@ -77,10 +77,9 @@ ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_zxtune_ay="ay"
-ext_zxtune_hvl="hvl"
+ext_zxtune_music_tracker="hlv|v2m"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
-ext_zxtune_v2m="v2m"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 # Extensions exclude
 ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|txth|wav|wv"
@@ -102,10 +101,9 @@ ext_all_raw="${ext_input_exclude}| \
 			 ${ext_playlist}| \
 			 ${ext_vgm2wav}| \
 			 ${ext_zxtune_ay}| \
-			 ${ext_zxtune_hvl}| \
+			 ${ext_zxtune_music_tracker}| \
 			 ${ext_zxtune_xsf}| \
-			 ${ext_zxtune_ym}| \
-			 ${ext_zxtune_v2m}| \
+			 ${ext_zxtune_ym}| \\
 			 ${ext_zxtune_zx_spectrum}"
 ext_vgms_input_exclude="${ext_all_raw//[[:blank:]]/}"
 
@@ -619,8 +617,6 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "SNES SNSF" "${lst_mednafen_snsf[@]}"
 	fetched_stat "PC AdLib" "${lst_adplay[@]}"
 	fetched_stat "PC Engine, TurboGrafx-16" "${lst_ffmpeg_hes[@]}"
-	fetched_stat "PC Farbrausch V2M" "${lst_zxtune_v2m[@]}"
-	fetched_stat "PC Hively Tracker" "${lst_zxtune_hvl[@]}"
 	fetched_stat "PC midi" "${lst_midi[@]}"
 	fetched_stat "Various machines" "${lst_vgmstream[@]}"
 	fetched_stat "Various machines ISO" "${lst_bchunk_iso[@]}"
@@ -628,6 +624,7 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "Various machines SF" "${lst_zxtune_xsf[@]}"
 	fetched_stat "Various machines VGM" "${lst_vgm2wav[@]}"
 	fetched_stat "ZX Spectrum" "${lst_zxtune_zx_spectrum[@]}"
+	fetched_stat "ZXTune Music Tracker" "${lst_zxtune_music_tracker[@]}"
 
 else
 	display_separator
@@ -777,10 +774,9 @@ mapfile -t lst_sidplayfp_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posi
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort -V)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort -V)
-mapfile -t lst_zxtune_hvl < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_hvl')$' 2>/dev/null | sort -V)
+mapfile -t lst_zxtune_music_tracker < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_music_tracker')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort -V)
-mapfile -t lst_zxtune_v2m < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_v2m')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort -V)
 
 # bin/cue clean
@@ -854,10 +850,9 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_vgm2wav[@]}" \
 				"${lst_vgmstream[@]}" \
 				"${lst_zxtune_ay[@]}" \
-				"${lst_zxtune_hvl[@]}" \
+				"${lst_zxtune_music_tracker[@]}" \
 				"${lst_zxtune_xsf[@]}" \
 				"${lst_zxtune_ym[@]}" \
-				"${lst_zxtune_v2m[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" \
 				"${lst_uade[@]}" )
 }
@@ -1520,7 +1515,7 @@ fi
 }
 
 # Convert loop
-loop_adplay() {				# PC AdLib
+loop_adplay() {					# PC AdLib
 if (( "${#lst_adplay[@]}" )); then
 	# Bin check & set
 	adplay_bin
@@ -1533,7 +1528,7 @@ if (( "${#lst_adplay[@]}" )); then
 
 	# Tag
 	tag_machine="PC"
-	tag_sound_module="AdLib"
+	tag_tracker_music="AdLib"
 	tag_questions
 
 	# Wav loop
@@ -1564,10 +1559,10 @@ if (( "${#lst_adplay[@]}" )); then
 	wait
 
 	# Reset
-	unset tag_sound_module
+	unset tag_tracker_music
 fi
 }
-loop_asapconv() {			# Atari XL/XE
+loop_asapconv() {				# Atari XL/XE
 if (( "${#lst_asapconv[@]}" )); then
 	# Bin check & set
 	asapconv_bin
@@ -1627,7 +1622,7 @@ if (( "${#lst_asapconv[@]}" )); then
 	wait
 fi
 }
-loop_bchunk() {				# Various machines CDDA
+loop_bchunk() {					# Various machines CDDA
 if (( "${#lst_bchunk_iso[@]}" )); then
 	if test -n "$bchunk"; then				# If bchunk="1" in list_source_files()
 
@@ -1685,7 +1680,7 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 	fi
 fi
 }
-loop_ffmpeg_gbs() {			# GB/GBC
+loop_ffmpeg_gbs() {				# GB/GBC
 if (( "${#lst_ffmpeg_gbs[@]}" )); then
 
 	# Local variables
@@ -1778,7 +1773,7 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 	done
 fi
 }
-loop_ffmpeg_hes() {			# PC-Engine (HuC6280)
+loop_ffmpeg_hes() {				# PC-Engine (HuC6280)
 if (( "${#lst_ffmpeg_hes[@]}" )); then
 
 	# Local variable
@@ -1850,7 +1845,7 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 	done
 fi
 }
-loop_ffmpeg_spc() {			# SNES SPC
+loop_ffmpeg_spc() {				# SNES SPC
 if (( "${#lst_ffmpeg_spc[@]}" )); then
 	# Local variable
 	local spc_fading_second
@@ -1911,7 +1906,7 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 
 fi
 }
-loop_mdx2wav() {			# Sharp X68000
+loop_mdx2wav() {				# Sharp X68000
 if (( "${#lst_mdx2wav[@]}" )); then
 	# Bin check & set
 	mdx2wav_bin
@@ -1968,7 +1963,7 @@ if (( "${#lst_mdx2wav[@]}" )); then
 	wait
 fi
 }
-loop_mednafen_snsf() {		# SNES SNSF
+loop_mednafen_snsf() {			# SNES SNSF
 if (( "${#lst_mednafen_snsf[@]}" )); then
 	# Bin check & set
 	mednafen_bin
@@ -2043,7 +2038,7 @@ if (( "${#lst_mednafen_snsf[@]}" )); then
 	unset "$remove_silence"
 fi
 }
-loop_midi() {				# midi
+loop_midi() {					# midi
 if (( "${#lst_midi[@]}" )); then
 
 	# Local variables
@@ -2069,17 +2064,17 @@ if (( "${#lst_midi[@]}" )); then
 		"0")
 			fluidsynth_bin
 			midi_bin="fluidsynth"
-			tag_sound_module="Soundfont${current_soundfount}"
+			tag_tracker_music="Soundfont${current_soundfount}"
 		;;
 		"1")
 			munt_bin
 			midi_bin="munt"
-			tag_sound_module="Roland MT-32"
+			tag_tracker_music="Roland MT-32"
 		;;
 		*)
 			fluidsynth_bin
 			midi_bin="fluidsynth"
-			tag_sound_module="Soundfont${current_soundfount}"
+			tag_tracker_music="Soundfont${current_soundfount}"
 			display_remove_previous_line
 			echo " -> 0"
 		;;
@@ -2162,10 +2157,10 @@ if (( "${#lst_midi[@]}" )); then
 	wait
 
 	# Reset
-	unset tag_sound_module
+	unset tag_tracker_music
 fi
 }
-loop_nsfplay_nsf() {		# NES nsf
+loop_nsfplay_nsf() {			# NES nsf
 if (( "${#lst_nsfplay_nsf[@]}" )); then
 	# Bin check & set
 	nsfplay_bin
@@ -2240,7 +2235,7 @@ if (( "${#lst_nsfplay_nsf[@]}" )); then
 	done
 fi
 }
-loop_nsfplay_nsfe() {		# NES nsfe
+loop_nsfplay_nsfe() {			# NES nsfe
 if (( "${#lst_nsfplay_nsfe[@]}" )); then
 	# Bin check & set
 	nsfplay_bin
@@ -2313,7 +2308,7 @@ if (( "${#lst_nsfplay_nsfe[@]}" )); then
 	done
 fi
 }
-loop_sc68() {				# Atari ST (YM2149)
+loop_sc68() {					# Atari ST (YM2149)
 if (( "${#lst_sc68[@]}" )); then
 	# Bin check & set
 	info68_bin
@@ -2431,7 +2426,7 @@ if (( "${#lst_sc68[@]}" )); then
 
 fi
 }
-loop_sidplayfp_sid() {		# Commodore 64/128
+loop_sidplayfp_sid() {			# Commodore 64/128
 if (( "${#lst_sidplayfp_sid[@]}" )); then
 	# Bin check & set
 	sidplayfp_bin
@@ -2492,7 +2487,7 @@ if (( "${#lst_sidplayfp_sid[@]}" )); then
 
 fi
 }
-loop_sox() {				# Various machines
+loop_sox() {					# Various machines
 if (( "${#lst_sox[@]}" )); then
 
 	# Local variables
@@ -2655,7 +2650,7 @@ if (( "${#lst_sox[@]}" )); then
 	fi
 fi
 }
-loop_uade() {				# Amiga
+loop_uade() {					# Amiga
 if (( "${#lst_uade[@]}" )); then
 	# Local variables
 	local total_track
@@ -2666,13 +2661,15 @@ if (( "${#lst_uade[@]}" )); then
 	# Reset WAV array
 	lst_wav=()
 
+	# Tag
+	tag_machine="Amiga"
+
 	# User info - Title
 	display_loop_title "uade" "Amiga"
 
 	display_convert_title "WAV"
 	for files in "${lst_uade[@]}"; do
 		# Tag
-		tag_machine="Amiga"
 		tag_questions
 		tag_album
 
@@ -2759,7 +2756,7 @@ if (( "${#lst_uade[@]}" )); then
 	wait
 fi
 }
-loop_vgm2wav() {			# Various machines
+loop_vgm2wav() {				# Various machines
 if (( "${#lst_vgm2wav[@]}" )); then
 	# Bin check & set
 	vgm2wav_bin
@@ -2829,7 +2826,7 @@ if (( "${#lst_vgm2wav[@]}" )); then
 	wait
 fi
 }
-loop_vgmstream() {			# Various machines
+loop_vgmstream() {				# Various machines
 if (( "${#lst_vgmstream[@]}" )); then
 	# Local variables
 	local total_sub_track
@@ -2849,7 +2846,7 @@ if (( "${#lst_vgmstream[@]}" )); then
 		tag_artist="Unknown"
 		tag_date="NULL"
 		tag_machine="NULL"
-		unset tag_sound_module
+		unset tag_tracker_music
 	fi
 	tag_album
 
@@ -2916,7 +2913,7 @@ if (( "${#lst_vgmstream[@]}" )); then
 
 fi
 }
-loop_zxtune_ay() {			# Amstrad CPC, ZX Spectrum
+loop_zxtune_ay() {				# Amstrad CPC, ZX Spectrum
 if (( "${#lst_zxtune_ay[@]}" )); then
 	# Bin check & set
 	zxtune123_bin
@@ -3016,74 +3013,7 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 	wait
 fi
 }
-loop_zxtune_hvl() {			# PC Hively Tracker
-if (( "${#lst_zxtune_hvl[@]}" )); then
-	# Bin check & set
-	zxtune123_bin
-
-	# Local variables
-	local file_name
-
-	# Reset WAV array
-	lst_wav=()
-
-	# User info - Title
-	display_loop_title "zxtune" "PC Hively Tracker"
-
-	# Tag
-	tag_machine="PC"
-	tag_sound_module="Hively Tracker"
-	tag_questions
-	tag_album
-	
-	# Wav loop
-	display_convert_title "WAV"
-	for files in "${lst_zxtune_hvl[@]}"; do
-		# Filename contruction
-		file_name=$(basename "${files%.*}")
-		file_name_random=$(( RANDOM % 10000 ))
-		# Extract WAV
-		(
-		cmd_zxtune_various
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
-	done
-	wait
-
-	# Generate wav array
-	list_wav_files
-
-	# Flac loop
-	display_convert_title "FLAC"
-	for files in "${lst_wav[@]}"; do
-		# Tag
-		tag_song
-		# Remove silence
-		wav_remove_silent
-		# Add fade out
-		wav_fade_out
-		# Peak normalisation, false stereo detection 
-		wav_normalization_channel_test
-		# Flac conversion
-		(
-		wav2flac \
-		&& wav2wavpack \
-		&& wav2ape \
-		&& wav2opus
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
-	done
-	wait
-
-	# Reset
-	unset tag_sound_module
-fi
-}
-loop_zxtune_xfs() {			# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
+loop_zxtune_xfs() {				# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
 if (( "${#lst_zxtune_xsf[@]}" )); then
 	# Bin check & set
 	zxtune123_bin
@@ -3163,7 +3093,7 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 	wait
 fi
 }
-loop_zxtune_ym() {			# Amstrad CPC, Atari ST (YM2149)
+loop_zxtune_ym() {				# Amstrad CPC, Atari ST (YM2149)
 if (( "${#lst_zxtune_ym[@]}" )); then
 	# Bin check & set
 	zxtune123_bin
@@ -3225,8 +3155,8 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	wait
 fi
 }
-loop_zxtune_v2m() {			# PC Farbrausch V2M
-if (( "${#lst_zxtune_v2m[@]}" )); then
+loop_zxtune_music_tracker() {	# ZXTune Tracker music
+if (( "${#lst_zxtune_music_tracker[@]}" )); then
 	# Bin check & set
 	zxtune123_bin
 
@@ -3237,20 +3167,23 @@ if (( "${#lst_zxtune_v2m[@]}" )); then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "zxtune" "PC Farbrausch V2M"
+	display_loop_title "zxtune" "Tracker Music"
 
 	# Tag
-	tag_machine="PC"
-	tag_sound_module="Farbrausch V2M"
+	tag_machine="Tracker"
 	tag_questions
-	tag_album
-	
+
+
 	# Wav loop
 	display_convert_title "WAV"
-	for files in "${lst_zxtune_v2m[@]}"; do
+	for files in "${lst_zxtune_music_tracker[@]}"; do
 		# Filename contruction
 		file_name=$(basename "${files%.*}")
 		file_name_random=$(( RANDOM % 10000 ))
+
+		# Record output name
+		#lst_wav+=( "${file_name}".wav )
+
 		# Extract WAV
 		(
 		cmd_zxtune_various
@@ -3261,14 +3194,17 @@ if (( "${#lst_zxtune_v2m[@]}" )); then
 	done
 	wait
 
-	# Generate wav array
-	list_wav_files
-
 	# Flac loop
 	display_convert_title "FLAC"
-	for files in "${lst_wav[@]}"; do
+	for files_base in "${lst_zxtune_music_tracker[@]}"; do
+		# Filename contruction
+		files="$files_base"
 		# Tag
 		tag_song
+		tag_tracker_music
+		tag_album
+		# Filename contruction
+		files=$(basename "${files%.*}.wav")
 		# Remove silence
 		wav_remove_silent
 		# Add fade out
@@ -3289,10 +3225,10 @@ if (( "${#lst_zxtune_v2m[@]}" )); then
 	wait
 
 	# Reset
-	unset tag_sound_module
+	unset tag_tracker_music
 fi
 }
-loop_zxtune_zx_spectrum() {	# ZX Spectrum
+loop_zxtune_zx_spectrum() {		# ZX Spectrum
 if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 	# Bin check & set
 	zxtune123_bin
@@ -3464,18 +3400,18 @@ fi
 tag_album() {
 # Local variables
 local tag_machine_album_formated
-local tag_sound_module_album_formated
+local tag_tracker_music_album_formated
 
 # If tag exist add ()
 if [[ "$tag_machine" != "NULL" ]]; then
 	tag_machine_album_formated=$(echo "$tag_machine" | sed 's/\(.*\)/\(\1\)/')
 fi
-if [[ -n "$tag_sound_module" ]]; then
-	tag_sound_module_album_formated=$(echo "$tag_sound_module" | sed 's/\(.*\)/\(\1\)/')
+if [[ -n "$tag_tracker_music" ]]; then
+	tag_tracker_music_album_formated=$(echo "$tag_tracker_music" | sed 's/\(.*\)/\(\1\)/')
 fi
 
 # Album tag
-tag_album=$(echo "$tag_game $tag_machine_album_formated $tag_sound_module_album_formated" | sed 's/ *$//')
+tag_album=$(echo "$tag_game $tag_machine_album_formated $tag_tracker_music_album_formated" | sed 's/ *$//')
 }
 tag_song() {
 tag_song=$(basename "${files%.*}")
@@ -3496,7 +3432,7 @@ else																					# Hexadecimal track
 	| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
 fi
 }
-tag_xxs_loop() {			# Game Boy (gbs), NES (nsf), PC-Enginge (HES)
+tag_xxs_loop() {				# Game Boy (gbs), NES (nsf), PC-Enginge (HES)
 if (( "${#lst_m3u[@]}" )); then
 
 	# Local variables
@@ -3570,7 +3506,7 @@ else
 	xxs_fading_msecond=$((default_wav_fade_out*1000))
 fi
 }
-tag_adlib() {				# PC AdLib
+tag_adlib() {					# PC AdLib
 # Tag extract
 timeout 0.01 "$adplay_bin" "$files" --output=null &> "$vgm2flac_cache_tag"
 
@@ -3593,7 +3529,7 @@ if [[ -n "$force_output_dir" ]]; then
 	tag_game=$(basename "${files%.*}")
 fi
 }
-tag_ay() {					# Amstrad CPC, ZX Spectrum
+tag_ay() {						# Amstrad CPC, ZX Spectrum
 # Tag extract
 if [[ "$total_sub_track" = "0" ]] || [[ -z "$total_sub_track" ]]; then
 	ffprobe -hide_banner -loglevel panic -select_streams a -show_streams -show_format "$ay" > "$vgm2flac_cache_tag"
@@ -3615,7 +3551,7 @@ elif [ "$tag_artist" = "?" ]; then
 	tag_artist=""
 fi
 }
-tag_gbs_extract() {			# GB/GBC		- Tag extraction & m3u cleaning
+tag_gbs_extract() {				# GB/GBC		- Tag extraction & m3u cleaning
 # Tag extract by hexdump
 tag_game=$(xxd -ps -s 0x10 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 tag_artist=$(xxd -ps -s 0x30 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
@@ -3627,7 +3563,7 @@ if (( "${#lst_m3u[@]}" )); then
 	tag_m3u_clean_extract
 fi
 }
-tag_hes_extract() {			# PC Engine		- Tag extraction & m3u cleaning
+tag_hes_extract() {				# PC Engine		- Tag extraction & m3u cleaning
 # If m3u
 if (( "${#lst_m3u[@]}" )); then
 	m3u_file="${hes%.*}.m3u"
@@ -3637,7 +3573,7 @@ if (( "${#lst_m3u[@]}" )); then
 	tag_m3u_clean_extract
 fi
 }
-tag_nsf_extract() {			# NES			- Tag extraction & m3u cleaning
+tag_nsf_extract() {				# NES			- Tag extraction & m3u cleaning
 # Tag extract by hexdump
 tag_game=$(xxd -ps -s 0x00E -l 32 "$nsf" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 tag_artist=$(xxd -ps -s 0x02E -l 32 "$nsf" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
@@ -3648,7 +3584,7 @@ if (( "${#lst_m3u}" )); then
 	tag_m3u_clean_extract
 fi
 }
-tag_nsfe() {				# NES
+tag_nsfe() {					# NES
 # Local variable
 local nsfplay_sub_track
 
@@ -3676,7 +3612,7 @@ fi
 # Set max duration s to ms
 nsfplay_default_max_duration=$((xxs_default_max_duration*1000))
 }
-tag_s98() {					# NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1
+tag_s98() {						# NEC PC-6001, PC-6601, PC-8801,PC-9801, Sharp X1, Fujitsu FM-7 & FM TownsSharp X1
 # Tag extract
 strings -e S "$files" > "$vgm2flac_cache_tag"
 
@@ -3697,7 +3633,7 @@ if [[ -z "$tag_game" && -z "$tag_machine" && -z "$tag_date" ]]; then
 	tag_date=$(< "$vgm2flac_cache_tag" grep -i -a year | sed 's/^.*=//' | head -1)
 fi
 }
-tag_sap() {					# Atari XL/XE
+tag_sap() {						# Atari XL/XE
 # Tag extract
 strings -e S "$files" | head -15 > "$vgm2flac_cache_tag"
 
@@ -3714,7 +3650,7 @@ if [[ "$tag_date" = "<?>" ]]; then
 	unset tag_date
 fi
 }
-tag_sc68() {				# Atari ST
+tag_sc68() {					# Atari ST
 # Tag extract
 "$info68_bin" -A "$sc68_files" > "$vgm2flac_cache_tag"
 if [[ "${sc68_files##*.}" = "sc68" ]]; then
@@ -3735,7 +3671,7 @@ if [[ "${sc68_files##*.}" = "sc68" ]]; then
 	tag_game=$(basename "${sc68_files%.*}")
 fi
 }
-tag_sid() {					# Commodore 64/128
+tag_sid() {						# Commodore 64/128
 # Tag extract by hexdump
 if [[ -z "$tag_artist" ]]; then
 	tag_artist=$(xxd -ps -s 0x36 -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
@@ -3754,7 +3690,7 @@ if [[ -z "$tag_machine" ]]; then
 	tag_machine="C64"
 fi
 }
-tag_spc() {					# SNES
+tag_spc() {						# SNES
 # Local variable
 local id666_test
 
@@ -3799,7 +3735,14 @@ if [[ -z "$tag_machine" ]]; then
 	tag_machine="SNES"
 fi
 }
-tag_vgm() {					# Various machines
+tag_tracker_music() {			# Tracker music
+if [[ "${files##*.}" = "hlv" ]]; then
+	tag_tracker_music="Hively Tracker"
+elif [[ "${files##*.}" = "v2m" ]]; then
+	tag_tracker_music="Farbrausch V2M"
+fi
+}
+tag_vgm() {						# Various machines
 # Tag extract
 "$vgm_tag_bin" -ShowTag8 "$files" > "$vgm2flac_cache_tag"
 
@@ -3820,7 +3763,7 @@ if [[ -z "$tag_game" && -z "$tag_machine" && -z "$tag_date" ]]; then
 	tag_date=$(sed -n 's/Release:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
 fi
 }
-tag_xfs() {					# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
+tag_xfs() {						# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
 # Local variables
 local tag_length_format
 
@@ -3898,7 +3841,7 @@ mk_target_directory() {
 local tag_game_dir
 local tag_machine_dir
 local tag_date_dir
-local tag_sound_module_dir
+local tag_tracker_music_dir
 local target_directory
 local flac_target_directory
 local wavpack_target_directory
@@ -3930,14 +3873,14 @@ if (( "${#lst_wav[@]}" )); then
 							| sed s#:#-#g \
 							| sed 's/\(.*\)/\(\1\)/')
 		fi
-		if [[ -n "$tag_sound_module" ]]; then
-			tag_sound_module_dir=$(echo "$tag_sound_module" \
+		if [[ -n "$tag_tracker_music" ]]; then
+			tag_tracker_music_dir=$(echo "$tag_tracker_music" \
 									| sed s#/#-#g \
 									| sed s#:#-#g \
 									| sed 's/\(.*\)/\(\1\)/')
 		fi
 		# Raw name of target directory
-		target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_sound_module_dir" \
+		target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_tracker_music_dir" \
 							| tr -s ' ' )
 	else
 		# Raw name of target directory
@@ -4155,10 +4098,9 @@ loop_sidplayfp_sid
 loop_sox
 loop_vgm2wav
 loop_zxtune_ay
-loop_zxtune_hvl
+loop_zxtune_music_tracker
 loop_zxtune_xfs
 loop_zxtune_ym
-loop_zxtune_v2m
 loop_zxtune_zx_spectrum
 loop_uade
 loop_vgmstream
