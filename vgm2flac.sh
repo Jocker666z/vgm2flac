@@ -59,7 +59,7 @@ vgm2wav_loops="2"
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
-ext_adplay="adl|amd|d00|got|hsc|hsq|imf|ksm|laa|mdi|rad|rol|sdb|sqx|wlf"
+ext_adplay="adl|amd|d00|got|hsc|hsq|imf|ksm|laa|mdi|rad|rol|sdb|sqx|wlf|xms"
 ext_asapconv="sap"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
@@ -77,7 +77,7 @@ ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_zxtune_ay="ay"
-ext_zxtune_music_tracker="hlv|v2m"
+ext_zxtune_music_tracker="amf|hlv|v2m"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
@@ -3733,6 +3733,18 @@ tag_tracker_music() {			# Tracker music
 if [[ -f "${files%.*}.abk" ]] || [[ -f "${files%.*}.ABK" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="AMOS Music Bank"
+elif [[ -f "${files%.*}.amc" ]] || [[ -f "${files%.*}.AMC" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="A.M.Composer"
+elif [[ -f "${files%.*}.ahx" ]] || [[ -f "${files%.*}.AHX" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Abyss Highest eXperience"
+elif [[ -f "${files%.*}.ast" ]] || [[ -f "${files%.*}.AST" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Actionamics Sound Tool"
+elif [[ -f "${files%.*}.amf" ]] || [[ -f "${files%.*}.AMF" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Advanced Module Format"
 elif [[ -f "${files%.*}.hlv" ]] || [[ -f "${files%.*}.HLV" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Hively Tracker"
