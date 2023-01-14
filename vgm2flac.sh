@@ -2670,7 +2670,7 @@ if (( "${#lst_uade[@]}" )); then
 		# No sub_tracks
 		if [[ "$diff_track" = "0" ]]; then
 			sub_track="0"
-			file_name="$files"
+			file_name="${files%.*}"
 			# Wav extract
 			(
 			cmd_uade
