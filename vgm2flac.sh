@@ -520,13 +520,29 @@ extract_label="$1"
 if ! [[ "$only_wav" = "1" ]]; then
 	# Label construction
 	if [[ "$extract_label" = "FLAC" ]]; then
-		if [[ "$ape_compress" = "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
+		if [[ -n "$opus_compress" ]] \
+		&& [[ -n "$ape_compress" ]] \
+		&& [[ -n "$wavpack_compress" ]]; then
+			label="FLAC, APE, WAVPACK & OPUS"
+		elif [[ -z "$opus_compress" ]] \
+		  && [[ -n "$ape_compress" ]] \
+		  && [[ -n "$wavpack_compress" ]]; then
 			label="FLAC, APE & WAVPACK"
-		elif [[ "$ape_compress" = "0" ]] && [[ "$wavpack_compress" = "1" ]]; then
+		elif [[ -z "$opus_compress" ]] \
+		  && [[ -z "$ape_compress" ]] \
+		  && [[ -n "$wavpack_compress" ]]; then
 			label="FLAC & WAVPACK"
-		elif [[ "$ape_compress" = "1" ]] && [[ "$wavpack_compress" = "0" ]]; then
+		elif [[ -z "$opus_compress" ]] \
+		  && [[ -n "$ape_compress" ]] \
+		  && [[ -z "$wavpack_compress" ]]; then
 			label="FLAC & APE"
-		elif [[ "$ape_compress" = "0" ]] && [[ "$wavpack_compress" = "0" ]]; then
+		elif [[ -n "$opus_compress" ]] \
+		  && [[ -z "$ape_compress" ]] \
+		  && [[ -z "$wavpack_compress" ]]; then
+			label="FLAC & OPUS"
+		elif [[ -z "$opus_compress" ]] \
+		  && [[ -z "$ape_compress" ]] \
+		  && [[ -z "$wavpack_compress" ]]; then
 			label="FLAC"
 		fi
 		display_separator
@@ -1517,7 +1533,7 @@ if (( "${#lst_adplay[@]}" )); then
 
 	# Tag
 	tag_machine="PC"
-	tag_pc_sound_module="AdLib"
+	tag_sound_module="AdLib"
 	tag_questions
 
 	# Wav loop
@@ -1548,7 +1564,7 @@ if (( "${#lst_adplay[@]}" )); then
 	wait
 
 	# Reset
-	unset tag_pc_sound_module
+	unset tag_sound_module
 fi
 }
 loop_asapconv() {			# Atari XL/XE
@@ -2053,17 +2069,17 @@ if (( "${#lst_midi[@]}" )); then
 		"0")
 			fluidsynth_bin
 			midi_bin="fluidsynth"
-			tag_pc_sound_module="Soundfont${current_soundfount}"
+			tag_sound_module="Soundfont${current_soundfount}"
 		;;
 		"1")
 			munt_bin
 			midi_bin="munt"
-			tag_pc_sound_module="Roland MT-32"
+			tag_sound_module="Roland MT-32"
 		;;
 		*)
 			fluidsynth_bin
 			midi_bin="fluidsynth"
-			tag_pc_sound_module="Soundfont${current_soundfount}"
+			tag_sound_module="Soundfont${current_soundfount}"
 			display_remove_previous_line
 			echo " -> 0"
 		;;
@@ -2146,7 +2162,7 @@ if (( "${#lst_midi[@]}" )); then
 	wait
 
 	# Reset
-	unset tag_pc_sound_module
+	unset tag_sound_module
 fi
 }
 loop_nsfplay_nsf() {		# NES nsf
@@ -2997,7 +3013,7 @@ if (( "${#lst_zxtune_hvl[@]}" )); then
 
 	# Tag
 	tag_machine="PC"
-	tag_pc_sound_module="Hively Tracker"
+	tag_sound_module="Hively Tracker"
 	tag_questions
 	tag_album
 	
@@ -3045,7 +3061,7 @@ if (( "${#lst_zxtune_hvl[@]}" )); then
 	wait
 
 	# Reset
-	unset tag_pc_sound_module
+	unset tag_sound_module
 fi
 }
 loop_zxtune_xfs() {			# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
@@ -3206,7 +3222,7 @@ if (( "${#lst_zxtune_v2m[@]}" )); then
 
 	# Tag
 	tag_machine="PC"
-	tag_pc_sound_module="Farbrausch V2M"
+	tag_sound_module="Farbrausch V2M"
 	tag_questions
 	tag_album
 	
@@ -3254,7 +3270,7 @@ if (( "${#lst_zxtune_v2m[@]}" )); then
 	wait
 
 	# Reset
-	unset tag_pc_sound_module
+	unset tag_sound_module
 fi
 }
 loop_zxtune_zx_spectrum() {	# ZX Spectrum
@@ -3414,10 +3430,6 @@ if ! [[ "$only_wav" = "1" ]]; then
 		elif [[ -z "$tag_date" ]] && [[ "$tag_date" != "NULL" ]]; then
 			tag_date_formated="$tag_date"
 		fi
-	#elif [[ "$tag_date" = "NULL" ]]; then
-		#unset tag_date_formated
-	#elif [[ -n "$tag_date" ]] && [[ "$tag_date" != "NULL" ]]; then
-		#tag_date_formated="$tag_date"
 	fi
 
 	# Machine
@@ -3433,18 +3445,18 @@ fi
 tag_album() {
 # Local variables
 local tag_machine_album_formated
-local tag_pc_sound_module_album_formated
+local tag_sound_module_album_formated
 
 # If tag exist add ()
-if ! [[ "$tag_machine" = "NULL" ]]; then
+if [[ "$tag_machine" != "NULL" ]]; then
 	tag_machine_album_formated=$(echo "$tag_machine" | sed 's/\(.*\)/\(\1\)/')
 fi
-if [[ -n "$tag_pc_sound_module" ]]; then
-	tag_pc_sound_module_album_formated=$(echo "$tag_pc_sound_module" | sed 's/\(.*\)/\(\1\)/')
+if [[ -n "$tag_sound_module" ]]; then
+	tag_sound_module_album_formated=$(echo "$tag_sound_module" | sed 's/\(.*\)/\(\1\)/')
 fi
 
 # Album tag
-tag_album=$(echo "$tag_game $tag_machine_album_formated $tag_pc_sound_module_album_formated" | sed 's/ *$//')
+tag_album=$(echo "$tag_game $tag_machine_album_formated $tag_sound_module_album_formated" | sed 's/ *$//')
 }
 tag_song() {
 tag_song=$(basename "${files%.*}")
@@ -3867,7 +3879,7 @@ mk_target_directory() {
 local tag_game_dir
 local tag_machine_dir
 local tag_date_dir
-local tag_pc_sound_module_dir
+local tag_sound_module_dir
 local target_directory
 local flac_target_directory
 local wavpack_target_directory
@@ -3899,14 +3911,14 @@ if (( "${#lst_wav[@]}" )); then
 							| sed s#:#-#g \
 							| sed 's/\(.*\)/\(\1\)/')
 		fi
-		if [[ -n "$tag_pc_sound_module" ]]; then
-			tag_pc_sound_module_dir=$(echo "$tag_pc_sound_module" \
+		if [[ -n "$tag_sound_module" ]]; then
+			tag_sound_module_dir=$(echo "$tag_sound_module" \
 									| sed s#/#-#g \
 									| sed s#:#-#g \
 									| sed 's/\(.*\)/\(\1\)/')
 		fi
 		# Raw name of target directory
-		target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_pc_sound_module_dir" \
+		target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_sound_module_dir" \
 							| tr -s ' ' )
 	else
 		# Raw name of target directory
