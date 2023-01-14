@@ -2740,7 +2740,8 @@ if (( "${#lst_uade[@]}" )); then
 			(
 			wav2flac \
 			&& wav2wavpack \
-			&& wav2ape
+			&& wav2ape \
+			&& wav2opus
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
