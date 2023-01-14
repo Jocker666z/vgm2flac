@@ -2682,11 +2682,17 @@ if (( "${#lst_uade[@]}" )); then
 		current_track=$("$uade123_bin" -g "$files" 2>/dev/null \
 						| grep "subsongs:" | awk '/^subsongs:/ { print $3 }')
 		diff_track=$(( total_track - current_track ))
+
 		# Wav loop
 		# No sub_tracks
 		if [[ "$diff_track" = "0" ]]; then
+			# Filename construction
 			sub_track="0"
 			file_name="${files%.*}"
+
+			# Record output name
+			lst_wav+=( "${file_name}".wav )
+
 			# Wav extract
 			(
 			cmd_uade
@@ -2694,12 +2700,17 @@ if (( "${#lst_uade[@]}" )); then
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
 			fi
+
 		# With sub_tracks
 		else
 			for sub_track in $(seq -w "$current_track" "$total_track"); do
 				# Filename construction
 				file_name="${files}-$sub_track"
 				all_sub_track+=( "${files}-${sub_track}.wav" )
+
+				# Record output name
+				lst_wav+=( "${file_name}".wav )
+
 				# Wav extract
 				(
 				cmd_uade
@@ -2709,6 +2720,7 @@ if (( "${#lst_uade[@]}" )); then
 				fi
 			done
 			wait
+
 			# Contruct one file with all subsongs
 			if [[ "$verbose" = "1" ]]; then
 				sox -V3  $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav"
@@ -2721,9 +2733,6 @@ if (( "${#lst_uade[@]}" )); then
 		fi
 	done
 	wait
-
-	# Generate wav array
-	list_wav_files
 
 	# Flac loop
 	display_convert_title "FLAC"
