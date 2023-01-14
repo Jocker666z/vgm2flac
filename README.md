@@ -66,7 +66,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 ## Files tested
 * 3DO : aif, aifc, str
-* Amiga: 8svx, aam, ahx, bd, bp, core, cust, dw, fc13, fc14, gmc, mcr, mdat, mod, np3, rjp, sa, sb, scumm, sfx, xm
+* Amiga: 8svx, aam, abk, ahx, bd, bp, core, cust, dw, fc13, fc14, gmc, mcr, mdat, mod, np3, rjp, sa, sb, scumm, sfx, xm
 * Amstrad CPC: ay, ym
 * Atari ST: sc68, snd, sndh, ym
 * Atari XL/XE: sap

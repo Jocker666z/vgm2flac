@@ -2661,9 +2661,6 @@ if (( "${#lst_uade[@]}" )); then
 	# Reset WAV array
 	lst_wav=()
 
-	# Tag
-	tag_machine="Amiga"
-
 	# User info - Title
 	display_loop_title "uade" "Amiga"
 
@@ -2671,7 +2668,6 @@ if (( "${#lst_uade[@]}" )); then
 	for files in "${lst_uade[@]}"; do
 		# Tag
 		tag_questions
-		tag_album
 
 		# Get total track
 		total_track=$("$uade123_bin" -g "$files" 2>/dev/null \
@@ -2736,6 +2732,8 @@ if (( "${#lst_uade[@]}" )); then
 	for files in "${lst_wav[@]}"; do
 			# Tag
 			tag_song
+			tag_tracker_music
+			tag_album
 			# Remove silence
 			wav_remove_silent
 			# Fade out
@@ -3182,7 +3180,7 @@ if (( "${#lst_zxtune_music_tracker[@]}" )); then
 		file_name_random=$(( RANDOM % 10000 ))
 
 		# Record output name
-		#lst_wav+=( "${file_name}".wav )
+		lst_wav+=( "${file_name}".wav )
 
 		# Extract WAV
 		(
@@ -3196,15 +3194,11 @@ if (( "${#lst_zxtune_music_tracker[@]}" )); then
 
 	# Flac loop
 	display_convert_title "FLAC"
-	for files_base in "${lst_zxtune_music_tracker[@]}"; do
-		# Filename contruction
-		files="$files_base"
+	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
 		tag_tracker_music
 		tag_album
-		# Filename contruction
-		files=$(basename "${files%.*}.wav")
 		# Remove silence
 		wav_remove_silent
 		# Add fade out
@@ -3736,10 +3730,17 @@ if [[ -z "$tag_machine" ]]; then
 fi
 }
 tag_tracker_music() {			# Tracker music
-if [[ "${files##*.}" = "hlv" ]]; then
+if [[ -f "${files%.*}.abk" ]] || [[ -f "${files%.*}.ABK" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="AMOS Music Bank"
+elif [[ -f "${files%.*}.hlv" ]] || [[ -f "${files%.*}.HLV" ]]; then
+	tag_machine="Tracker"
 	tag_tracker_music="Hively Tracker"
-elif [[ "${files##*.}" = "v2m" ]]; then
+elif [[ -f "${files%.*}.v2m" ]] || [[ -f "${files%.*}.V2M" ]]; then
 	tag_tracker_music="Farbrausch V2M"
+	tag_machine="Tracker"
+else
+	tag_machine="Amiga"
 fi
 }
 tag_vgm() {						# Various machines
