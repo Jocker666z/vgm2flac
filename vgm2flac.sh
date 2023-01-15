@@ -832,10 +832,11 @@ if (( "${#lst_all_files[@]}" )); then
 			shopt -s nocasematch
 			for files_ext in "${ext_lst_input_exclude[@]}"; do
 
-				if [[ "$files_ext" = "${files##*.}" ]]; then
+				if [[ "$files_ext" != "${files##*.}" ]]; then
 					ext_test_result="1"
 				else
 					unset ext_test_result
+					return
 				fi
 
 			done
@@ -3194,7 +3195,7 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 		file_name_random=$(( RANDOM % 10000 ))
 		# Extract WAV
 		(
-		cmd_zxtune_xfs_ym_zxspectrum
+		cmd_zxtune_various
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -3271,7 +3272,7 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 		file_name_random=$(( RANDOM % 10000 ))
 		# Extract WAV
 		(
-		cmd_zxtune_xfs_ym_zxspectrum
+		cmd_zxtune_various
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
@@ -3403,7 +3404,7 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
 		file_name_random=$(( RANDOM % 10000 ))
 		# Extract WAV
 		(
-		cmd_zxtune_xfs_ym_zxspectrum
+		cmd_zxtune_various
 		) &
 		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 			wait -n
