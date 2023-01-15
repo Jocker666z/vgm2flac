@@ -831,19 +831,14 @@ if (( "${#lst_all_files[@]}" )); then
 			# Ext. test
 			shopt -s nocasematch
 			for files_ext in "${ext_lst_input_exclude[@]}"; do
-
-				if [[ "$files_ext" != "${files##*.}" ]]; then
-					ext_test_result="1"
-				else
-					unset ext_test_result
-					return
+				if [[ "$files_ext" = "${files##*.}" ]]; then
+					ext_test_result_off="1"
 				fi
-
 			done
 			shopt -u nocasematch
 
 			# Test file
-			if ! [[ "ext_test_result" = "1" ]]; then
+			if [[ "$ext_test_result_off" != "1" ]]; then
 
 				if (( "${#uade123_bin}" )); then
 					uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
@@ -884,7 +879,7 @@ if (( "${#lst_all_files[@]}" )); then
 				&& [[ "${#adlib_test_result}" -eq "0" ]] \
 				&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
 				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
-					zxtune_test_result=$("$zxtune123_bin" "$files" --null 2>&1)
+					zxtune_test_result=$(timeout 0.01 "$zxtune123_bin" "$files" --null 2>&1)
 						if [[ "${#zxtune_test_result}" -gt "0" ]]; then
 							lst_zxtune_various+=("$files")
 						fi
@@ -897,6 +892,9 @@ if (( "${#lst_all_files[@]}" )); then
 				progress_counter=$(( progress_counter + 1 ))
 				progress_bar "$progress_counter" "${#lst_all_files[@]}"
 			fi
+
+			# Reset
+			unset ext_test_result_off
 		done
 	fi
 fi
