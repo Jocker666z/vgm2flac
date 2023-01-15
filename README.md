@@ -150,6 +150,7 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * http://loveemu.hatenablog.com/entry/Conversion_Tools_for_Video_Game_Music
 * http://www.vgmpf.com/
 * https://vgmrips.net/wiki/Main_Page
+* https://github.com/Sembiance/dexvert/blob/master/SUPPORTED.md
 
 ## Files specification
 * GBS spec: https://ocremix.org/info/GBS_Format_Specification
@@ -268,3 +269,6 @@ cd /home/$USER/.local/bin/
 wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r5020_x86_64.tar.bz2
 tar -xf zxtune123_r5020_x86_64.tar.bz2 && rm zxtune123_r5020_x86_64.tar.bz2
 ```
+
+## TODO
+* .eup .fmb .pmb : EUPHONY Module https://github.com/gzaffin/eupmini

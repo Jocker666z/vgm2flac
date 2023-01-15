@@ -80,7 +80,7 @@ ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|mi
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 # Extensions exclude
-ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|txth|wav|wv"
+ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|psflib|txth|wav|wv"
 ext_all_raw="${ext_input_exclude}| \
 			 ${ext_asapconv}| \
 			 ${ext_bchunk_cue}| \
@@ -855,18 +855,8 @@ if (( "${#lst_all_files[@]}" )); then
 						fi
 				fi
 
-				if (( "${#vgmstream_cli_bin}" )) \
-				&& [[ "${#uade_test_result}" -eq "0" ]] \
-				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
-					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-						if [[ "${#vgmstream_test_result}" -gt "0" ]]; then
-							lst_vgmstream+=("$files")
-						fi
-				fi
-
 				if (( "${#adplay_bin}" )) \
 				&& [[ "${#uade_test_result}" -eq "0" ]] \
-				&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
 				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
 					adlib_test_result=$(timeout 0.01 "$adplay_bin" "$files" --output=null 2>&1 | grep "Title")
 						if [[ "${#adlib_test_result}" -gt "0" ]]; then
@@ -877,11 +867,21 @@ if (( "${#lst_all_files[@]}" )); then
 				if (( "${#zxtune123_bin}" )) \
 				&& [[ "${#uade_test_result}" -eq "0" ]] \
 				&& [[ "${#adlib_test_result}" -eq "0" ]] \
-				&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
 				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
-					zxtune_test_result=$(timeout 0.01 "$zxtune123_bin" "$files" --null 2>&1)
+					zxtune_test_result=$("$zxtune123_bin" "$files" --null 2>&1)
 						if [[ "${#zxtune_test_result}" -gt "0" ]]; then
 							lst_zxtune_various+=("$files")
+						fi
+				fi
+
+				if (( "${#vgmstream_cli_bin}" )) \
+				&& [[ "${#uade_test_result}" -eq "0" ]] \
+				&& [[ "${#adlib_test_result}" -eq "0" ]] \
+				&& [[ "${#zxtune_test_result}" -eq "0" ]] \
+				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
+					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+						if [[ "${#vgmstream_test_result}" -gt "0" ]]; then
+							lst_vgmstream+=("$files")
 						fi
 				fi
 
@@ -1466,10 +1466,12 @@ fi
 cmd_zxtune_various() {
 if [[ "$verbose" = "1" ]]; then
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files" \
+		|| mv output-"$file_name_random".wav "$file_name".wav &>/dev/null \
 		&& mv output-"$file_name_random".wav "$file_name".wav
 else
 	"$zxtune123_bin" --wav filename=output-"$file_name_random".wav "$files" &>/dev/null \
 		&& mv output-"$file_name_random".wav "$file_name".wav &>/dev/null \
+		|| mv output-"$file_name_random".wav "$file_name".wav &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
 		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
@@ -3905,6 +3907,9 @@ elif [[ -f "${files%.*}.amf" || -f "${files%.*}.AMF" ]]; then
 	tag_machine="Tracker"
 	#tag_tracker_music="Asylum Music Format"
 	#tag_tracker_music="Advanced Module Format"
+elif [[ -f "${files%.*}.ams" ]] || [[ -f "${files%.*}.AMS" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Extreme's Tracker module"
 elif [[ -f "${files%.*}.aon" ]] || [[ -f "${files%.*}.AON" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Art of Noise"
@@ -3936,7 +3941,7 @@ elif [[ -f "${files%.*}.dmu" ]] || [[ -f "${files%.*}.DMU" ]] \
 elif [[ -f "${files%.*}.dmf" ]] || [[ -f "${files%.*}.DMF" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="X-Tracker"
-elif [[ -f "${files%.*}.dsm" ]] || [[ -f "${files%.*}.DSM" ]]\
+elif [[ -f "${files%.*}.dsm" ]] || [[ -f "${files%.*}.DSM" ]] \
   || [[ -f "${files%.*}.dsym" ]] || [[ -f "${files%.*}.DSYM" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Digital Symphony Module"
@@ -3949,15 +3954,35 @@ elif [[ -f "${files%.*}.dtm" ]] || [[ -f "${files%.*}.DTM" ]]; then
 elif [[ -f "${files%.*}.dtt" ]] || [[ -f "${files%.*}.DTT" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="DeskTop Tracker"
+elif [[ -f "${files%.*}.ea" ]] || [[ -f "${files%.*}.EA" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="EarAche"
+elif [[ -f "${files%.*}.eup" ]] || [[ -f "${files%.*}.EUP" ]] \
+  || [[ -f "${files%.*}.fmb" ]] || [[ -f "${files%.*}.FMB" ]] \
+  || [[ -f "${files%.*}.pmb" ]] || [[ -f "${files%.*}.PMB" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="EUPHONY Module"
+elif [[ -f "${files%.*}.far" ]] || [[ -f "${files%.*}.FAR" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Farandole Composer"
 elif [[ -f "${files%.*}.hlv" ]] || [[ -f "${files%.*}.HLV" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Hively Tracker"
 elif [[ -f "${files%.*}.hot" ]] || [[ -f "${files%.*}.HOT" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Anders 0land"
+elif [[ -f "${files%.*}.mdl" ]] || [[ -f "${files%.*}.MDL" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Digitrakker module"
 elif [[ -f "${files%.*}.musx" ]] || [[ -f "${files%.*}.MUSX" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Archimedes Tracker"
+elif [[ -f "${files%.*}.plm" ]] || [[ -f "${files%.*}.PLM" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Disorder Tracker Module"
+elif [[ -f "${files%.*}.psm" ]] || [[ -f "${files%.*}.PSM" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Epic Megagames MASI"
 elif [[ -f "${files%.*}.v2m" ]] || [[ -f "${files%.*}.V2M" ]]; then
 	tag_tracker_music="Farbrausch V2M"
 	tag_machine="Tracker"
