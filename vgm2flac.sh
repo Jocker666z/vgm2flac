@@ -59,7 +59,6 @@ vgm2wav_loops="2"
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
-ext_adplay="adl|amd|bam|cff|cmf|d00|ddt|dtm|got|hsc|hsq|imf|ksm|laa|mdi|rad|rol|sdb|sqx|wlf|xms"
 ext_asapconv="sap"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
@@ -77,14 +76,12 @@ ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_zxtune_ay="ay"
-ext_zxtune_music_tracker="dmf|hlv|v2m"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 # Extensions exclude
 ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|txth|wav|wv"
 ext_all_raw="${ext_input_exclude}| \
-			 ${ext_adplay}| \
 			 ${ext_asapconv}| \
 			 ${ext_bchunk_cue}| \
 			 ${ext_bchunk_iso}| \
@@ -101,12 +98,11 @@ ext_all_raw="${ext_input_exclude}| \
 			 ${ext_playlist}| \
 			 ${ext_vgm2wav}| \
 			 ${ext_zxtune_ay}| \
-			 ${ext_zxtune_music_tracker}| \
 			 ${ext_zxtune_xsf}| \
 			 ${ext_zxtune_ym}| \
 			 ${ext_zxtune_zx_spectrum}"
 ext_input_exclude="${ext_all_raw//[[:blank:]]/}"
-mapfile -t ext_lst_input_exclude < <( echo "${ext_vgms_input_exclude//|/$'\n'}" )
+mapfile -t ext_lst_input_exclude < <( echo "${ext_input_exclude//|/$'\n'}" )
 
 # Bin check and set variable
 adplay_bin() {
@@ -119,8 +115,7 @@ system_bin_location=$(command -v $bin_name)
 if test -n "$system_bin_location"; then
 	adplay_bin="$system_bin_location"
 else
-	echo "Break, $bin_name is not installed"
-	exit
+	echo_pre_space "Warning, $bin_name is not installed; AdLib files will not be detected"
 fi
 }
 asapconv_bin() {
@@ -400,7 +395,7 @@ system_bin_location=$(command -v $bin_name)
 if test -n "$system_bin_location"; then
 	uade123_bin="$system_bin_location"
 else
-	echo_pre_space "Warning, $bin_name is not installed; Amiga files will not be detected"
+	echo_pre_space "Warning, $bin_name is not installed; Amiga/Tracker music files will not be detected"
 fi
 }
 wavpack_bin() {
@@ -436,7 +431,7 @@ system_bin_location=$(command -v $bin_name)
 if test -n "$system_bin_location"; then
 	xmp_bin="$system_bin_location"
 else
-	echo_pre_space "Warning, $bin_name is not installed; Amiga files will not be detected"
+	echo_pre_space "Warning, $bin_name is not installed; Various tracker music files will not be detected"
 fi
 }
 zxtune123_bin() {
@@ -451,6 +446,19 @@ if test -n "$system_bin_location"; then
 else
 	echo "Break, $bin_name is not installed"
 	exit
+fi
+}
+zxtune123_bin_source_list() {
+local bin_name
+local system_bin_location
+
+bin_name="zxtune123"
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	zxtune123_bin="$system_bin_location"
+else
+	echo_pre_space "Warning, $bin_name is not installed; Various music files will not be detected"
 fi
 }
 test_write_access() {
@@ -639,7 +647,7 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "Various machines VGM" "${lst_vgm2wav[@]}"
 	fetched_stat "XMP" "${lst_xmp[@]}"
 	fetched_stat "ZX Spectrum" "${lst_zxtune_zx_spectrum[@]}"
-	fetched_stat "ZXTune Music Tracker" "${lst_zxtune_music_tracker[@]}"
+	fetched_stat "ZXTune Various Music" "${lst_zxtune_various[@]}"
 
 else
 	display_separator
@@ -762,17 +770,21 @@ rm "$vgm2flac_cache_tag" &>/dev/null
 # Files array
 list_source_files() {
 # Bin check & set
+adplay_bin
 vgmstream_cli_bin
 uade123_bin
 xmp_bin
+zxtune123_bin_source_list
 
 # Local variables
 local ext_test_result
+local adlib_test_result
 local vgmstream_test_result
 local uade_test_result
+local xmp_test_result
+local zxtune_test_result
 local progress_counter
 
-mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort -V)
 mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort -V)
 mapfile -t lst_asapconv < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_asapconv')$' 2>/dev/null | sort -V)
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort -V)
@@ -791,7 +803,6 @@ mapfile -t lst_sidplayfp_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posi
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort -V)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort -V)
-mapfile -t lst_zxtune_music_tracker < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_music_tracker')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort -V)
@@ -811,7 +822,7 @@ fi
 # vgmstream & uade test all files
 echo_pre_space "/ vgm2flac /"
 if (( "${#lst_all_files[@]}" )); then
-	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )) || (( "${#xmp_bin}" )); then
+	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )) || (( "${#xmp_bin}" )) || (( "${#adplay_bin}" )); then
 
 		display_separator
 		echo_pre_space "Files test:"
@@ -857,6 +868,27 @@ if (( "${#lst_all_files[@]}" )); then
 						fi
 				fi
 
+				if (( "${#adplay_bin}" )) \
+				&& [[ "${#uade_test_result}" -eq "0" ]] \
+				&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
+				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
+					adlib_test_result=$(timeout 0.01 "$adplay_bin" "$files" --output=null 2>&1 | grep "Title")
+						if [[ "${#adlib_test_result}" -gt "0" ]]; then
+							lst_adplay+=("$files")
+						fi
+				fi
+
+				if (( "${#zxtune123_bin}" )) \
+				&& [[ "${#uade_test_result}" -eq "0" ]] \
+				&& [[ "${#adlib_test_result}" -eq "0" ]] \
+				&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
+				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
+					zxtune_test_result=$("$zxtune123_bin" "$files" --null 2>&1)
+						if [[ "${#zxtune_test_result}" -gt "0" ]]; then
+							lst_zxtune_various+=("$files")
+						fi
+				fi
+
 			fi
 
 			# Progress bar
@@ -886,9 +918,9 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_vgmstream[@]}" \
 				"${lst_xmp[@]}" \
 				"${lst_zxtune_ay[@]}" \
-				"${lst_zxtune_music_tracker[@]}" \
 				"${lst_zxtune_xsf[@]}" \
 				"${lst_zxtune_ym[@]}" \
+				"${lst_zxtune_various[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" )
 }
 list_wav_files() {
@@ -3275,8 +3307,8 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	wait
 fi
 }
-loop_zxtune_music_tracker() {	# ZXTune Tracker
-if (( "${#lst_zxtune_music_tracker[@]}" )); then
+loop_zxtune_various_music() {	# ZXTune Tracker
+if (( "${#lst_zxtune_various[@]}" )); then
 	# Bin check & set
 	zxtune123_bin
 
@@ -3287,7 +3319,7 @@ if (( "${#lst_zxtune_music_tracker[@]}" )); then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "zxtune" "Tracker"
+	display_loop_title "zxtune" "Various Music"
 
 	# Tag
 	tag_machine="Tracker"
@@ -3296,7 +3328,7 @@ if (( "${#lst_zxtune_music_tracker[@]}" )); then
 
 	# Wav loop
 	display_convert_title "WAV"
-	for files in "${lst_zxtune_music_tracker[@]}"; do
+	for files in "${lst_zxtune_various[@]}"; do
 		# Filename contruction
 		file_name=$(basename "${files%.*}")
 		file_name_random=$(( RANDOM % 10000 ))
@@ -3876,7 +3908,7 @@ elif [[ -f "${files%.*}.amf" || -f "${files%.*}.AMF" ]]; then
 	#tag_tracker_music="Advanced Module Format"
 elif [[ -f "${files%.*}.aon" ]] || [[ -f "${files%.*}.AON" ]]; then
 	tag_machine="Tracker"
-	tag_tracker_music="Art of Noise Module"
+	tag_tracker_music="Art of Noise"
 elif [[ -f "${files%.*}.ast" ]] || [[ -f "${files%.*}.AST" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Actionamics Sound Tool"
@@ -3890,13 +3922,34 @@ elif [[ -f "${files%.*}.bp" ]] || [[ -f "${files%.*}.BP" ]] \
 elif [[ -f "${files%.*}.cus" ]] || [[ -f "${files%.*}.CUS" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Delitracker Customplay"
+elif [[ -f "${files%.*}.dbm" ]] || [[ -f "${files%.*}.DBM" ]] \
+  || [[ -f "${files%.*}.digi" ]] || [[ -f "${files%.*}.DIGI" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="DigiBooster"
 elif [[ -f "${files%.*}.dm" ]] || [[ -f "${files%.*}.DM" ]] \
   || [[ -f "${files%.*}.dm2" ]] || [[ -f "${files%.*}.DM2" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Delta Music"
+elif [[ -f "${files%.*}.dmu" ]] || [[ -f "${files%.*}.DMU" ]] \
+  || [[ -f "${files%.*}.mug" ]] || [[ -f "${files%.*}.MUG" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Digital Mugician"
 elif [[ -f "${files%.*}.dmf" ]] || [[ -f "${files%.*}.DMF" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="X-Tracker"
+elif [[ -f "${files%.*}.dsm" ]] || [[ -f "${files%.*}.DSM" ]]\
+  || [[ -f "${files%.*}.dsym" ]] || [[ -f "${files%.*}.DSYM" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Digital Symphony Module"
+elif [[ -f "${files%.*}.dss" ]] || [[ -f "${files%.*}.DSS" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Digital Sound Studio"
+elif [[ -f "${files%.*}.dtm" ]] || [[ -f "${files%.*}.DTM" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Digital Tracker Module"
+elif [[ -f "${files%.*}.dtt" ]] || [[ -f "${files%.*}.DTT" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="DeskTop Tracker"
 elif [[ -f "${files%.*}.hlv" ]] || [[ -f "${files%.*}.HLV" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Hively Tracker"
@@ -4269,13 +4322,13 @@ loop_sidplayfp_sid
 loop_sox
 loop_vgm2wav
 loop_zxtune_ay
-loop_zxtune_music_tracker
+loop_zxtune_various_music
 loop_zxtune_xfs
 loop_zxtune_ym
 loop_zxtune_zx_spectrum
 loop_uade
-loop_vgmstream
 loop_xmp
+loop_vgmstream
 
 # Timer stop
 timer_stop=$(date +%s)
