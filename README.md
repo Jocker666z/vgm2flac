@@ -104,7 +104,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Panasonic 3DO: aifc, pona, str
 * Philips CD-i: grn
 * PC: apc, bik, bnk, fsb, his, hvl, imc, logg, mab, mid, mod, sab, sdb, snds, smk, txtp, v2m, wem, xwb
-* PC AdLib: adl, amd, d00, got, hsc, hsq, imf, ksm, laa, mdi, rad, rol, sdb, sqx, wlf
+* PC AdLib: adl, amd, bam, d00, got, hsc, hsq, imf, ksm, laa, mdi, rad, rol, sdb, sqx, wlf
 * Various machines: vgm, vgz
 * Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
 * ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp

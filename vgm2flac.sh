@@ -59,7 +59,7 @@ vgm2wav_loops="2"
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
-ext_adplay="adl|amd|d00|got|hsc|hsq|imf|ksm|laa|mdi|rad|rol|sdb|sqx|wlf|xms"
+ext_adplay="adl|amd|bam|cff|cmf|d00|ddt|dtm|got|hsc|hsq|imf|ksm|laa|mdi|rad|rol|sdb|sqx|wlf|xms"
 ext_asapconv="sap"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
@@ -77,7 +77,7 @@ ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_zxtune_ay="ay"
-ext_zxtune_music_tracker="amf|hlv|v2m"
+ext_zxtune_music_tracker="dmf|hlv|v2m"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
@@ -103,9 +103,10 @@ ext_all_raw="${ext_input_exclude}| \
 			 ${ext_zxtune_ay}| \
 			 ${ext_zxtune_music_tracker}| \
 			 ${ext_zxtune_xsf}| \
-			 ${ext_zxtune_ym}| \\
+			 ${ext_zxtune_ym}| \
 			 ${ext_zxtune_zx_spectrum}"
-ext_vgms_input_exclude="${ext_all_raw//[[:blank:]]/}"
+ext_input_exclude="${ext_all_raw//[[:blank:]]/}"
+mapfile -t ext_lst_input_exclude < <( echo "${ext_vgms_input_exclude//|/$'\n'}" )
 
 # Bin check and set variable
 adplay_bin() {
@@ -766,6 +767,7 @@ uade123_bin
 xmp_bin
 
 # Local variables
+local ext_test_result
 local vgmstream_test_result
 local uade_test_result
 local progress_counter
@@ -809,13 +811,27 @@ fi
 # vgmstream & uade test all files
 echo_pre_space "/ vgm2flac /"
 if (( "${#lst_all_files[@]}" )); then
-	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )); then
+	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )) || (( "${#xmp_bin}" )); then
+
 		display_separator
 		echo_pre_space "Files test:"
 		for files in "${lst_all_files[@]}"; do
 
+			# Ext. test
+			shopt -s nocasematch
+			for files_ext in "${ext_lst_input_exclude[@]}"; do
+
+				if [[ "$files_ext" = "${files##*.}" ]]; then
+					ext_test_result="1"
+				else
+					unset ext_test_result
+				fi
+
+			done
+			shopt -u nocasematch
+
 			# Test file
-			if ! [[ ${ext_vgms_input_exclude[*]} =~ ${files##*.} ]]; then
+			if ! [[ "ext_test_result" = "1" ]]; then
 
 				if (( "${#uade123_bin}" )); then
 					uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
@@ -2726,8 +2742,13 @@ if (( "${#lst_uade[@]}" )); then
 		else
 			for sub_track in $(seq -w "$current_track" "$total_track"); do
 				# Filename construction
-				file_name="${files}-$sub_track"
-				all_sub_track+=( "${files}-${sub_track}.wav" )
+				if [[ -z "${files##*.}" ]]; then
+					file_name="${files}-$sub_track"
+					all_sub_track+=( "${files}-${sub_track}.wav" )
+				else
+					file_name="${files%.*}-$sub_track"
+					all_sub_track+=( "${files%.*}-${sub_track}.wav" )
+				fi
 
 				# Record output name
 				lst_wav+=( "${file_name}".wav )
@@ -2742,14 +2763,23 @@ if (( "${#lst_uade[@]}" )); then
 			done
 			wait
 
+			# Filename construction
+			if [[ -z "${files##*.}" ]]; then
+				file_name="${files}-full"
+			else
+				file_name="${files%.*}-full"
+			fi
 			# Contruct one file with all subsongs
 			if [[ "$verbose" = "1" ]]; then
-				sox -V3  $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav"
+				sox -V3  $(printf '%s ' "${all_sub_track[@]}") "${file_name}.wav"
 			else
-				sox $(printf '%s ' "${all_sub_track[@]}") "${files}-full.wav" &>/dev/null \
-					&& echo_pre_space "✓ WAV     <- ${file_name##*/}-full" \
-					|| echo_pre_space "x WAV     <- ${file_name##*/}-full"
+				sox $(printf '%s ' "${all_sub_track[@]}") "${file_name}.wav" &>/dev/null \
+					&& echo_pre_space "✓ WAV     <- ${file_name##*/}" \
+					|| echo_pre_space "x WAV     <- ${file_name##*/}"
 			fi
+			# Record output name
+			lst_wav+=( "${file_name}".wav )
+			# Reset
 			all_sub_track=()
 		fi
 	done
@@ -3822,21 +3852,51 @@ if [[ -z "$tag_machine" ]]; then
 fi
 }
 tag_tracker_music() {			# Tracker music
-if [[ -f "${files%.*}.abk" ]] || [[ -f "${files%.*}.ABK" ]]; then
+if [[ -f "${files%.*}.669" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Composer 669"
+elif [[ -f "${files%.*}.aam" ]] || [[ -f "${files%.*}.AAM" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Art & Magic Module"
+elif [[ -f "${files%.*}.abk" ]] || [[ -f "${files%.*}.ABK" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="AMOS Music Bank"
-elif [[ -f "${files%.*}.amc" ]] || [[ -f "${files%.*}.AMC" ]]; then
+elif [[ -f "${files%.*}.adsc" ]] || [[ -f "${files%.*}.ADSC" ]]; then
 	tag_machine="Tracker"
-	tag_tracker_music="A.M.Composer"
+	tag_tracker_music="Audio Sculpture"
 elif [[ -f "${files%.*}.ahx" ]] || [[ -f "${files%.*}.AHX" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Abyss Highest eXperience"
+elif [[ -f "${files%.*}.amc" ]] || [[ -f "${files%.*}.AMC" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="A.M.Composer"
+elif [[ -f "${files%.*}.amf" || -f "${files%.*}.AMF" ]]; then
+	tag_machine="Tracker"
+	#tag_tracker_music="Asylum Music Format"
+	#tag_tracker_music="Advanced Module Format"
+elif [[ -f "${files%.*}.aon" ]] || [[ -f "${files%.*}.AON" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Art of Noise Module"
 elif [[ -f "${files%.*}.ast" ]] || [[ -f "${files%.*}.AST" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Actionamics Sound Tool"
-elif [[ -f "${files%.*}.amf" ]] || [[ -f "${files%.*}.AMF" ]]; then
+elif [[ -f "${files%.*}.bss" ]] || [[ -f "${files%.*}.BSS" ]]; then
 	tag_machine="Tracker"
-	tag_tracker_music="Advanced Module Format"
+	tag_tracker_music="Beathoven Synthesiser"
+elif [[ -f "${files%.*}.bp" ]] || [[ -f "${files%.*}.BP" ]] \
+  || [[ -f "${files%.*}.bp3" ]] || [[ -f "${files%.*}.BP3" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Brian Postma SoundMon"
+elif [[ -f "${files%.*}.cus" ]] || [[ -f "${files%.*}.CUS" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Delitracker Customplay"
+elif [[ -f "${files%.*}.dm" ]] || [[ -f "${files%.*}.DM" ]] \
+  || [[ -f "${files%.*}.dm2" ]] || [[ -f "${files%.*}.DM2" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Delta Music"
+elif [[ -f "${files%.*}.dmf" ]] || [[ -f "${files%.*}.DMF" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="X-Tracker"
 elif [[ -f "${files%.*}.hlv" ]] || [[ -f "${files%.*}.HLV" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Hively Tracker"
