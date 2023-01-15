@@ -425,6 +425,19 @@ if test -n "$system_bin_location"; then
 	wvtag_bin="$system_bin_location"
 fi
 }
+xmp_bin() {
+local bin_name
+local system_bin_location
+
+bin_name="xmp"
+system_bin_location=$(command -v $bin_name)
+
+if test -n "$system_bin_location"; then
+	xmp_bin="$system_bin_location"
+else
+	echo_pre_space "Warning, $bin_name is not installed; Amiga files will not be detected"
+fi
+}
 zxtune123_bin() {
 local bin_name
 local system_bin_location
@@ -749,6 +762,7 @@ list_source_files() {
 # Bin check & set
 vgmstream_cli_bin
 uade123_bin
+xmp_bin
 
 # Local variables
 local vgmstream_test_result
@@ -801,28 +815,31 @@ if (( "${#lst_all_files[@]}" )); then
 
 			# Test file
 			if ! [[ ${ext_vgms_input_exclude[*]} =~ ${files##*.} ]]; then
+
 				if (( "${#uade123_bin}" )); then
 					uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
-				fi
-				if (( "${#vgmstream_cli_bin}" )); then
-					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+						if [[ "${#uade_test_result}" -gt "0" ]]; then
+							lst_uade+=("$files")
+						fi
 				fi
 
-				# Set case insensitive
-				shopt -s nocasematch
-				# Populate arrays if test valid
-				if [[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -gt "0" ]] || \
-					[[ "${#uade123_bin}" -gt "0" && "${#uade_test_result}" -gt "0" && "${#vgmstream_test_result}" -eq "0" ]]; then
-					lst_uade+=("$files")
-				elif [[ "${#vgmstream_cli_bin}" -gt "0" && "${#uade_test_result}" -eq "0" && "${#vgmstream_test_result}" -gt "0" ]]; then
-					lst_vgmstream+=("$files")
-					# Activate fade out for files: his
-					if [[ "${files##*.}" = "his" ]]; then
-						force_fade_out="1"
-					fi
+				if (( "${#xmp_bin}" )) \
+				&& [[ "${#uade_test_result}" -eq "0" ]]; then
+					xmp_test_result=$("$xmp_bin" --load-only -q "$files" 2>&1)
+						if [[ "${#xmp_test_result}" -eq "0" ]]; then
+							lst_xmp+=("$files")
+						fi
 				fi
-				# Set case sensitive
-				shopt -u nocasematch
+
+				if (( "${#vgmstream_cli_bin}" )) \
+				&& [[ "${#uade_test_result}" -eq "0" ]] \
+				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
+					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+						if [[ "${#vgmstream_test_result}" -gt "0" ]]; then
+							lst_vgmstream+=("$files")
+						fi
+				fi
+
 			fi
 
 			# Progress bar
@@ -3748,6 +3765,12 @@ elif [[ -f "${files%.*}.amf" ]] || [[ -f "${files%.*}.AMF" ]]; then
 elif [[ -f "${files%.*}.hlv" ]] || [[ -f "${files%.*}.HLV" ]]; then
 	tag_machine="Tracker"
 	tag_tracker_music="Hively Tracker"
+elif [[ -f "${files%.*}.hot" ]] || [[ -f "${files%.*}.HOT" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Anders 0land"
+elif [[ -f "${files%.*}.musx" ]] || [[ -f "${files%.*}.MUSX" ]]; then
+	tag_machine="Tracker"
+	tag_tracker_music="Archimedes Tracker"
 elif [[ -f "${files%.*}.v2m" ]] || [[ -f "${files%.*}.V2M" ]]; then
 	tag_tracker_music="Farbrausch V2M"
 	tag_machine="Tracker"
