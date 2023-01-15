@@ -6,7 +6,7 @@ Bash tool for encoding various video game music files to FLAC.
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`adplay asapconv bc bchunk ffmpeg ffprobe fluidsynth find info68 mednafen munt nsfplay sc68 sidplayfp sox vgm2wav vgmstream_cli vgm_tag uade xxd zxtune123`
+`adplay asapconv bc bchunk ffmpeg ffprobe fluidsynth find info68 mednafen munt nsfplay sc68 sidplayfp sox vgm2wav vgmstream_cli vgm_tag uade xmp xxd zxtune123`
 
 You will be able to run vgm2flac even if some dependencies are missing. The script will warn you if a dependency is not met depending on the file format to convert.
 
@@ -22,11 +22,12 @@ You will be able to run vgm2flac even if some dependencies are missing. The scri
 	* prefered version: https://github.com/Jocker666z/sc68
 * sidplayfp: https://github.com/libsidplayfp/sidplayfp
 * portable mdx: https://github.com/yosshin4004/portable_mdx
+* uade: https://gitlab.com/uade-music-player/uade
 * vgm2wav: https://github.com/ValleyBell/libvgm
 * vgmstream-cli: https://github.com/losnoco/vgmstream
 * vgmtag: https://github.com/vgmrips/vgmtools
+* xmp: https://xmp.sourceforge.net/
 * zxtune: https://zxtune.bitbucket.io/
-* uade: https://gitlab.com/uade-music-player/uade
 
 Help is available at the bottom of the page for the installation of dependencies that are generally not present on the official repositories of the largest GNU/Linux distributions.
 

@@ -604,7 +604,7 @@ if (( "${#lst_all_files_pass[@]}" )); then
 		files=("$@")
 
 		if (( "${#files[@]}" )); then
-			if [[ "$label" = "Amiga" ]]; then
+			if [[ "$label" = "Uade" ]] || [[ "$label" = "XMP" ]]; then
 				echo_pre_space "${label} files: ${#files[@]} ($(display_size_mb "${files[@]}") MB)"
 			else
 				echo_pre_space "${label}; $(echo "${files[@]##*.}" \
@@ -617,7 +617,6 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	display_separator
 	echo_pre_space "${#lst_all_files_pass[@]} Fetched files ($(display_size_mb "${lst_all_files_pass[@]}") MB)"
 	display_separator
-	fetched_stat "Amiga" "${lst_uade[@]}"
 	fetched_stat "Atari ST" "${lst_sc68[@]}"
 	fetched_stat "Amstrad CPC" "${lst_zxtune_ay[@]}"
 	fetched_stat "Amstrad CPC, Atari ST" "${lst_zxtune_ym[@]}"
@@ -631,11 +630,13 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "PC AdLib" "${lst_adplay[@]}"
 	fetched_stat "PC Engine, TurboGrafx-16" "${lst_ffmpeg_hes[@]}"
 	fetched_stat "PC midi" "${lst_midi[@]}"
+	fetched_stat "Uade" "${lst_uade[@]}"
 	fetched_stat "Various machines" "${lst_vgmstream[@]}"
 	fetched_stat "Various machines ISO" "${lst_bchunk_iso[@]}"
 	fetched_stat "Various machines RAW" "${lst_sox[@]}"
 	fetched_stat "Various machines SF" "${lst_zxtune_xsf[@]}"
 	fetched_stat "Various machines VGM" "${lst_vgm2wav[@]}"
+	fetched_stat "XMP" "${lst_xmp[@]}"
 	fetched_stat "ZX Spectrum" "${lst_zxtune_zx_spectrum[@]}"
 	fetched_stat "ZXTune Music Tracker" "${lst_zxtune_music_tracker[@]}"
 
@@ -864,14 +865,15 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_nsfplay_nsfe[@]}" \
 				"${lst_sc68[@]}" \
 				"${lst_sidplayfp_sid[@]}" \
+				"${lst_uade[@]}" \
 				"${lst_vgm2wav[@]}" \
 				"${lst_vgmstream[@]}" \
+				"${lst_xmp[@]}" \
 				"${lst_zxtune_ay[@]}" \
 				"${lst_zxtune_music_tracker[@]}" \
 				"${lst_zxtune_xsf[@]}" \
 				"${lst_zxtune_ym[@]}" \
-				"${lst_zxtune_zx_spectrum[@]}" \
-				"${lst_uade[@]}" )
+				"${lst_zxtune_zx_spectrum[@]}" )
 }
 list_wav_files() {
 mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort -V)
@@ -1381,6 +1383,15 @@ else
 		-o "${files%.*}"-"$sub_track".wav "$files" &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files%.*}-$sub_track" \
 		|| echo_pre_space "x WAV     <- ${files%.*}-$sub_track"
+fi
+}
+cmd_xmp() {
+if [[ "$verbose" = "1" ]]; then
+	"$xmp_bin" "$files" -o "${files%.*}".wav
+else
+	"$xmp_bin" "$files" -o "${files%.*}".wav -q &>/dev/null \
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_zxtune_ay() {
@@ -2667,7 +2678,7 @@ if (( "${#lst_sox[@]}" )); then
 	fi
 fi
 }
-loop_uade() {					# Amiga
+loop_uade() {					# Amiga / Tracker
 if (( "${#lst_uade[@]}" )); then
 	# Local variables
 	local total_track
@@ -2679,7 +2690,7 @@ if (( "${#lst_uade[@]}" )); then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "uade" "Amiga"
+	display_loop_title "uade" "Amiga / Tracker"
 
 	display_convert_title "WAV"
 	for files in "${lst_uade[@]}"; do
@@ -2928,6 +2939,70 @@ if (( "${#lst_vgmstream[@]}" )); then
 
 fi
 }
+loop_xmp() {					# XMP
+if (( "${#lst_xmp[@]}" )); then
+	# Bin check & set
+	xmp_bin
+
+	# Local variables
+	local file_name
+
+	# Reset WAV array
+	lst_wav=()
+
+	# User info - Title
+	display_loop_title "xmp" "Tracker"
+
+	# Tag
+	tag_machine="Tracker"
+	tag_questions
+
+
+	# Wav loop
+	display_convert_title "WAV"
+	for files in "${lst_xmp[@]}"; do
+		# Record output name
+		lst_wav+=( "${files%.*}".wav )
+		# Extract WAV
+		(
+		cmd_xmp
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Flac loop
+	display_convert_title "FLAC"
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song
+		tag_tracker_music
+		tag_album
+		# Remove silence
+		wav_remove_silent
+		# Add fade out
+		wav_fade_out
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
+		# Flac conversion
+		(
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape \
+		&& wav2opus
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Reset
+	unset tag_tracker_music
+fi
+}
 loop_zxtune_ay() {				# Amstrad CPC, ZX Spectrum
 if (( "${#lst_zxtune_ay[@]}" )); then
 	# Bin check & set
@@ -3170,7 +3245,7 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 	wait
 fi
 }
-loop_zxtune_music_tracker() {	# ZXTune Tracker music
+loop_zxtune_music_tracker() {	# ZXTune Tracker
 if (( "${#lst_zxtune_music_tracker[@]}" )); then
 	# Bin check & set
 	zxtune123_bin
@@ -3182,7 +3257,7 @@ if (( "${#lst_zxtune_music_tracker[@]}" )); then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "zxtune" "Tracker Music"
+	display_loop_title "zxtune" "Tracker"
 
 	# Tag
 	tag_machine="Tracker"
@@ -4140,6 +4215,7 @@ loop_zxtune_ym
 loop_zxtune_zx_spectrum
 loop_uade
 loop_vgmstream
+loop_xmp
 
 # Timer stop
 timer_stop=$(date +%s)
