@@ -1391,14 +1391,14 @@ fi
 cmd_uade() {
 if [[ "$verbose" = "1" ]]; then
 	"$uade123_bin" --filter=A1200 --force-led=0 --one \
-		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" \
+		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$uade_files" \
 		-f "$file_name".wav
 else
 	"$uade123_bin" --filter=A1200 --force-led=0 --one \
-		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$files" \
+		--silence-timeout 5 --panning 0.6 --subsong "$sub_track" "$uade_files" \
 		-f "$file_name".wav &>/dev/null \
-		&& echo_pre_space "✓ WAV     <- ${file_name##*/}" \
-		|| echo_pre_space "x WAV     <- ${file_name##*/}"
+		&& echo_pre_space "✓ WAV     <- ${uade_files##*/}" \
+		|| echo_pre_space "x WAV     <- ${uade_files##*/}"
 fi
 }
 cmd_vgm2wav() {
@@ -2738,71 +2738,87 @@ if (( "${#lst_uade[@]}" )); then
 	# Reset WAV array
 	lst_wav=()
 
+	# FLAC function
+	make_flac() {
+		# Tag
+		tag_song
+		tag_tracker_music "uade"
+		tag_album
+		# Remove silence
+		wav_remove_silent
+		# Fade out
+		wav_fade_out
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
+		# Flac conversion
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape \
+		&& wav2opus
+	}
+
 	# User info - Title
 	display_loop_title "uade" "Amiga / Tracker"
 
-	display_convert_title "WAV"
-	for files in "${lst_uade[@]}"; do
+	display_convert_title "LINE"
+	for uade_files in "${lst_uade[@]}"; do
 		# Tag
 		tag_questions
+		tag_tracker_music "uade"
 
 		# Get total track
-		total_track=$("$uade123_bin" -g "$files" 2>/dev/null \
+		total_track=$("$uade123_bin" -g "$uade_files" 2>/dev/null \
 						| grep "subsongs:"  | awk '/^subsongs:/ { print $NF }')
-		current_track=$("$uade123_bin" -g "$files" 2>/dev/null \
+		current_track=$("$uade123_bin" -g "$uade_files" 2>/dev/null \
 						| grep "subsongs:" | awk '/^subsongs:/ { print $3 }')
 		diff_track=$(( total_track - current_track ))
 
-		# Wav loop
+		# Convertion
 		# No sub_tracks
 		if [[ "$diff_track" = "0" ]]; then
 			# Filename construction
 			sub_track="0"
-			file_name="${files%.*}"
+			# For uade output
+			file_name="${uade_files%.*}"
+			# For FLAC encoding
+			files="${file_name}.wav"
 
-			# Record output name
-			lst_wav+=( "${file_name}".wav )
-
-			# Wav extract
-			(
+			# WAV
 			cmd_uade
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
+			# FLAC
+			make_flac
 
 		# With sub_tracks
 		else
 			for sub_track in $(seq -w "$current_track" "$total_track"); do
 				# Filename construction
-				if [[ -z "${files##*.}" ]]; then
-					file_name="${files}-$sub_track"
-					all_sub_track+=( "${files}-${sub_track}.wav" )
+				if [[ -z "${uade_files##*.}" ]]; then
+					file_name="${uade_files}-$sub_track"
+					all_sub_track+=( "${uade_files}-${sub_track}.wav" )
 				else
-					file_name="${files%.*}-$sub_track"
-					all_sub_track+=( "${files%.*}-${sub_track}.wav" )
+					file_name="${uade_files%.*}-$sub_track"
+					all_sub_track+=( "${uade_files%.*}-${sub_track}.wav" )
 				fi
+				# For FLAC encoding
+				files="${file_name}.wav"
 
-				# Record output name
-				lst_wav+=( "${file_name}".wav )
-
-				# Wav extract
-				(
+				# WAV
 				cmd_uade
-				) &
-				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-					wait -n
-				fi
+				# FLAC
+				make_flac
 			done
-			wait
 
-			# Filename construction
-			if [[ -z "${files##*.}" ]]; then
-				file_name="${files}-full"
-			else
-				file_name="${files%.*}-full"
-			fi
 			# Contruct one file with all subsongs
+			# Filename construction
+			if [[ -z "${uade_files##*.}" ]]; then
+				file_name="${uade_files}-full"
+			else
+				file_name="${uade_files%.*}-full"
+			fi
+			# For FLAC encoding
+			files="${file_name}.wav"
+
+			# Merge files
 			if [[ "$verbose" = "1" ]]; then
 				sox -V3  $(printf '%s ' "${all_sub_track[@]}") "${file_name}.wav"
 			else
@@ -2810,39 +2826,17 @@ if (( "${#lst_uade[@]}" )); then
 					&& echo_pre_space "✓ WAV     <- ${file_name##*/}" \
 					|| echo_pre_space "x WAV     <- ${file_name##*/}"
 			fi
-			# Record output name
-			lst_wav+=( "${file_name}".wav )
 			# Reset
 			all_sub_track=()
+
+			# FLAC
+			make_flac
+
 		fi
 	done
-	wait
 
-	# Flac loop
-	display_convert_title "FLAC"
-	for files in "${lst_wav[@]}"; do
-			# Tag
-			tag_song
-			tag_tracker_music
-			tag_album
-			# Remove silence
-			wav_remove_silent
-			# Fade out
-			wav_fade_out
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
-			# Flac conversion
-			(
-			wav2flac \
-			&& wav2wavpack \
-			&& wav2ape \
-			&& wav2opus
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-				wait -n
-			fi
-	done
-	wait
+	# Reset
+	unset tag_tracker_music
 fi
 }
 loop_vgm2wav() {				# Various machines
@@ -3020,28 +3014,14 @@ if (( "${#lst_xmp[@]}" )); then
 	tag_machine="Tracker"
 	tag_questions
 
-
-	# Wav loop
-	display_convert_title "WAV"
+	# Loop
+	display_convert_title "LINE"
 	for files in "${lst_xmp[@]}"; do
-		# Record output name
-		lst_wav+=( "${files%.*}".wav )
 		# Extract WAV
-		(
 		cmd_xmp
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
-	done
-	wait
-
-	# Flac loop
-	display_convert_title "FLAC"
-	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		tag_tracker_music
+		tag_tracker_music "xmp"
 		tag_album
 		# Remove silence
 		wav_remove_silent
@@ -3327,32 +3307,17 @@ if (( "${#lst_zxtune_various[@]}" )); then
 	tag_questions
 
 
-	# Wav loop
-	display_convert_title "WAV"
+	# Loop
+	display_convert_title "LINE"
 	for files in "${lst_zxtune_various[@]}"; do
 		# Filename contruction
 		file_name=$(basename "${files%.*}")
 		file_name_random=$(( RANDOM % 10000 ))
-
-		# Record output name
-		lst_wav+=( "${file_name}".wav )
-
 		# Extract WAV
-		(
 		cmd_zxtune_various
-		) &
-		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-			wait -n
-		fi
-	done
-	wait
-
-	# Flac loop
-	display_convert_title "FLAC"
-	for files in "${lst_wav[@]}"; do
 		# Tag
 		tag_song
-		tag_tracker_music
+		tag_tracker_music "zxtune"
 		tag_album
 		# Remove silence
 		wav_remove_silent
@@ -3885,109 +3850,18 @@ if [[ -z "$tag_machine" ]]; then
 fi
 }
 tag_tracker_music() {			# Tracker music
-if [[ -f "${files%.*}.669" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Composer 669"
-elif [[ -f "${files%.*}.aam" ]] || [[ -f "${files%.*}.AAM" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Art & Magic Module"
-elif [[ -f "${files%.*}.abk" ]] || [[ -f "${files%.*}.ABK" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="AMOS Music Bank"
-elif [[ -f "${files%.*}.adsc" ]] || [[ -f "${files%.*}.ADSC" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Audio Sculpture"
-elif [[ -f "${files%.*}.ahx" ]] || [[ -f "${files%.*}.AHX" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Abyss Highest eXperience"
-elif [[ -f "${files%.*}.amc" ]] || [[ -f "${files%.*}.AMC" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="A.M.Composer"
-elif [[ -f "${files%.*}.amf" || -f "${files%.*}.AMF" ]]; then
-	tag_machine="Tracker"
-	#tag_tracker_music="Asylum Music Format"
-	#tag_tracker_music="Advanced Module Format"
-elif [[ -f "${files%.*}.ams" ]] || [[ -f "${files%.*}.AMS" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Extreme's Tracker module"
-elif [[ -f "${files%.*}.aon" ]] || [[ -f "${files%.*}.AON" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Art of Noise"
-elif [[ -f "${files%.*}.ast" ]] || [[ -f "${files%.*}.AST" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Actionamics Sound Tool"
-elif [[ -f "${files%.*}.bss" ]] || [[ -f "${files%.*}.BSS" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Beathoven Synthesiser"
-elif [[ -f "${files%.*}.bp" ]] || [[ -f "${files%.*}.BP" ]] \
-  || [[ -f "${files%.*}.bp3" ]] || [[ -f "${files%.*}.BP3" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Brian Postma SoundMon"
-elif [[ -f "${files%.*}.cus" ]] || [[ -f "${files%.*}.CUS" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Delitracker Customplay"
-elif [[ -f "${files%.*}.dbm" ]] || [[ -f "${files%.*}.DBM" ]] \
-  || [[ -f "${files%.*}.digi" ]] || [[ -f "${files%.*}.DIGI" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="DigiBooster"
-elif [[ -f "${files%.*}.dm" ]] || [[ -f "${files%.*}.DM" ]] \
-  || [[ -f "${files%.*}.dm2" ]] || [[ -f "${files%.*}.DM2" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Delta Music"
-elif [[ -f "${files%.*}.dmu" ]] || [[ -f "${files%.*}.DMU" ]] \
-  || [[ -f "${files%.*}.mug" ]] || [[ -f "${files%.*}.MUG" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Digital Mugician"
-elif [[ -f "${files%.*}.dmf" ]] || [[ -f "${files%.*}.DMF" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="X-Tracker"
-elif [[ -f "${files%.*}.dsm" ]] || [[ -f "${files%.*}.DSM" ]] \
-  || [[ -f "${files%.*}.dsym" ]] || [[ -f "${files%.*}.DSYM" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Digital Symphony Module"
-elif [[ -f "${files%.*}.dss" ]] || [[ -f "${files%.*}.DSS" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Digital Sound Studio"
-elif [[ -f "${files%.*}.dtm" ]] || [[ -f "${files%.*}.DTM" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Digital Tracker Module"
-elif [[ -f "${files%.*}.dtt" ]] || [[ -f "${files%.*}.DTT" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="DeskTop Tracker"
-elif [[ -f "${files%.*}.ea" ]] || [[ -f "${files%.*}.EA" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="EarAche"
-elif [[ -f "${files%.*}.eup" ]] || [[ -f "${files%.*}.EUP" ]] \
-  || [[ -f "${files%.*}.fmb" ]] || [[ -f "${files%.*}.FMB" ]] \
-  || [[ -f "${files%.*}.pmb" ]] || [[ -f "${files%.*}.PMB" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="EUPHONY Module"
-elif [[ -f "${files%.*}.far" ]] || [[ -f "${files%.*}.FAR" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Farandole Composer"
-elif [[ -f "${files%.*}.hlv" ]] || [[ -f "${files%.*}.HLV" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Hively Tracker"
-elif [[ -f "${files%.*}.hot" ]] || [[ -f "${files%.*}.HOT" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Anders 0land"
-elif [[ -f "${files%.*}.mdl" ]] || [[ -f "${files%.*}.MDL" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Digitrakker module"
-elif [[ -f "${files%.*}.musx" ]] || [[ -f "${files%.*}.MUSX" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Archimedes Tracker"
-elif [[ -f "${files%.*}.plm" ]] || [[ -f "${files%.*}.PLM" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Disorder Tracker Module"
-elif [[ -f "${files%.*}.psm" ]] || [[ -f "${files%.*}.PSM" ]]; then
-	tag_machine="Tracker"
-	tag_tracker_music="Epic Megagames MASI"
-elif [[ -f "${files%.*}.v2m" ]] || [[ -f "${files%.*}.V2M" ]]; then
-	tag_tracker_music="Farbrausch V2M"
-	tag_machine="Tracker"
-else
-	tag_machine="Amiga"
+local loop
+
+loop="$1"
+
+if [[ "$loop" = "uade" ]]; then
+	tag_tracker_music=$("$uade123_bin" -g "$uade_files" | grep "playername:" | sed 's/^.*: //')
+fi
+if [[ "$loop" = "xmp" ]]; then
+	tag_tracker_music=$("$xmp_bin" "$files" --load-only 2>&1 | grep "Module type" | sed 's/^.*: //')
+fi
+if [[ "$loop" = "zxtune" ]]; then
+	tag_tracker_music=$("$zxtune123_bin" "$files" --null 2>&1 | grep Program | sed 's/^.*: //')
 fi
 }
 tag_vgm() {						# Various machines
