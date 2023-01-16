@@ -272,3 +272,4 @@ tar -xf zxtune123_r5020_x86_64.tar.bz2 && rm zxtune123_r5020_x86_64.tar.bz2
 
 ## TODO
 * .eup .fmb .pmb : EUPHONY Module https://github.com/gzaffin/eupmini
+* .uni : MikMod Module https://github.com/Sembiance/mikmod2wav https://github.com/sezero/mikmod

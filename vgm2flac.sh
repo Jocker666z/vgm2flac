@@ -1604,8 +1604,7 @@ if (( "${#lst_adplay[@]}" )); then
 	display_loop_title "adplay" "PC AdLib"
 
 	# Tag
-	tag_machine="PC"
-	tag_tracker_music="AdLib"
+	tag_machine="PC AdLib"
 	tag_questions
 
 	# Wav loop
@@ -3632,6 +3631,9 @@ for line in "${source_tag[@]}"; do
 	if [[ "$line" == "Author"* ]]; then
 		tag_artist=$(echo "$line" | sed 's/^.*: //')
 	fi
+	if [[ "$line" == "Type"* ]]; then
+		tag_tracker_music=$(echo "$line" | sed 's/^.*: //')
+	fi
 done
 
 if [[ -z "$tag_artist" ]]; then
@@ -3849,7 +3851,7 @@ if [[ -z "$tag_machine" ]]; then
 	tag_machine="SNES"
 fi
 }
-tag_tracker_music() {			# Tracker music
+tag_tracker_music() {			# Tracker music module
 local loop
 
 loop="$1"
