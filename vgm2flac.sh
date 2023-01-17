@@ -777,7 +777,6 @@ xmp_bin
 zxtune123_bin_source_list
 
 # Local variables
-local ext_test_result
 local adlib_test_result
 local vgmstream_test_result
 local uade_test_result
