@@ -2798,12 +2798,10 @@ if (( "${#lst_uade[@]}" )); then
 					all_sub_track+=( "${uade_files%.*}-${sub_track}.wav" )
 				fi
 				# For FLAC encoding
-				files="${file_name}.wav"
+				lst_wav+=("${file_name%.*}".wav)
 
 				# WAV
 				cmd_uade
-				# FLAC
-				make_flac
 			done
 
 			# Contruct one file with all subsongs
@@ -2814,21 +2812,28 @@ if (( "${#lst_uade[@]}" )); then
 				file_name="${uade_files%.*}-full"
 			fi
 			# For FLAC encoding
-			files="${file_name}.wav"
+			lst_wav+=("${file_name%.*}".wav)
 
 			# Merge files
 			if [[ "$verbose" = "1" ]]; then
-				sox -V3  $(printf '%s ' "${all_sub_track[@]}") "${file_name}.wav"
+				ffmpeg $ffmpeg_log_lvl -f concat -safe 0 \
+					-i <(for f in "${all_sub_track[@]}"; do echo "file '$f'"; done) \
+					-c copy "${file_name}.wav"
 			else
-				sox $(printf '%s ' "${all_sub_track[@]}") "${file_name}.wav" &>/dev/null \
+				ffmpeg $ffmpeg_log_lvl -f concat -safe 0 \
+					-i <(for f in "${all_sub_track[@]}"; do echo "file '$f'"; done) \
+					-c copy "${file_name}.wav" &>/dev/null \
 					&& echo_pre_space "✓ WAV     <- ${file_name##*/}" \
 					|| echo_pre_space "x WAV     <- ${file_name##*/}"
 			fi
-			# Reset
-			all_sub_track=()
 
 			# FLAC
-			make_flac
+			for files in "${lst_wav[@]}"; do
+				make_flac
+			done
+
+			# Reset
+			all_sub_track=()
 
 		fi
 	done
