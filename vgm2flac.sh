@@ -2834,7 +2834,7 @@ if (( "${#lst_uade[@]}" )); then
 
 			# Reset
 			all_sub_track=()
-
+			lst_wav=()
 		fi
 	done
 
