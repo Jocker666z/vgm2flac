@@ -1115,24 +1115,43 @@ if [[ -f "${files%.*}".wav ]]; then
 	local channel_nb
 	local left_md5
 	local right_md5
+	local testdb_stereo
 	local afilter
 
-	# Channel test mono or stereo
-	if [[ "$force_stereo" = "1" ]]; then
-		channel_nb=$(ffprobe -show_entries stream=channels -of compact=p=0:nk=1 -v 0 "${files%.*}".wav)
-		if [[ "$channel_nb" != "2" ]]; then
-			# Encoding Wav
-			ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
-				-channel_layout stereo \
-				-acodec "$default_wav_bit_depth" \
-				-f wav temp-out.wav
-			rm "${files%.*}".wav &>/dev/null
-			mv temp-out.wav "${files%.*}".wav &>/dev/null
-		fi
-	else
+	# Inital test of channel number
+	channel_nb=$(ffprobe -show_entries stream=channels -of compact=p=0:nk=1 -v 0 "${files%.*}".wav)
+
+	# If force stereo
+	if [[ "$force_stereo" = "1" ]] && [[ "$channel_nb" != "2" ]]; then
+
+		# Encoding Wav
+		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
+			-channel_layout stereo \
+			-acodec "$default_wav_bit_depth" \
+			-f wav temp-out.wav
+		rm "${files%.*}".wav &>/dev/null
+		mv temp-out.wav "${files%.*}".wav &>/dev/null
+
+	# If stereo = test false mono
+	elif [[ "$channel_nb" = "2" ]]; then
+
+		# md5 test
 		left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
 		right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
-		if [ "$left_md5" = "$right_md5" ]; then
+
+		# Get db difference between channel
+		if [[ "$left_md5" != "$right_md5" ]]; then
+			testdb_stereo=$(ffmpeg -i "${files%.*}".wav \
+							-filter:a "pan=1c|c0=c0-c1,astats=measure_perchannel=none:measure_overall=RMS_level" \
+							-f null /dev/null 2>&1 \
+							| grep "RMS level dB" | awk '{print $NF;}')
+			testdb_stereo="${testdb_stereo%.*}"
+			testdb_stereo="${testdb_stereo#-}"
+		fi
+
+		# If left_md5=right_md5
+		# If difference between channel is lower than -85db = noise db diff
+		if [[ "$testdb_stereo" -gt "85" ]] || [[ "$left_md5" = "$right_md5" ]]; then
 			# Encoding Wav
 			ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
 				-channel_layout mono \
@@ -1144,6 +1163,7 @@ if [[ -f "${files%.*}".wav ]]; then
 			# Record for summary
 			lst_wav_in_mono+=( "${files%.*}.wav" )
 		fi
+
 	fi
 
 	# Volume normalization
@@ -1369,18 +1389,18 @@ fi
 }
 cmd_sidplayfp() {
 if [[ "$verbose" = "1" ]]; then
-	"$sidplayfp_bin" -w "$files"
+	"$sidplayfp_bin" -v -s -w "$files"
 else
-	"$sidplayfp_bin" -q -w "$files" &>/dev/null \
+	"$sidplayfp_bin" -q -s -w "$files" &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
 		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_sidplayfp_duration() {
 if [[ "$verbose" = "1" ]]; then
-	"$sidplayfp_bin" "$files" -w -t"$sid_default_max_duration"
+	"$sidplayfp_bin" "$files" -v -s -w -t"$sid_default_max_duration"
 else
-	"$sidplayfp_bin" "$files" -q -w -t"$sid_default_max_duration" &>/dev/null \
+	"$sidplayfp_bin" "$files" -q -s -w -t"$sid_default_max_duration" &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
 		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi

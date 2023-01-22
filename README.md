@@ -39,7 +39,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * FLAC default quality is: 16 bits with compression level `--best -e`
 * Default decoding/encoding loop:
 	* vgm encoding in WAV
-	* false stereo detection (md5 channel test)
+	* false stereo detection (md5 channel + noise db compare)
 	* apply fade out (if necessary or forced), remove audio silence (optional), peak normalisation to -1db
 	* WAV encoding in FLAC
 	* optional: compress to Monkes's Audio at level `-c5000`
