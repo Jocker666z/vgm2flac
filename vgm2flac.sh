@@ -42,10 +42,9 @@ default_opus_bitrate="256"
 sc68_loops="1"
 ## Commodore 64/128
 hvsc_directory=""																			# Directory containing extracted archive of https://hvsc.c64.org/downloads
-export HVSC_BASE="$hvsc_directory"															# Env variable for sidplayfp
 sid_default_max_duration="360"																# Max track duration in second
 ## Game Boy, NES, PC-Engine
-xxs_default_max_duration="360"																# In second
+xxs_default_max_duration="360"																# Max track duration in second
 ## Midi
 fluidsynth_soundfont=""																		# Set soundfont file that fluidsynth will use for the conversion, leave empty it will use the default soundfont
 munt_rom_path=""																			# Set munt ROM dir (Roland MT-32 ROM)
@@ -1064,20 +1063,27 @@ if [[ -f "${files%.*}".wav ]]; then
 		local test_duration
 		local duration
 		local sox_fade_in
+		local sox_fade_out
 
 		# Out fade, if audio during more than 10s
 		test_duration=$(ffprobe -i "${files%.*}".wav \
 						-show_format -v quiet | grep duration \
 						| sed 's/.*=//' | cut -f1 -d".")
-		if ! [[ "$test_duration" = "N/A" ]]; then			 # If not a bad file
+
+		# If file have duration
+		if ! [[ "$test_duration" = "N/A" ]]; then
+
+			# If file have more than 10s
 			if [[ "$test_duration" -gt 10 ]]; then
 				duration=$(soxi -d "${files%.*}".wav)
 				sox_fade_in="0:0.0"
 				if [[ -z "$imported_sox_fade_out" ]]; then
-					local sox_fade_out="0:$default_wav_fade_out"
+					sox_fade_out="0:$default_wav_fade_out"
 				else
-					local sox_fade_out="0:$imported_sox_fade_out"
+					sox_fade_out="0:$imported_sox_fade_out"
 				fi
+
+				# Apply fade out
 				if [[ "$verbose" = "1" ]]; then
 					sox -V3 "${files%.*}".wav temp-out.wav \
 						fade t "$sox_fade_in" "$duration" "$sox_fade_out"
@@ -1085,9 +1091,12 @@ if [[ -f "${files%.*}".wav ]]; then
 					sox "${files%.*}".wav temp-out.wav \
 						fade t "$sox_fade_in" "$duration" "$sox_fade_out" &>/dev/null
 				fi
+
+				# Clean
 				rm "${files%.*}".wav &>/dev/null
 				mv temp-out.wav "${files%.*}".wav &>/dev/null
 			fi
+
 		fi
 
 	fi
@@ -2508,9 +2517,19 @@ if (( "${#lst_sidplayfp_sid[@]}" )); then
 
 	# Local variable
 	local test_duration
+	local hvsc_db
 
 	# Reset WAV array
 	lst_wav=()
+
+	# https://hvsc.c64.org/ db test
+	hvsc_db_test=$(< /home/$USER/.config/sidplayfp/sidplayfp.ini grep "Songlengths")
+	if [[ -n "$hvsc_directory" ]]; then
+		hvsc_db="1"
+		export HVSC_BASE="$hvsc_directory"
+	elif [[ -n "$hvsc_db_test" ]]; then
+		hvsc_db="1"
+	fi
 
 	# User info - Title
 	display_loop_title "sidplayfp" "Commodore 64/128"
@@ -2524,7 +2543,7 @@ if (( "${#lst_sidplayfp_sid[@]}" )); then
 
 		# Wav loop by track
 		display_convert_title "WAV"
-		if [[ -z "$hvsc_directory" ]]; then
+		if [[ -z "$hvsc_db" ]]; then
 			cmd_sidplayfp_duration
 		else
 			cmd_sidplayfp
