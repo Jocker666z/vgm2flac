@@ -2840,7 +2840,7 @@ if (( "${#lst_uade[@]}" )); then
 
 			# Contruct one file with all subsongs
 			# Filename construction
-			file_name="${uade_files}-full"
+			file_name="${uade_files}"
 			# For FLAC encoding
 			lst_wav+=("${file_name}".wav)
 
