@@ -153,19 +153,20 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * https://github.com/Sembiance/dexvert/blob/master/SUPPORTED.md
 
 ## Files specification
-* GBS spec: https://ocremix.org/info/GBS_Format_Specification
-* GSF spec: https://www.caitsith2.com/gsf/gsf%20spec.txt
-* HES spec: http://www.purose.net/befis/download/nezplug/hesspec.txt
-* KSS spec: https://ocremix.org/info/KSS_Format_Specification
-* MDX spec: https://github.com/vampirefrog/mdxtools/blob/master/docs/MDX.md
-* NSF spec: https://wiki.nesdev.org/w/index.php/NSF
-* NSFe spec: https://wiki.nesdev.org/w/index.php/NSFe
-* SGC spec: https://ocremix.org/info/SGC_Format_Specification
-* SAP spec: https://asap.sourceforge.net/sap-format.html
-* SC68 spec: http://sc68.atari.org/developers_fileformat.html
-* SNSF spec: https://snsf.caitsith2.net/snsf%20spec.txt
-* SPC spec: https://ocremix.org/info/SPC_Format_Specification
-* PSF spec: https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
+* GBS  https://ocremix.org/info/GBS_Format_Specification
+* GSF  https://www.caitsith2.com/gsf/gsf%20spec.txt
+* HES  http://www.purose.net/befis/download/nezplug/hesspec.txt
+* KSS  https://ocremix.org/info/KSS_Format_Specification
+* MDX  https://github.com/vampirefrog/mdxtools/blob/master/docs/MDX.md
+* NSF  https://wiki.nesdev.org/w/index.php/NSF
+* NSFe https://wiki.nesdev.org/w/index.php/NSFe
+* SGC  https://ocremix.org/info/SGC_Format_Specification
+* SAP  https://asap.sourceforge.net/sap-format.html
+* SID  https://ocremix.org/info/SID_Format_Specification
+* SC68 http://sc68.atari.org/developers_fileformat.html
+* SNSF https://snsf.caitsith2.net/snsf%20spec.txt
+* SPC  https://ocremix.org/info/SPC_Format_Specification
+* PSF  https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
 
 ## Dependencies installation:
 ### asap

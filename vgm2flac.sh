@@ -1389,18 +1389,18 @@ fi
 }
 cmd_sidplayfp() {
 if [[ "$verbose" = "1" ]]; then
-	"$sidplayfp_bin" -v -s -w "$files"
+	"$sidplayfp_bin" -v --digiboost -s -w "$files"
 else
-	"$sidplayfp_bin" -q -s -w "$files" &>/dev/null \
+	"$sidplayfp_bin" -q --digiboost -s -w "$files" &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
 		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_sidplayfp_duration() {
 if [[ "$verbose" = "1" ]]; then
-	"$sidplayfp_bin" "$files" -v -s -w -t"$sid_default_max_duration"
+	"$sidplayfp_bin" "$files" -v --digiboost -s -w -t"$sid_default_max_duration"
 else
-	"$sidplayfp_bin" "$files" -q -s -w -t"$sid_default_max_duration" &>/dev/null \
+	"$sidplayfp_bin" "$files" -q --digiboost -s -w -t"$sid_default_max_duration" &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
 		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
@@ -2816,7 +2816,7 @@ if (( "${#lst_uade[@]}" )); then
 			# Filename construction
 			sub_track="0"
 			# For uade output
-			file_name="${uade_files%.*}"
+			file_name="${uade_files}"
 			# For FLAC encoding
 			files="${file_name}.wav"
 
@@ -2829,15 +2829,10 @@ if (( "${#lst_uade[@]}" )); then
 		else
 			for sub_track in $(seq -w "$current_track" "$total_track"); do
 				# Filename construction
-				if [[ -z "${uade_files##*.}" ]]; then
-					file_name="${uade_files}-$sub_track"
-					all_sub_track+=( "${uade_files}-${sub_track}.wav" )
-				else
-					file_name="${uade_files%.*}-$sub_track"
-					all_sub_track+=( "${uade_files%.*}-${sub_track}.wav" )
-				fi
+				file_name="${uade_files}-$sub_track"
+				all_sub_track+=( "${uade_files}-${sub_track}.wav" )
 				# For FLAC encoding
-				lst_wav+=("${file_name%.*}".wav)
+				lst_wav+=("${file_name}".wav)
 
 				# WAV
 				cmd_uade
@@ -2845,13 +2840,9 @@ if (( "${#lst_uade[@]}" )); then
 
 			# Contruct one file with all subsongs
 			# Filename construction
-			if [[ -z "${uade_files##*.}" ]]; then
-				file_name="${uade_files}-full"
-			else
-				file_name="${uade_files%.*}-full"
-			fi
+			file_name="${uade_files}-full"
 			# For FLAC encoding
-			lst_wav+=("${file_name%.*}".wav)
+			lst_wav+=("${file_name}".wav)
 
 			# Merge files
 			if [[ "$verbose" = "1" ]]; then
