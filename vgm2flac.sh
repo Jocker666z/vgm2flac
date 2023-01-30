@@ -79,8 +79,15 @@ ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|mi
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 # Extensions exclude
-ext_input_exclude="ape|avi|flac|m4a|mp3|mp4|mkv|opus|psflib|txth|wav|wv"
-ext_all_raw="${ext_input_exclude}| \
+ext_video_exclude="avi|mp4|mkv"
+ext_audio_exclude="ape|flac|m4a|mp3|ogg|opus|wav|wv"
+ext_archive_exclude="7z|rar|zip"
+ext_lib_exclude="psflib|txth"
+ext_all_raw="${ext_video_exclude}| \
+			 ${ext_audio_exclude}| \
+			 ${ext_archive_exclude}| \
+			 ${ext_lib_exclude}| \
+			 ${ext_asapconv}| \
 			 ${ext_asapconv}| \
 			 ${ext_bchunk_cue}| \
 			 ${ext_bchunk_iso}| \
