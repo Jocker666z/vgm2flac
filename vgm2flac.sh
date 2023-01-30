@@ -863,7 +863,7 @@ if (( "${#lst_all_files[@]}" )); then
 				if (( "${#adplay_bin}" )) \
 				&& [[ "${#uade_test_result}" -eq "0" ]] \
 				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
-					adlib_test_result=$(timeout 0.01 "$adplay_bin" "$files" --output=null 2>&1 | grep "Title")
+					adlib_test_result=$(timeout 0.01 "$adplay_bin" "$files" --output=null 2>&1 | grep "Title :")
 						if [[ "${#adlib_test_result}" -gt "0" ]]; then
 							lst_adplay+=("$files")
 						fi
