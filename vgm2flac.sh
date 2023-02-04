@@ -1385,7 +1385,7 @@ fi
 }
 cmd_sc68() {
 if [[ "$verbose" = "1" ]]; then
-	"$sc68_bin" -qqq -l "$sc68_loops" -t "$sub_track" "$sc68_files" --stdout \
+	"$sc68_bin" -v -l "$sc68_loops" -t "$sub_track" "$sc68_files" --stdout \
 		| sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer - "$final_file_name".wav
 else
 	"$sc68_bin" -qqq -l "$sc68_loops" -t "$sub_track" "$sc68_files" --stdout \
