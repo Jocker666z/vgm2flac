@@ -873,20 +873,20 @@ if (( "${#lst_all_files[@]}" )); then
 				&& [[ "${#uade_test_result}" -eq "0" ]] \
 				&& [[ "${#adlib_test_result}" -eq "0" ]] \
 				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
-					zxtune_test_result=$("$zxtune123_bin" "$files" --null 2>&1)
-						if [[ "${#zxtune_test_result}" -gt "0" ]]; then
-							lst_zxtune_various+=("$files")
+					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+						if [[ "${#vgmstream_test_result}" -gt "0" ]]; then
+							lst_vgmstream+=("$files")
 						fi
 				fi
 
 				if (( "${#vgmstream_cli_bin}" )) \
 				&& [[ "${#uade_test_result}" -eq "0" ]] \
 				&& [[ "${#adlib_test_result}" -eq "0" ]] \
-				&& [[ "${#zxtune_test_result}" -eq "0" ]] \
+				&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
 				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
-					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-						if [[ "${#vgmstream_test_result}" -gt "0" ]]; then
-							lst_vgmstream+=("$files")
+					zxtune_test_result=$("$zxtune123_bin" "$files" --null 2>&1)
+						if [[ "${#zxtune_test_result}" -gt "0" ]]; then
+							lst_zxtune_various+=("$files")
 						fi
 				fi
 
