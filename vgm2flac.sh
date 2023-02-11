@@ -80,7 +80,7 @@ ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 # Extensions exclude
 ext_video_exclude="avi|mp4|mkv"
-ext_audio_exclude="ape|flac|m4a|mp3|ogg|opus|wav|wv"
+ext_audio_exclude="ape|flac|kss|m4a|mp3|ogg|opus|wav|wv"
 ext_archive_exclude="7z|rar|zip"
 ext_lib_exclude="psflib|txth"
 ext_all_raw="${ext_video_exclude}| \
