@@ -119,7 +119,7 @@ local system_bin_location
 bin_name="adplay"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	adplay_bin="$system_bin_location"
 else
 	echo_pre_space "Warning, $bin_name is not installed; AdLib files will not be detected"
@@ -132,7 +132,7 @@ local system_bin_location
 bin_name="asapconv"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	asapconv_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -146,7 +146,7 @@ local system_bin_location
 bin_name="bchunk"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	bchunk_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -186,7 +186,7 @@ local system_bin_location
 bin_name="flac"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	flac_bin="$system_bin_location"
 	flac_version="$(flac --version) $default_flac_lvl"
 fi
@@ -199,7 +199,7 @@ bin_name="fluidsynth"
 system_bin_location=$(command -v $bin_name)
 
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	if [[ -z "$fluidsynth_soundfont" ]]; then
 		echo_pre_space "Warning, the variable (fluidsynth_soundfont) indicating the location"
 		echo_pre_space "of the soundfont to use is not filled in, the result can be disgusting."
@@ -222,7 +222,7 @@ local system_bin_location
 bin_name="info68"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	info68_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -236,7 +236,7 @@ local system_bin_location
 bin_name="metaflac"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	metaflac_bin="$system_bin_location"
 fi
 }
@@ -247,7 +247,7 @@ local system_bin_location
 bin_name="mednafen"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	sc68_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -261,7 +261,7 @@ local system_bin_location
 bin_name="mac"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	mac_bin="$system_bin_location"
 	mac_version="Monkey's Audio $(mac 2>&1 | head -1 \
 					| awk -F"[()]" '{print $2}' | tr -d ' ') $default_mac_lvl"
@@ -274,7 +274,7 @@ local system_bin_location
 bin_name="mt32emu-smf2wav"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	if [[ -z "$munt_rom_path" ]]; then
 		echo "Break, the variable (munt_rom_path) indicating the location of the Roland MT-32 ROM must be filled in. See documentation."
 		exit
@@ -295,7 +295,7 @@ local system_bin_location
 bin_name="nsf2wav"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	nsfplay_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -309,7 +309,7 @@ local system_bin_location
 bin_name="opusenc"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	opusenc_bin="$system_bin_location"
 fi
 }
@@ -320,7 +320,7 @@ local system_bin_location
 bin_name="sc68"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	sc68_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -334,7 +334,7 @@ local system_bin_location
 bin_name="sidplayfp"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	sidplayfp_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -355,7 +355,7 @@ local system_bin_location
 bin_name="simple_mdx2wav"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	mdx2wav_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -369,7 +369,7 @@ local system_bin_location
 bin_name="vgm2wav"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	vgm2wav_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -381,7 +381,7 @@ local bin_name="vgmstream-cli"
 local system_bin_location
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	vgmstream_cli_bin="$system_bin_location"
 else
 	echo_pre_space "Warning, $bin_name is not installed; Various machines files will not be detected"
@@ -394,7 +394,7 @@ local system_bin_location
 bin_name="vgm_tag"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	vgm_tag_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -408,7 +408,7 @@ local system_bin_location
 bin_name="uade123"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	uade123_bin="$system_bin_location"
 else
 	echo_pre_space "Warning, $bin_name is not installed; Amiga/Tracker music files will not be detected"
@@ -421,7 +421,7 @@ local system_bin_location
 bin_name="wavpack"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	wavpack_bin="$system_bin_location"
 	wavpack_version="$(wavpack --version | head -1) $default_wavpack_lvl"
 fi
@@ -433,7 +433,7 @@ local system_bin_location
 bin_name="wvtag"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	wvtag_bin="$system_bin_location"
 fi
 }
@@ -444,7 +444,7 @@ local system_bin_location
 bin_name="xmp"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	xmp_bin="$system_bin_location"
 else
 	echo_pre_space "Warning, $bin_name is not installed; Various tracker music files will not be detected"
@@ -457,7 +457,7 @@ local system_bin_location
 bin_name="zxtune123"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	zxtune123_bin="$system_bin_location"
 else
 	echo "Break, $bin_name is not installed"
@@ -471,7 +471,7 @@ local system_bin_location
 bin_name="zxtune123"
 system_bin_location=$(command -v $bin_name)
 
-if test -n "$system_bin_location"; then
+if [[ -n "$system_bin_location" ]]; then
 	zxtune123_bin="$system_bin_location"
 else
 	echo_pre_space "Warning, $bin_name is not installed; Various music files will not be detected"
@@ -793,7 +793,6 @@ xmp_bin
 zxtune123_bin_source_list
 
 # Local variables
-local adlib_test_result
 local vgmstream_test_result
 local uade_test_result
 local xmp_test_result
@@ -873,7 +872,6 @@ if (( "${#lst_all_files[@]}" )); then
 
 				if (( "${#vgmstream_cli_bin}" )) \
 				&& [[ "${#uade_test_result}" -eq "0" ]] \
-				&& [[ "${#adlib_test_result}" -eq "0" ]] \
 				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
 					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
 						if [[ "${#vgmstream_test_result}" -gt "0" ]]; then
@@ -883,7 +881,6 @@ if (( "${#lst_all_files[@]}" )); then
 
 				if (( "${#zxtune123_bin}" )) \
 				&& [[ "${#uade_test_result}" -eq "0" ]] \
-				&& [[ "${#adlib_test_result}" -eq "0" ]] \
 				&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
 				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
 					zxtune_test_result=$("$zxtune123_bin" "$files" --null 2>&1)
@@ -1737,7 +1734,8 @@ fi
 }
 loop_bchunk() {					# Various machines CDDA
 if (( "${#lst_bchunk_iso[@]}" )); then
-	if test -n "$bchunk"; then				# If bchunk="1" in list_source_files()
+	# If bchunk="1" in list_source_files()
+	if [[ -n "$bchunk" ]]; then
 
 		# Bin check & set
 		bchunk_bin
@@ -3517,22 +3515,22 @@ if (( "${#lst_flac[@]}" )); then
 fi
 }
 tag_questions() {
-if ! [[ "$only_wav" = "1" ]]; then
+if [[ "$only_wav" != "1" ]]; then
 
 	# Game
-	if test -z "$tag_game"; then
+	if [[ -z "$tag_game" ]]; then
 		read -r -e -p " Enter the game or album title: " tag_game
 		display_remove_previous_line
-		if test -z "$tag_game"; then
+		if [[ -z "$tag_game" ]]; then
 			tag_game="Unknown"
 		fi
 	fi
 
 	# Artist
-	if test -z "$tag_artist"; then
+	if [[ -z "$tag_artist" ]]; then
 		read -r -e -p " Enter the audio artist: " tag_artist
 		display_remove_previous_line
-		if test -z "$tag_artist"; then
+		if [[ -z "$tag_artist" ]]; then
 			tag_artist="Unknown"
 		fi
 	fi
@@ -3551,10 +3549,10 @@ if ! [[ "$only_wav" = "1" ]]; then
 	fi
 
 	# Machine
-	if test -z "$tag_machine"; then
+	if [[ -z "$tag_machine" ]]; then
 		read -r -e -p " Enter the release platform: " tag_machine
 		display_remove_previous_line
-		if test -z "$tag_machine"; then
+		if [[ -z "$tag_machine" ]]; then
 			tag_machine="NULL"
 		fi
 	fi
