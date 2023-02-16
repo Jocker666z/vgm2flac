@@ -476,9 +476,14 @@ if ! [[ -w "$PWD" ]]; then
 	fi
 fi
 }
-test_ffmpeg_capability() {
-# ffmpeg capabilities
-ffmpeg_test_libgme=$(ffmpeg -hide_banner -loglevel quiet -buildconf | grep "enable-libgme")
+ffmpeg_libgme() {
+local ffmpeg_libgme
+ffmpeg_libgme=$(ffmpeg -hide_banner -loglevel quiet -buildconf | grep "enable-libgm1e")
+
+if [[ -z "$ffmpeg_libgme" ]]; then
+	echo "Break, ffmpeg must be compiled with --enable-libgme"
+	exit
+fi
 }
 
 # Messages
@@ -1796,8 +1801,9 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 fi
 }
 loop_ffmpeg_gbs() {				# GB/GBC
-if (( "${#lst_ffmpeg_gbs[@]}" )) \
-&& [ -n "$ffmpeg_test_libgme" ]; then
+if (( "${#lst_ffmpeg_gbs[@]}" )); then
+	# Bin check & set
+	ffmpeg_libgme
 
 	# Local variables
 	local file_total_track
@@ -1890,8 +1896,9 @@ if (( "${#lst_ffmpeg_gbs[@]}" )) \
 fi
 }
 loop_ffmpeg_hes() {				# PC-Engine (HuC6280)
-if (( "${#lst_ffmpeg_hes[@]}" )) \
-&& [ -n "$ffmpeg_test_libgme" ]; then
+if (( "${#lst_ffmpeg_hes[@]}" )); then
+	# Bin check & set
+	ffmpeg_libgme
 
 	# Local variable
 	local total_sub_track
@@ -1963,8 +1970,9 @@ if (( "${#lst_ffmpeg_hes[@]}" )) \
 fi
 }
 loop_ffmpeg_spc() {				# SNES SPC
-if (( "${#lst_ffmpeg_spc[@]}" )) \
-&& [ -n "$ffmpeg_test_libgme" ]; then
+if (( "${#lst_ffmpeg_spc[@]}" )); then
+	# Bin check & set
+	ffmpeg_libgme
 
 	# Local variable
 	local spc_fading_second
@@ -4163,7 +4171,6 @@ fi
 # Bin check & set
 test_write_access
 common_bin
-test_ffmpeg_capability
 flac_bin
 metaflac_bin
 wavpack_bin

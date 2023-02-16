@@ -10,7 +10,7 @@ Bash tool for encoding various video game music files to FLAC.
 
 You will be able to run vgm2flac even if some dependencies are missing. The script will warn you if a dependency is not met depending on the file format to convert.
 
-* ffmpeg must be compiled with: `--enable-libgme --enable-libopenmpt --enable-nonfree`
+* ffmpeg must be compiled with: `--enable-libgme`
 * adplay: https://github.com/adplug/adplay-unix
 * asapconv: https://asap.sourceforge.net/
 * fluidsynth: https://www.fluidsynth.org/
