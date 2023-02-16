@@ -476,6 +476,10 @@ if ! [[ -w "$PWD" ]]; then
 	fi
 fi
 }
+test_ffmpeg_capability() {
+# ffmpeg capabilities
+ffmpeg_test_libgme=$(ffmpeg -hide_banner -loglevel quiet -buildconf | grep "enable-libgme")
+}
 
 # Messages
 cmd_usage() {
@@ -1792,7 +1796,8 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 fi
 }
 loop_ffmpeg_gbs() {				# GB/GBC
-if (( "${#lst_ffmpeg_gbs[@]}" )); then
+if (( "${#lst_ffmpeg_gbs[@]}" )) \
+&& [ -n "$ffmpeg_test_libgme" ]; then
 
 	# Local variables
 	local file_total_track
@@ -1885,7 +1890,8 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 fi
 }
 loop_ffmpeg_hes() {				# PC-Engine (HuC6280)
-if (( "${#lst_ffmpeg_hes[@]}" )); then
+if (( "${#lst_ffmpeg_hes[@]}" )) \
+&& [ -n "$ffmpeg_test_libgme" ]; then
 
 	# Local variable
 	local total_sub_track
@@ -1957,7 +1963,9 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 fi
 }
 loop_ffmpeg_spc() {				# SNES SPC
-if (( "${#lst_ffmpeg_spc[@]}" )); then
+if (( "${#lst_ffmpeg_spc[@]}" )) \
+&& [ -n "$ffmpeg_test_libgme" ]; then
+
 	# Local variable
 	local spc_fading_second
 	local spc_duration_total
@@ -4155,6 +4163,7 @@ fi
 # Bin check & set
 test_write_access
 common_bin
+test_ffmpeg_capability
 flac_bin
 metaflac_bin
 wavpack_bin
