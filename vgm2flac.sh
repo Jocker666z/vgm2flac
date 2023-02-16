@@ -58,6 +58,7 @@ vgm2wav_loops="2"
 vgmstream_loops="1"																			# Number of loop made by vgmstream
 
 # Extensions
+ext_adplay="adl|amd|bam|cff|cmf|d00|dfm|ddt|dtm|got|hsc|hsq|imf|laa|ksm|mdi|mtk|rad|rol|sdb|sqx|wlf|xms|xsm"
 ext_asapconv="sap"
 ext_bchunk_cue="cue"
 ext_bchunk_iso="bin|img|iso"
@@ -166,6 +167,15 @@ done
 if (( "${#command_fail[@]}" )); then
 	echo "vgm2flac break, the following dependencies are not installed:"
 	printf '  %s\n' "${command_fail[@]}"
+	exit
+fi
+}
+ffmpeg_libgme() {
+local ffmpeg_libgme
+ffmpeg_libgme=$(ffmpeg -hide_banner -loglevel quiet -buildconf | grep "enable-libgm1e")
+
+if [[ -z "$ffmpeg_libgme" ]]; then
+	echo "Break, ffmpeg must be compiled with --enable-libgme"
 	exit
 fi
 }
@@ -474,15 +484,6 @@ if ! [[ -w "$PWD" ]]; then
 		echo "vgm2flac fail: Current directory not writable"
 		exit
 	fi
-fi
-}
-ffmpeg_libgme() {
-local ffmpeg_libgme
-ffmpeg_libgme=$(ffmpeg -hide_banner -loglevel quiet -buildconf | grep "enable-libgm1e")
-
-if [[ -z "$ffmpeg_libgme" ]]; then
-	echo "Break, ffmpeg must be compiled with --enable-libgme"
-	exit
 fi
 }
 
@@ -800,6 +801,7 @@ local zxtune_test_result
 local progress_counter
 
 mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort -V)
+mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort -V)
 mapfile -t lst_asapconv < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_asapconv')$' 2>/dev/null | sort -V)
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort -V)
 mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_iso')$' 2>/dev/null | sort -V)
@@ -836,7 +838,7 @@ fi
 # vgmstream & uade test all files
 echo_pre_space "/ vgm2flac /"
 if (( "${#lst_all_files[@]}" )); then
-	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )) || (( "${#xmp_bin}" )) || (( "${#adplay_bin}" )); then
+	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )) || (( "${#xmp_bin}" )) || (( "${#zxtune123_bin}" )); then
 
 		display_separator
 		echo_pre_space "Files test:"
@@ -869,16 +871,7 @@ if (( "${#lst_all_files[@]}" )); then
 						fi
 				fi
 
-				if (( "${#adplay_bin}" )) \
-				&& [[ "${#uade_test_result}" -eq "0" ]] \
-				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
-					adlib_test_result=$(timeout 0.01 "$adplay_bin" "$files" --output=null 2>&1 | grep "Title :")
-						if [[ "${#adlib_test_result}" -gt "0" ]]; then
-							lst_adplay+=("$files")
-						fi
-				fi
-
-				if (( "${#zxtune123_bin}" )) \
+				if (( "${#vgmstream_cli_bin}" )) \
 				&& [[ "${#uade_test_result}" -eq "0" ]] \
 				&& [[ "${#adlib_test_result}" -eq "0" ]] \
 				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
@@ -888,7 +881,7 @@ if (( "${#lst_all_files[@]}" )); then
 						fi
 				fi
 
-				if (( "${#vgmstream_cli_bin}" )) \
+				if (( "${#zxtune123_bin}" )) \
 				&& [[ "${#uade_test_result}" -eq "0" ]] \
 				&& [[ "${#adlib_test_result}" -eq "0" ]] \
 				&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
