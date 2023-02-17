@@ -4231,6 +4231,10 @@ while [[ $# -gt 0 ]]; do
 	-o|--output)															# Set force output dir
 		shift
 		force_output_dir="$1"
+		if [[ -z "$force_output_dir" ]]; then
+			echo_pre_space "fail, output directory name is empty"
+			exit
+		fi
 	;;
 	--only_wav)
 		only_wav="1"														# Set force wav temp. files only
