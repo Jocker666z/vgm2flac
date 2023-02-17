@@ -4174,7 +4174,9 @@ opusenc_bin
 while [[ $# -gt 0 ]]; do
 	vgm2flac_args="$1"
 	case "$vgm2flac_args" in
-	--add_ape)																# Set Monkey's Audio compress too
+
+	# Set Monkey's Audio compress too
+	--add_ape)
 		if [[ -n "$mac_bin" ]]; then
 			ape_compress="1"
 		else
@@ -4182,7 +4184,9 @@ while [[ $# -gt 0 ]]; do
 			exit
 		fi
 	;;
-	--add_opus)																# Set Opus compress too
+
+	# Set Opus compress too
+	--add_opus)
 		if [[ -n "$opusenc_bin" ]]; then
 			opus_compress="1"
 		else
@@ -4190,7 +4194,9 @@ while [[ $# -gt 0 ]]; do
 			exit
 		fi
 	;;
-	--add_wavpack)															# Set WAVPACK compress too
+
+	# Set WAVPACK compress too
+	--add_wavpack)
 		if [[ -n "$wavpack_bin" ]] || [[ -n "$wvtag_bin" ]]; then
 			wavpack_compress="1"
 		else
@@ -4198,11 +4204,15 @@ while [[ $# -gt 0 ]]; do
 			exit
 		fi
 	;;
-	-h|--help)																# Help
+
+	# Help
+	-h|--help)
 		cmd_usage
 		exit
 	;;
-	-j|--job)																# Set number of max concurrent job
+
+	# Set number of max concurrent job
+	-j|--job)
 		shift
 		unset nprocessor
 		nprocessor="$1"
@@ -4213,22 +4223,34 @@ while [[ $# -gt 0 ]]; do
 			;;
 		esac
 	;;
+
+	# Set force default fade out
 	--force_fade_out)
-		force_fade_out="1"													# Set force default fade out
+		force_fade_out="1"
 	;;
+
+	# Set force stereo output
 	--force_stereo)
-		force_stereo="1"													# Set force stereo output
+		force_stereo="1"
 	;;
+
+	# Set force no fade out
 	--no_fade_out)
-		no_fade_out="1"														# Set force no fade out
+		no_fade_out="1"
 	;;
+
+	# Set force no peak db norm
 	--no_normalization)
-		no_normalization="1"												# Set force no peak db norm. & channel test
+		no_normalization="1"
 	;;
+
+	# Set force no remove duplicate files
 	--no_remove_duplicate)
-		no_remove_duplicate="1"												# Set force no remove duplicate files
+		no_remove_duplicate="1"
 	;;
-	-o|--output)															# Set force output dir
+
+	# Set force output dir
+	-o|--output)
 		shift
 		force_output_dir="$1"
 		if [[ -z "$force_output_dir" ]]; then
@@ -4236,20 +4258,28 @@ while [[ $# -gt 0 ]]; do
 			exit
 		fi
 	;;
+
+	# Set force wav temp. files only
 	--only_wav)
-		only_wav="1"														# Set force wav temp. files only
+		only_wav="1"
 	;;
+
+	# Set force no remove silence
 	--remove_silence)
-		remove_silence="1"													# Set force no remove silence
+		remove_silence="1"
 	;;
-	--remove_silence_more)													# Set agressive mode for remove silent 85db->58db
+
+	# Set agressive mode for remove silent 85db->58db
+	--remove_silence_more)
 		remove_silence="1"
 		agressive_silence="1"
 	;;
+
+	# Set verbose mode
 	-v|--verbose)
 		verbose="1"
-		unset ffmpeg_log_lvl												# Unset default ffmpeg log
-		ffmpeg_log_lvl="-loglevel info -stats"								# Set ffmpeg log level to stats
+		unset ffmpeg_log_lvl
+		ffmpeg_log_lvl="-loglevel info -stats"
 	;;
 	*)
 		cmd_usage
