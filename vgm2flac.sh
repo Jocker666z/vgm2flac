@@ -501,6 +501,7 @@ Usage: vgm2flac [options]
   -h|--help               Display this help.
   --force_fade_out        Force default fade out.
   --force_stereo          Force stereo output.
+  -j|--job                Set the number of parallel jobs.
   --no_fade_out           Force no fade out.
   --no_normalization      Force no peak db normalization.
   --no_remove_duplicate   Force no remove duplicate files.
@@ -4201,6 +4202,17 @@ while [[ $# -gt 0 ]]; do
 		cmd_usage
 		exit
 	;;
+	-j|--job)																# Set number of max concurrent job
+		shift
+		unset nprocessor
+		nprocessor="$1"
+		case "$nprocessor" in
+			''|*[!0-9]*)
+				echo_pre_space "fail, job number is empty or is not an positive enteger"
+				exit
+			;;
+		esac
+	;;
 	--force_fade_out)
 		force_fade_out="1"													# Set force default fade out
 	;;
@@ -4234,8 +4246,6 @@ while [[ $# -gt 0 ]]; do
 		verbose="1"
 		unset ffmpeg_log_lvl												# Unset default ffmpeg log
 		ffmpeg_log_lvl="-loglevel info -stats"								# Set ffmpeg log level to stats
-		unset nprocessor
-		nprocessor="1"
 	;;
 	*)
 		cmd_usage

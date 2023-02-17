@@ -55,6 +55,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
   -h|--help               Display this help.
   --force_fade_out        Force default fade out.
   --force_stereo          Force stereo output.
+  -j|--job                Set the number of parallel jobs.
   --no_fade_out           Force no fade out.
   --no_normalization      Force no peak db normalization.
   --no_remove_duplicate   Force no remove duplicate files.
