@@ -52,6 +52,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
   --add_ape               Compress also in Monkey's Audio.
   --add_opus              Compress also in Opus at 256k.
   --add_wavpack           Compress also in WAVPACK.
+  -d|--dependencies       Display dependencies status.
   -h|--help               Display this help.
   --force_fade_out        Force default fade out.
   --force_stereo          Force stereo output.

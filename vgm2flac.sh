@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2001,SC2015,SC2026,SC2046,SC2086
+# shellcheck disable=SC2001,SC2015,SC2026,SC2046,SC2086,SC2185
 # vgm2flac
 # Bash tool for vgm encoding to flac
 #
@@ -13,12 +13,31 @@ vgm2flac_cache="/tmp/vgm2flac"																# Cache directory
 vgm2flac_cache_tag="$vgm2flac_cache/tag-$(date +%Y%m%s%N).info"								# Tag cache
 export PATH=$PATH:/home/$USER/.local/bin													# For case of launch script outside a terminal
 
-# Others
-core_dependency=(awk bc ffmpeg ffprobe find sed sox soxi xxd)
+# Core
+core_dependency=(
+	'awk'
+	'bash'
+	'bc'
+	'ffmpeg'
+	'ffprobe'
+	'find'
+	'grep'
+	'sed'
+	'sox'
+	'soxi'
+	'xxd')
 ffmpeg_log_lvl="-hide_banner -loglevel quiet"												# ffmpeg log level
 nprocessor=$(grep -cE 'processor' /proc/cpuinfo)											# Set number of processor
 
 # Output
+encoder_dependency=(
+	'flac'
+	'metaflac'
+	'mac'
+	'opusenc'
+	'wavpack'
+	'wvtag'
+)
 ## WAV
 default_wav_bit_depth="pcm_s16le"															# Wav bit depth must be pcm_s16le, pcm_s24le or pcm_s32le
 default_wav_fade_out="6"																	# Fade out value in second, apply to all file during more than 10s
@@ -38,6 +57,25 @@ default_mac_lvl="-c5000"
 default_opus_bitrate="256"
 
 # Input
+decoder_dependency=(
+	'adplay'
+	'asapconv'
+	'bchunk'
+	'fluidsynth'
+	'info68'
+	'mednafen'
+	'mt32emu-smf2wav'
+	'nsf2wav'
+	'sc68'
+	'sidplayfp'
+	'simple_mdx2wav'
+	'vgm2wav'
+	'vgm_tag'
+	'vgmstream-cli'
+	'uade123'
+	'zxtune123'
+	'xmp'
+)
 ## Atari ST
 sc68_loops="1"
 ## Commodore 64/128
@@ -111,56 +149,61 @@ ext_all_raw="${ext_video_exclude}| \
 ext_input_exclude="${ext_all_raw//[[:blank:]]/}"
 mapfile -t ext_lst_input_exclude < <( echo "${ext_input_exclude//|/$'\n'}" )
 
-# Bin check and set variable
-adplay_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="adplay"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	adplay_bin="$system_bin_location"
-else
-	echo_pre_space "Warning, $bin_name is not installed; AdLib files will not be detected"
-fi
-}
-asapconv_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="asapconv"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	asapconv_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-bchunk_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="bchunk"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	bchunk_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
+# Start check
 common_bin() {
+local bin_name 
+local bin_version 
+
 n=0;
 for command in "${core_dependency[@]}"; do
 	if hash "$command" &>/dev/null
 	then
+		bin_name=$(command -v $command)
+		if [[ "$command" = "awk" ]]; then
+			bin_version=$(awk -V | head -1)
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		elif [[ "$command" = "bash" ]]; then
+			bin_version="${BASH_VERSION}"
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		elif [[ "$command" = "bc" ]]; then
+			bin_version=$(bc --version | head -1)
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		elif [[ "$command" = "ffmpeg" ]]; then
+			bin_version=$(ffmpeg -version | head -1 | sed 's/ Copyright.*//g')
+			ffmpeg_libgme=$(ffmpeg -hide_banner -loglevel quiet -buildconf | grep "enable-libgme")
+			if [[ -n "$ffmpeg_libgme" ]]; then
+				core_dependency_version+=( "${bin_name}|${bin_version} with enable-libgme" )
+			else
+				core_dependency_version+=( "${bin_name}|${bin_version} without enable-libgme" )
+				ffmpeg_fail="/!\ Not processing, ffmpeg must be compiled with --enable-libgme"
+			fi
+		elif [[ "$command" = "ffprobe" ]]; then
+			bin_version=$(ffprobe -version | head -1 | sed 's/ Copyright.*//g')
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		elif [[ "$command" = "find" ]]; then
+			bin_version=$(find --version | head -1)
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		elif [[ "$command" = "grep" ]]; then
+			bin_version=$(grep --version | head -1)
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		elif [[ "$command" = "sed" ]]; then
+			bin_version=$(sed --version | head -1)
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		elif [[ "$command" = "sox" ]]; then
+			bin_version=$(sox --version)
+			bin_version="${bin_version#sox:      }"
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		elif [[ "$command" = "soxi" ]]; then
+			bin_version=$(sox --version)
+			bin_version="${bin_version#sox:      }"
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		elif [[ "$command" = "xxd" ]]; then
+			bin_version=$(xxd -v 2>&1)
+			core_dependency_version+=( "${bin_name}|${bin_version}" )
+		fi
 		(( c++ )) || true
 	else
-		local command_fail+=("$command")
+		local command_fail+=( "$command" )
 		(( n++ )) || true
 	fi
 done
@@ -170,312 +213,206 @@ if (( "${#command_fail[@]}" )); then
 	exit
 fi
 }
-ffmpeg_libgme() {
-local ffmpeg_libgme
-ffmpeg_libgme=$(ffmpeg -hide_banner -loglevel quiet -buildconf | grep "enable-libgm1e")
+decoder_bin() {
+local bin_name 
+local bin_version 
 
-if [[ -z "$ffmpeg_libgme" ]]; then
-	echo "Break, ffmpeg must be compiled with --enable-libgme"
-	exit
-fi
-}
-flac_bin() {
-local bin_name
-local system_bin_location
+for command in "${decoder_dependency[@]}"; do
+	bin_name=$(command -v $command)
 
-bin_name="flac"
-system_bin_location=$(command -v $bin_name)
+	if [[ -n "$bin_name" ]]; then
 
-if [[ -n "$system_bin_location" ]]; then
-	flac_bin="$system_bin_location"
-	flac_version="$(flac --version) $default_flac_lvl"
-fi
-}
-fluidsynth_bin() {
-local bin_name
-local system_bin_location
+		if [[ "$command" = "adplay" ]]; then
+			adplay_bin="$bin_name"
+			bin_version=$($adplay_bin -V | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
-bin_name="fluidsynth"
-system_bin_location=$(command -v $bin_name)
+		elif [[ "$command" = "asapconv" ]]; then
+			asapconv_bin="$bin_name"
+			bin_version=$($asapconv_bin -v)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
+		elif [[ "$command" = "bchunk" ]]; then
+			bchunk_bin="$bin_name"
+			bin_version=$($bchunk_bin 2>&1 | grep binchunker | sed 's/by.*//g')
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
-if [[ -n "$system_bin_location" ]]; then
-	if [[ -z "$fluidsynth_soundfont" ]]; then
-		echo_pre_space "Warning, the variable (fluidsynth_soundfont) indicating the location"
-		echo_pre_space "of the soundfont to use is not filled in, the result can be disgusting."
-		echo_pre_space "Read documentation."
-	elif ! [[ -f "$fluidsynth_soundfont" ]]; then
-		echo_pre_space "Break, the variable (fluidsynth_soundfont) not indicating a file."
-		echo_pre_space "Read documentation."
-		exit
+		elif [[ "$command" = "fluidsynth" ]]; then
+			fluidsynth_bin="$bin_name"
+			bin_version=$($fluidsynth_bin -V | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "info68" ]]; then
+			info68_bin="$bin_name"
+			bin_version=$($info68_bin --version | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "mednafen" ]]; then
+			mednafen_bin="$bin_name"
+			bin_version=$($mednafen_bin --help | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "mt32emu-smf2wav" ]]; then
+			munt_bin="$bin_name"
+			bin_version=$($munt_bin 2>&1 | grep Version | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "nsf2wav" ]]; then
+			nsfplay_bin="$bin_name"
+			bin_version="-"
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "sc68" ]]; then
+			sc68_bin="$bin_name"
+			bin_version=$($sc68_bin --version | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "sidplayfp" ]]; then
+			sidplayfp_bin="$bin_name"
+			bin_version="-"
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "simple_mdx2wav" ]]; then
+			mdx2wav_bin="$bin_name"
+			bin_version="-"
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "vgm2wav" ]]; then
+			vgm2wav_bin="$bin_name"
+			bin_version="-"
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "vgm_tag" ]]; then
+			vgm_tag_bin="$bin_name"
+			bin_version="-"
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "vgmstream-cli" ]]; then
+			vgmstream_cli_bin="$bin_name"
+			bin_version=$($vgmstream_cli_bin -h | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "uade123" ]]; then
+			uade123_bin="$bin_name"
+			bin_version=$($uade123_bin -h | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "zxtune123" ]]; then
+			zxtune123_bin="$bin_name"
+			bin_version=$($zxtune123_bin --version)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "xmp" ]]; then
+			xmp_bin="$bin_name"
+			bin_version=$($xmp_bin -V)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+		fi
+
+	else
+
+		decoder_dependency_version+=( "${command}|not installed" )
+
+		if [[ "$command" = "adplay" ]]; then
+			adplay_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "asapconv" ]]; then
+			asapconv_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "bchunk" ]]; then
+			bchunk_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "fluidsynth" ]]; then
+			fluidsynth_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "mednafen" ]]; then
+			mednafen_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "mt32emu-smf2wav" ]]; then
+			munt_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "nsf2wav" ]]; then
+			nsfplay_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "sidplayfp" ]]; then
+			sidplayfp_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "simple_mdx2wav" ]]; then
+			mdx2wav_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "vgmstream-cli" ]]; then
+			vgmstream_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "uade123" ]]; then
+			uade123_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "zxtune123" ]]; then
+			zxtune123_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "xmp" ]]; then
+			xmp_fail="/!\ Not processing, $command not installed"
+		fi
 	fi
-	fluidsynth_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
+done
+
+# midi fail case
+if [[ -z "$fluidsynth_bin" ]] && [[ -z "$munt_bin" ]]; then
+	midi_fail="/!\ Not processing, fluidsynth & munt not installed"
+fi
+# sc68 fail case
+if [[ -z "$info68_bin" ]] || [[ -z "$sc68_bin" ]]; then
+	sc68_fail="/!\ Not processing, info68 & sc68 not installed"
+fi
+# vgm2wav fail case
+if [[ -z "$vgm2wav_bin" ]] || [[ -z "$vgm_tag_bin" ]]; then
+	vgm2wav_fail="/!\ Not processing, vgm2wav & vgm_tag not installed"
 fi
 }
-info68_bin() {
-local bin_name
-local system_bin_location
+encoder_bin() {
+local bin_name 
+local bin_version 
 
-bin_name="info68"
-system_bin_location=$(command -v $bin_name)
+for command in "${encoder_dependency[@]}"; do
+	bin_name=$(command -v $command)
 
-if [[ -n "$system_bin_location" ]]; then
-	info68_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-metaflac_bin() {
-local bin_name
-local system_bin_location
+	if [[ -n "$bin_name" ]]; then
 
-bin_name="metaflac"
-system_bin_location=$(command -v $bin_name)
+		if [[ "$command" = "flac" ]]; then
+			flac_bin="$bin_name"
+			bin_version=$($flac_bin --version)
+			flac_version="$bin_version $default_flac_lvl"
+			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
-if [[ -n "$system_bin_location" ]]; then
-	metaflac_bin="$system_bin_location"
-fi
-}
-mednafen_bin() {
-local bin_name
-local system_bin_location
+		elif [[ "$command" = "metaflac" ]]; then
+			metaflac_bin="$bin_name"
+			bin_version=$($metaflac_bin --version)
+			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
-bin_name="mednafen"
-system_bin_location=$(command -v $bin_name)
+		elif [[ "$command" = "mac" ]]; then
+			mac_bin="$bin_name"
+			bin_version="Monkey's Audio $($mac_bin 2>&1 | head -1 \
+							| awk -F"[()]" '{print $2}' | tr -d ' ')"
+			mac_version="$bin_version $default_mac_lvl"
+			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
-if [[ -n "$system_bin_location" ]]; then
-	sc68_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-mac_bin() {
-local bin_name
-local system_bin_location
+		elif [[ "$command" = "opusenc" ]]; then
+			opusenc_bin="$bin_name"
+			bin_version=$($opusenc_bin --version | head -1)
+			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
-bin_name="mac"
-system_bin_location=$(command -v $bin_name)
+		elif [[ "$command" = "wavpack" ]]; then
+			wavpack_bin="$bin_name"
+			bin_version=$($wavpack_bin --version | head -1)
+			wavpack_version="$bin_version $default_wavpack_lvl"
+			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
-if [[ -n "$system_bin_location" ]]; then
-	mac_bin="$system_bin_location"
-	mac_version="Monkey's Audio $(mac 2>&1 | head -1 \
-					| awk -F"[()]" '{print $2}' | tr -d ' ') $default_mac_lvl"
-fi
-}
-munt_bin() {
-local bin_name
-local system_bin_location
+		elif [[ "$command" = "wvtag" ]]; then
+			wvtag_bin="$bin_name"
+			bin_version=$($wvtag_bin --version | head -1)
+			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
-bin_name="mt32emu-smf2wav"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	if [[ -z "$munt_rom_path" ]]; then
-		echo "Break, the variable (munt_rom_path) indicating the location of the Roland MT-32 ROM must be filled in. See documentation."
-		exit
-	elif ! [[ -d "$munt_rom_path" ]]; then
-		echo "Break, the variable (munt_rom_path) not indicating a directory. See documentation."
-		exit
+		fi
 	fi
-	munt_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-nsfplay_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="nsf2wav"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	nsfplay_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-opusenc_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="opusenc"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	opusenc_bin="$system_bin_location"
-fi
-}
-sc68_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="sc68"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	sc68_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-sidplayfp_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="sidplayfp"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	sidplayfp_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-if [[ -n "$hvsc_directory" ]]; then
-	if ! [[ -d "$hvsc_directory" ]]; then
-		echo_pre_space "Break, the variable (hvsc_directory) not indicating a valid directory."
-		echo_pre_space "Read documentation."
-		exit
-	fi
-fi
-}
-mdx2wav_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="simple_mdx2wav"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	mdx2wav_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-vgm2wav_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="vgm2wav"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	vgm2wav_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-vgmstream_cli_bin() {
-local bin_name="vgmstream-cli"
-local system_bin_location
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	vgmstream_cli_bin="$system_bin_location"
-else
-	echo_pre_space "Warning, $bin_name is not installed; Various machines files will not be detected"
-fi
-}
-vgm_tag_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="vgm_tag"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	vgm_tag_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-uade123_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="uade123"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	uade123_bin="$system_bin_location"
-else
-	echo_pre_space "Warning, $bin_name is not installed; Amiga/Tracker music files will not be detected"
-fi
-}
-wavpack_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="wavpack"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	wavpack_bin="$system_bin_location"
-	wavpack_version="$(wavpack --version | head -1) $default_wavpack_lvl"
-fi
-}
-wvtag_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="wvtag"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	wvtag_bin="$system_bin_location"
-fi
-}
-xmp_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="xmp"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	xmp_bin="$system_bin_location"
-else
-	echo_pre_space "Warning, $bin_name is not installed; Various tracker music files will not be detected"
-fi
-}
-zxtune123_bin() {
-local bin_name
-local system_bin_location
-
-bin_name="zxtune123"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	zxtune123_bin="$system_bin_location"
-else
-	echo "Break, $bin_name is not installed"
-	exit
-fi
-}
-zxtune123_bin_source_list() {
-local bin_name
-local system_bin_location
-
-bin_name="zxtune123"
-system_bin_location=$(command -v $bin_name)
-
-if [[ -n "$system_bin_location" ]]; then
-	zxtune123_bin="$system_bin_location"
-else
-	echo_pre_space "Warning, $bin_name is not installed; Various music files will not be detected"
-fi
+done
 }
 test_write_access() {
 if ! [[ -w "$PWD" ]]; then
@@ -498,6 +435,7 @@ Usage: vgm2flac [options]
   --add_ape               Compress also in Monkey's Audio.
   --add_opus              Compress also in Opus at 256k.
   --add_wavpack           Compress also in WAVPACK.
+  -d|--dependencies       Display dependencies status.
   -h|--help               Display this help.
   --force_fade_out        Force default fade out.
   --force_stereo          Force stereo output.
@@ -625,17 +563,18 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat() {
 		local label
 		local files
-		label="$1"
-		shift 1
+		label0="$1"
+		label1="$2"
+		shift 2
 		files=("$@")
 
 		if (( "${#files[@]}" )); then
-			if [[ "$label" = "Uade" ]] || [[ "$label" = "XMP" ]]; then
-				echo_pre_space "${label} files: ${#files[@]} ($(display_size_mb "${files[@]}") MB)"
+			if [[ "$label0" = "Uade" ]] || [[ "$label0" = "XMP" ]]; then
+				echo_pre_space "${label0} files: ${#files[@]} ($(display_size_mb "${files[@]}") MB) ${label1}"
 			else
-				echo_pre_space "${label}; $(echo "${files[@]##*.}" \
+				echo_pre_space "${label0}; $(echo "${files[@]##*.}" \
 								| awk -v RS="[ \n]+" '!n[$0]++' \
-								| awk -v RS="" '{gsub (/\n/,"|")}1') files : ${#files[@]} ($(display_size_mb "${files[@]}") MB)"
+								| awk -v RS="" '{gsub (/\n/,"|")}1') files : ${#files[@]} ($(display_size_mb "${files[@]}") MB) ${label1}"
 			fi
 		fi
 	}
@@ -643,28 +582,29 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	display_separator
 	echo_pre_space "${#lst_all_files_pass[@]} Fetched files ($(display_size_mb "${lst_all_files_pass[@]}") MB)"
 	display_separator
-	fetched_stat "Atari ST" "${lst_sc68[@]}"
-	fetched_stat "Amstrad CPC" "${lst_zxtune_ay[@]}"
-	fetched_stat "Amstrad CPC, Atari ST" "${lst_zxtune_ym[@]}"
-	fetched_stat "Commodore C64/128" "${lst_sidplayfp_sid[@]}"
-	fetched_stat "Game Boy, Game Boy Color" "${lst_ffmpeg_gbs[@]}"
-	fetched_stat "NES NSF" "${lst_nsfplay_nsf[@]}"
-	fetched_stat "NES NSFE" "${lst_nsfplay_nsfe[@]}"
-	fetched_stat "Sharp X68000" "${lst_mdx2wav[@]}"
-	fetched_stat "SNES SPC" "${lst_ffmpeg_spc[@]}"
-	fetched_stat "SNES SNSF" "${lst_mednafen_snsf[@]}"
-	fetched_stat "PC AdLib" "${lst_adplay[@]}"
-	fetched_stat "PC Engine, TurboGrafx-16" "${lst_ffmpeg_hes[@]}"
-	fetched_stat "PC midi" "${lst_midi[@]}"
-	fetched_stat "Uade" "${lst_uade[@]}"
-	fetched_stat "Various machines" "${lst_vgmstream[@]}"
-	fetched_stat "Various machines ISO" "${lst_bchunk_iso[@]}"
-	fetched_stat "Various machines RAW" "${lst_sox[@]}"
-	fetched_stat "Various machines SF" "${lst_zxtune_xsf[@]}"
-	fetched_stat "Various machines VGM" "${lst_vgm2wav[@]}"
-	fetched_stat "XMP" "${lst_xmp[@]}"
-	fetched_stat "ZX Spectrum" "${lst_zxtune_zx_spectrum[@]}"
-	fetched_stat "ZXTune Various Music" "${lst_zxtune_various[@]}"
+	fetched_stat "Atari ST" "$sc68_fail" "${lst_sc68[@]}"
+	fetched_stat "Atari XL/XE" "$asapconv_fail" "${lst_asapconv[@]}"
+	fetched_stat "Amstrad CPC" "$zxtune123_fail" "${lst_zxtune_ay[@]}"
+	fetched_stat "Amstrad CPC, Atari ST" "$zxtune123_fail" "${lst_zxtune_ym[@]}"
+	fetched_stat "Commodore C64/128" "$sidplayfp_fail" "${lst_sidplayfp_sid[@]}"
+	fetched_stat "Game Boy, Game Boy Color" "$ffmpeg_fail" "${lst_ffmpeg_gbs[@]}"
+	fetched_stat "NES NSF" "$nsfplay_fail" "${lst_nsfplay_nsf[@]}"
+	fetched_stat "NES NSFE" "$nsfplay_fail" "${lst_nsfplay_nsfe[@]}"
+	fetched_stat "Sharp X68000" "$mdx2wav_fail" "${lst_mdx2wav[@]}"
+	fetched_stat "SNES SPC" "$ffmpeg_fail" "${lst_ffmpeg_spc[@]}"
+	fetched_stat "SNES SNSF" "$mednafen_fail" "${lst_mednafen_snsf[@]}"
+	fetched_stat "PC AdLib" "$adplay_fail" "${lst_adplay[@]}"
+	fetched_stat "PC Engine, TurboGrafx-16" "$ffmpeg_fail" "${lst_ffmpeg_hes[@]}"
+	fetched_stat "PC midi" "$midi_fail" "${lst_midi[@]}"
+	fetched_stat "Uade" "$uade123_fail" "${lst_uade[@]}"
+	fetched_stat "Various machines" "$vgmstream_fail" "${lst_vgmstream[@]}"
+	fetched_stat "Various machines ISO" "$bchunk_fail" "${lst_bchunk_iso[@]}"
+	fetched_stat "Various machines RAW" "" "${lst_sox[@]}"
+	fetched_stat "Various machines SF" "$zxtune123_fail" "${lst_zxtune_xsf[@]}"
+	fetched_stat "Various machines VGM" "$vgm2wav_fail" "${lst_vgm2wav[@]}"
+	fetched_stat "XMP" "$xmp_fail" "${lst_xmp[@]}"
+	fetched_stat "ZX Spectrum" "$zxtune123_fail" "${lst_zxtune_zx_spectrum[@]}"
+	fetched_stat "ZXTune Various Music" "$zxtune123_fail" "${lst_zxtune_various[@]}"
 
 else
 	display_separator
@@ -745,6 +685,19 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	echo_pre_space "Encoding duration  - $elapsed_time_formated"
 fi
 }
+display_dependencies() {
+echo "vgm2flac dependencies status"
+display_separator
+echo_pre_space "Core:"
+printf '  %s\n' "${core_dependency_version[@]}" | column -s $'|' -t
+display_separator
+echo_pre_space "Decoder:"
+printf '  %s\n' "${decoder_dependency_version[@]}" | column -s $'|' -t
+display_separator
+echo_pre_space "Optional Encoder:"
+printf '  %s\n' "${encoder_dependency_version[@]}" | column -s $'|' -t
+display_separator
+}
 progress_bar() {
 # Local variables
 local TotalFilesNB
@@ -786,13 +739,6 @@ rm "$vgm2flac_cache_tag" &>/dev/null
 
 # Files array
 list_source_files() {
-# Bin check & set
-adplay_bin
-vgmstream_cli_bin
-uade123_bin
-xmp_bin
-zxtune123_bin_source_list
-
 # Local variables
 local vgmstream_test_result
 local uade_test_result
@@ -1315,7 +1261,7 @@ cmd_mednafen_snsf() {
 # Keep 48kHz for prevent audio glitch
 if [[ "$verbose" = "1" ]]; then
 	timeout "$snsf_duration" \
-		mednafen \
+		"$mednafen_bin" \
 		-sound 1 \
 		-sound.device sexyal-literal-default \
 		-sound.volume 100 \
@@ -1324,7 +1270,7 @@ if [[ "$verbose" = "1" ]]; then
 		"$files"
 else
 	timeout "$snsf_duration" \
-		mednafen \
+		"$mednafen_bin" \
 		-sound 1 \
 		-sound.device sexyal-literal-default \
 		-sound.volume 100 \
@@ -1562,7 +1508,9 @@ if ! [[ "$only_wav" = "1" ]]; then
 fi
 }
 wav2wavpack() {
-if [[ "$only_wav" != "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
+if [[ "$only_wav" != "1" ]] \
+&& [[ -n "$wavpack_bin" ]] \
+&& [[ "$wavpack_compress" = "1" ]]; then
 	# Encoding final WAVPACK
 	if [[ "$verbose" = "1" ]]; then
 		"$wavpack_bin" -y "$default_wavpack_lvl" \
@@ -1584,7 +1532,9 @@ if [[ "$only_wav" != "1" ]] && [[ "$wavpack_compress" = "1" ]]; then
 fi
 }
 wav2ape() {
-if [[ "$only_wav" != "1" ]] && [[ "$ape_compress" = "1" ]]; then
+if [[ "$only_wav" != "1" ]] \
+&& [[ -n "$mac_bin" ]] \
+&& [[ "$ape_compress" = "1" ]]; then
 	# Encoding final Monkey's Audio
 	if [[ "$verbose" = "1" ]]; then
 		"$mac_bin" "${files%.*}".wav "${files%.*}".ape \
@@ -1600,7 +1550,9 @@ if [[ "$only_wav" != "1" ]] && [[ "$ape_compress" = "1" ]]; then
 fi
 }
 wav2opus() {
-if [[ "$only_wav" != "1" ]] && [[ "$opus_compress" = "1" ]]; then
+if [[ "$only_wav" != "1" ]] \
+&& [[ -n "$opusenc_bin" ]] \
+&& [[ "$opus_compress" = "1" ]]; then
 	# Encoding final Opus
 	if [[ "$verbose" = "1" ]]; then
 		"$opusenc_bin" \
@@ -1628,10 +1580,7 @@ fi
 
 # Convert loop
 loop_adplay() {					# PC AdLib
-if (( "${#lst_adplay[@]}" )); then
-	# Bin check & set
-	adplay_bin
-
+if (( "${#lst_adplay[@]}" )) && [[ -z "$adplay_fail" ]]; then
 	# Reset WAV array
 	lst_wav=()
 
@@ -1674,10 +1623,7 @@ if (( "${#lst_adplay[@]}" )); then
 fi
 }
 loop_asapconv() {				# Atari XL/XE
-if (( "${#lst_asapconv[@]}" )); then
-	# Bin check & set
-	asapconv_bin
-
+if (( "${#lst_asapconv[@]}" )) && [[ -z "$asapconv_fail" ]]; then
 	# Reset WAV array
 	lst_wav=()
 
@@ -1734,12 +1680,9 @@ if (( "${#lst_asapconv[@]}" )); then
 fi
 }
 loop_bchunk() {					# Various machines CDDA
-if (( "${#lst_bchunk_iso[@]}" )); then
+if (( "${#lst_bchunk_iso[@]}" )) && [[ -z "$bchunk_fail" ]]; then
 	# If bchunk="1" in list_source_files()
 	if [[ -n "$bchunk" ]]; then
-
-		# Bin check & set
-		bchunk_bin
 
 		# Local variable
 		local track_name
@@ -1793,10 +1736,7 @@ if (( "${#lst_bchunk_iso[@]}" )); then
 fi
 }
 loop_ffmpeg_gbs() {				# GB/GBC
-if (( "${#lst_ffmpeg_gbs[@]}" )); then
-	# Bin check & set
-	ffmpeg_libgme
-
+if (( "${#lst_ffmpeg_gbs[@]}" )) && [[ -z "$ffmpeg_fail" ]]; then
 	# Local variables
 	local file_total_track
 	local total_sub_track
@@ -1888,10 +1828,7 @@ if (( "${#lst_ffmpeg_gbs[@]}" )); then
 fi
 }
 loop_ffmpeg_hes() {				# PC-Engine (HuC6280)
-if (( "${#lst_ffmpeg_hes[@]}" )); then
-	# Bin check & set
-	ffmpeg_libgme
-
+if (( "${#lst_ffmpeg_hes[@]}" )) && [[ -z "$ffmpeg_fail" ]]; then
 	# Local variable
 	local total_sub_track
 
@@ -1962,10 +1899,7 @@ if (( "${#lst_ffmpeg_hes[@]}" )); then
 fi
 }
 loop_ffmpeg_spc() {				# SNES SPC
-if (( "${#lst_ffmpeg_spc[@]}" )); then
-	# Bin check & set
-	ffmpeg_libgme
-
+if (( "${#lst_ffmpeg_spc[@]}" )) && [[ -z "$ffmpeg_fail" ]]; then
 	# Local variable
 	local spc_fading_second
 	local spc_duration_total
@@ -2026,10 +1960,7 @@ if (( "${#lst_ffmpeg_spc[@]}" )); then
 fi
 }
 loop_mdx2wav() {				# Sharp X68000
-if (( "${#lst_mdx2wav[@]}" )); then
-	# Bin check & set
-	mdx2wav_bin
-
+if (( "${#lst_mdx2wav[@]}" )) && [[ -z "$mdx2wav_fail" ]]; then
 	# Reset WAV array
 	lst_wav=()
 
@@ -2083,10 +2014,7 @@ if (( "${#lst_mdx2wav[@]}" )); then
 fi
 }
 loop_mednafen_snsf() {			# SNES SNSF
-if (( "${#lst_mednafen_snsf[@]}" )); then
-	# Bin check & set
-	mednafen_bin
-
+if (( "${#lst_mednafen_snsf[@]}" )) && [[ -z "$mednafen_fail" ]]; then
 	# Local variables
 	local file_name
 	local file_name_random
@@ -2158,8 +2086,7 @@ if (( "${#lst_mednafen_snsf[@]}" )); then
 fi
 }
 loop_midi() {					# midi
-if (( "${#lst_midi[@]}" )); then
-
+if (( "${#lst_midi[@]}" )) && [[ -z "$midi_fail" ]]; then
 	# Local variables
 	local midi_bin
 	local fluidsynth_loop_nb
@@ -2176,26 +2103,43 @@ if (( "${#lst_midi[@]}" )); then
 	# Bin selection
 	echo_pre_space "Select midi software synthesizer:"
 	echo
-	echo_pre_space " [0]* > fluidsynth -> Use soundfont${current_soundfount}"
-	echo_pre_space " [1]  > munt       -> Use Roland MT-32, CM-32L, CM-64, LAPC-I emulator"
+	echo_pre_space " [0] > fluidsynth -> Use soundfont${current_soundfount} $fluidsynth_fail"
+	echo_pre_space " [1] > munt       -> Use Roland MT-32, CM-32L, CM-64, LAPC-I emulator $munt_fail"
 	read -r -e -p " -> " midi_choice
 	case "$midi_choice" in
 		"0")
-			fluidsynth_bin
 			midi_bin="fluidsynth"
-			tag_tracker_music="Soundfont${current_soundfount}"
+			if [[ -n "$fluidsynth_bin" ]]; then
+				tag_tracker_music="Soundfont${current_soundfount}"
+				if [[ -z "$fluidsynth_soundfont" ]]; then
+					echo_pre_space "Warning, the variable (fluidsynth_soundfont) indicating the location"
+					echo_pre_space "of the soundfont to use is not filled in, the result can be disgusting."
+					echo_pre_space "Read documentation."
+				elif ! [[ -f "$fluidsynth_soundfont" ]]; then
+					echo_pre_space "Break, the variable (fluidsynth_soundfont) not indicating a file."
+					echo_pre_space "Read documentation."
+					exit
+				fi
+			else
+				echo "Break, $midi_bin is not installed"
+				exit
+			fi
 		;;
 		"1")
-			munt_bin
 			midi_bin="munt"
-			tag_tracker_music="Roland MT-32"
-		;;
-		*)
-			fluidsynth_bin
-			midi_bin="fluidsynth"
-			tag_tracker_music="Soundfont${current_soundfount}"
-			display_remove_previous_line
-			echo " -> 0"
+			if [[ -n "$munt_bin" ]]; then
+				tag_tracker_music="Roland MT-32"
+				if [[ -z "$munt_rom_path" ]]; then
+					echo "Break, the variable (munt_rom_path) indicating the location of the Roland MT-32 ROM must be filled in. See documentation."
+					exit
+				elif ! [[ -d "$munt_rom_path" ]]; then
+					echo "Break, the variable (munt_rom_path) not indicating a directory. See documentation."
+					exit
+				fi
+			else
+				echo "Break, $midi_bin is not installed"
+				exit
+			fi
 		;;
 	esac
 
@@ -2280,7 +2224,7 @@ if (( "${#lst_midi[@]}" )); then
 fi
 }
 loop_nsfplay_nsf() {			# NES nsf
-if (( "${#lst_nsfplay_nsf[@]}" )); then
+if (( "${#lst_nsfplay_nsf[@]}" )) && [[ -z "$nsfplay_fail" ]]; then
 	# Bin check & set
 	nsfplay_bin
 
@@ -2355,7 +2299,7 @@ if (( "${#lst_nsfplay_nsf[@]}" )); then
 fi
 }
 loop_nsfplay_nsfe() {			# NES nsfe
-if (( "${#lst_nsfplay_nsfe[@]}" )); then
+if (( "${#lst_nsfplay_nsfe[@]}" )) && [[ -z "$nsfplay_fail" ]]; then
 	# Bin check & set
 	nsfplay_bin
 
@@ -2428,11 +2372,7 @@ if (( "${#lst_nsfplay_nsfe[@]}" )); then
 fi
 }
 loop_sc68() {					# Atari ST (YM2149)
-if (( "${#lst_sc68[@]}" )); then
-	# Bin check & set
-	info68_bin
-	sc68_bin
-
+if (( "${#lst_sc68[@]}" )) && [[ -z "$sc68_fail" ]]; then
 	# Local variables
 	local total_sub_track
 	local track_name
@@ -2546,9 +2486,7 @@ if (( "${#lst_sc68[@]}" )); then
 fi
 }
 loop_sidplayfp_sid() {			# Commodore 64/128
-if (( "${#lst_sidplayfp_sid[@]}" )); then
-	# Bin check & set
-	sidplayfp_bin
+if (( "${#lst_sidplayfp_sid[@]}" )) && [[ -z "$sidplayfp_fail" ]]; then
 
 	# Local variable
 	local test_duration
@@ -2558,6 +2496,13 @@ if (( "${#lst_sidplayfp_sid[@]}" )); then
 	lst_wav=()
 
 	# https://hvsc.c64.org/ db test
+	if [[ -n "$hvsc_directory" ]]; then
+		if ! [[ -d "$hvsc_directory" ]]; then
+			echo_pre_space "Break, the variable (hvsc_directory) not indicating a valid directory."
+			echo_pre_space "Read documentation."
+			exit
+		fi
+	fi
 	hvsc_db_test=$(< /home/$USER/.config/sidplayfp/sidplayfp.ini grep "Songlengths")
 	if [[ -n "$hvsc_directory" ]]; then
 		hvsc_db="1"
@@ -2618,7 +2563,6 @@ fi
 }
 loop_sox() {					# Various machines
 if (( "${#lst_sox[@]}" )); then
-
 	# Local variables
 	local delta
 	local sox_sample_rate_question
@@ -2780,7 +2724,7 @@ if (( "${#lst_sox[@]}" )); then
 fi
 }
 loop_uade() {					# Amiga / Tracker
-if (( "${#lst_uade[@]}" )); then
+if (( "${#lst_uade[@]}" )) && [[ -z "$uade123_fail" ]]; then
 	# Local variables
 	local total_track
 	local current_track
@@ -2888,7 +2832,7 @@ if (( "${#lst_uade[@]}" )); then
 fi
 }
 loop_vgm2wav() {				# Various machines
-if (( "${#lst_vgm2wav[@]}" )); then
+if (( "${#lst_vgm2wav[@]}" )) && [[ -z "$vgm2wav_fail" ]]; then
 	# Bin check & set
 	vgm2wav_bin
 	vgm_tag_bin
@@ -2958,7 +2902,7 @@ if (( "${#lst_vgm2wav[@]}" )); then
 fi
 }
 loop_vgmstream() {				# Various machines
-if (( "${#lst_vgmstream[@]}" )); then
+if (( "${#lst_vgmstream[@]}" )) && [[ -z "$vgmstream_fail" ]]; then
 	# Local variables
 	local total_sub_track
 
@@ -3045,10 +2989,7 @@ if (( "${#lst_vgmstream[@]}" )); then
 fi
 }
 loop_xmp() {					# XMP
-if (( "${#lst_xmp[@]}" )); then
-	# Bin check & set
-	xmp_bin
-
+if (( "${#lst_xmp[@]}" )) && [[ -z "$xmp_fail" ]]; then
 	# Local variables
 	local file_name
 
@@ -3095,10 +3036,7 @@ if (( "${#lst_xmp[@]}" )); then
 fi
 }
 loop_zxtune_ay() {				# Amstrad CPC, ZX Spectrum
-if (( "${#lst_zxtune_ay[@]}" )); then
-	# Bin check & set
-	zxtune123_bin
-
+if (( "${#lst_zxtune_ay[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	# Reset WAV array
 	lst_wav=()
 
@@ -3195,10 +3133,7 @@ if (( "${#lst_zxtune_ay[@]}" )); then
 fi
 }
 loop_zxtune_xfs() {				# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
-if (( "${#lst_zxtune_xsf[@]}" )); then
-	# Bin check & set
-	zxtune123_bin
-
+if (( "${#lst_zxtune_xsf[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	# Local variables
 	local file_name
 	local file_name_random
@@ -3275,7 +3210,7 @@ if (( "${#lst_zxtune_xsf[@]}" )); then
 fi
 }
 loop_zxtune_ym() {				# Amstrad CPC, Atari ST (YM2149)
-if (( "${#lst_zxtune_ym[@]}" )); then
+if (( "${#lst_zxtune_ym[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	# Bin check & set
 	zxtune123_bin
 
@@ -3337,10 +3272,7 @@ if (( "${#lst_zxtune_ym[@]}" )); then
 fi
 }
 loop_zxtune_various_music() {	# ZXTune Tracker
-if (( "${#lst_zxtune_various[@]}" )); then
-	# Bin check & set
-	zxtune123_bin
-
+if (( "${#lst_zxtune_various[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	# Local variables
 	local file_name
 
@@ -3391,10 +3323,7 @@ if (( "${#lst_zxtune_various[@]}" )); then
 fi
 }
 loop_zxtune_zx_spectrum() {		# ZX Spectrum
-if (( "${#lst_zxtune_zx_spectrum[@]}" )); then
-	# Bin check & set
-	zxtune123_bin
-
+if (( "${#lst_zxtune_zx_spectrum[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	# Local variables
 	local file_name
 
@@ -4160,15 +4089,11 @@ else
 fi
 }
 
-# Bin check & set
+# Common Setup
 test_write_access
 common_bin
-flac_bin
-metaflac_bin
-wavpack_bin
-wvtag_bin
-mac_bin
-opusenc_bin
+decoder_bin
+encoder_bin
 
 # Arguments variables
 while [[ $# -gt 0 ]]; do
@@ -4203,6 +4128,12 @@ while [[ $# -gt 0 ]]; do
 			echo_pre_space "fail, wavpack binary not installed"
 			exit
 		fi
+	;;
+
+	# Print installed dependencies
+	-d|--dependencies)
+		display_dependencies
+		exit
 	;;
 
 	# Help
