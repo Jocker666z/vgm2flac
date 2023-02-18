@@ -2833,10 +2833,6 @@ fi
 }
 loop_vgm2wav() {				# Various machines
 if (( "${#lst_vgm2wav[@]}" )) && [[ -z "$vgm2wav_fail" ]]; then
-	# Bin check & set
-	vgm2wav_bin
-	vgm_tag_bin
-
 	# Reset WAV array
 	lst_wav=()
 
