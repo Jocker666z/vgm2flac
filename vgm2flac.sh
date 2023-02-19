@@ -4235,9 +4235,9 @@ while [[ $# -gt 0 ]]; do
 		no_fade_out="1"
 	;;
 
-	# Set force no peak db norm
-	--no_normalization)
-		no_normalization="1"
+	# Set force no remove duplicate files
+	--no_remove_duplicate)
+		no_remove_duplicate="1"
 	;;
 
 	# Set force no peak db norm
