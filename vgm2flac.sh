@@ -771,11 +771,12 @@ mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype
 
 # bin/cue clean
 # If bin/iso + cue = 1 + 1 - bchunk use
-if [[ "${#lst_bchunk_iso[@]}" = "1" ]] && [[ "${#lst_bchunk_cue[@]}" = "" ]]; then
+if [[ "${#lst_bchunk_iso[@]}" = "1" ]] && [[ "${#lst_bchunk_cue[@]}" = "1" ]]; then
 	lst_sox=()
 	bchunk="1"
 # If bin > 1 or cue > 1 - sox use
-elif [[ "${#lst_bchunk_iso[@]}" -gt "1" ]] || [[ "${#lst_bchunk_cue[@]}" -gt "1" ]]; then
+elif [[ "${#lst_bchunk_iso[@]}" -gt "1" || "${#lst_bchunk_cue[@]}" -gt "1" ]] \
+  || [[ "${#lst_bchunk_iso[@]}" -ge "1" || "${#lst_bchunk_cue[@]}" -eq "0" ]]; then
 	lst_bchunk_cue=()
 	lst_bchunk_iso=()
 fi
