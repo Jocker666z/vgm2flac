@@ -564,14 +564,19 @@ echo_pre_space "/ vgm2flac /"
 
 if [[ "$summary_conf" = "1" ]]; then
 	# Script
+	if [[ -n "$force_output_dir" ]]; then
+		script_conf+=( "Output directory = $force_output_dir" )
+	fi
 	script_conf+=( "Parallel job = $nprocessor" )
+	if [[ "$no_remove_duplicate" = "1" ]]; then
+		script_conf+=( "Remove duplicate = OFF" )
+	else
+		script_conf+=( "Remove duplicate = ON" )
+	fi
 	if [[ "$verbose" = "1" ]]; then
 		script_conf+=( "Verbose = ON" )
 	else
 		script_conf+=( "Verbose = OFF" )
-	fi
-	if [[ -n "$force_output_dir" ]]; then
-		script_conf+=( "Output directory = $force_output_dir" )
 	fi
 
 	# Encoder
