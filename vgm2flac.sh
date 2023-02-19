@@ -770,15 +770,14 @@ mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-eg
 mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort -V)
 
 # bin/cue clean
-if [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If cue = 1
-	echo "More than one CUE file in working directory"
-	exit
-elif [ "${#lst_bchunk_iso[@]}" = 1 ] && [ "${#lst_bchunk_cue[@]}" = 1 ]; then			# If bin/iso + cue = 1 + 1 - bchunk use
-	unset lst_sox
+# If bin/iso + cue = 1 + 1 - bchunk use
+if [[ "${#lst_bchunk_iso[@]}" = "1" ]] && [[ "${#lst_bchunk_cue[@]}" = "" ]]; then
+	lst_sox=()
 	bchunk="1"
-elif [ "${#lst_bchunk_cue[@]}" -gt "1" ]; then											# If bin > 1 - sox use
-	unset lst_bchunk_cue
-	unset lst_bchunk_iso
+# If bin > 1 or cue > 1 - sox use
+elif [[ "${#lst_bchunk_iso[@]}" -gt "1" ]] || [[ "${#lst_bchunk_cue[@]}" -gt "1" ]]; then
+	lst_bchunk_cue=()
+	lst_bchunk_iso=()
 fi
 
 # vgmstream & uade test all files
@@ -4171,9 +4170,9 @@ while [[ $# -gt 0 ]]; do
 		no_normalization="1"
 	;;
 
-	# Set force no remove duplicate files
-	--no_remove_duplicate)
-		no_remove_duplicate="1"
+	# Set force no peak db norm
+	--no_normalization)
+		no_normalization="1"
 	;;
 
 	# Set force output dir
@@ -4191,12 +4190,12 @@ while [[ $# -gt 0 ]]; do
 		only_wav="1"
 	;;
 
-	# Set force no remove silence
+	# Set force remove silence
 	--remove_silence)
 		remove_silence="1"
 	;;
 
-	# Set agressive mode for remove silent 85db->58db
+	# Set agressive mode for remove silence 85db->58db
 	--remove_silence_more)
 		remove_silence="1"
 		agressive_silence="1"
