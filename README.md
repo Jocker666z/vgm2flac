@@ -62,6 +62,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
   --no_remove_duplicate   Force no remove duplicate files.
   -o|--output <dirname>   Force output directory name.
   --only_wav              Force output wav files only.
+  -s|--summary_conf       Display config before begining.
   --remove_silence        Remove silence at start & end of track (85db).
   --remove_silence_more   Remove silence agressive mode (58db).
   -v|--verbose            Verbose mode

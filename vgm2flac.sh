@@ -445,6 +445,7 @@ Usage: vgm2flac [options]
   --no_remove_duplicate   Force no remove duplicate files.
   -o|--output <dirname>   Force output directory name.
   --only_wav              Force output wav files only.
+  -s|--summary_conf       Display config before begining.
   --remove_silence        Remove silence at start & end of track (85db).
   --remove_silence_more   Remove silence agressive mode (58db).
   -v|--verbose            Verbose mode
@@ -556,6 +557,75 @@ if [[ "${size_in_mb:0:1}" == "." ]]; then
 	echo "0$size_in_mb"
 else
 	echo "$size_in_mb"
+fi
+}
+display_conf_summary() {
+echo_pre_space "/ vgm2flac /"
+
+if [[ "$summary_conf" = "1" ]]; then
+	# Script
+	script_conf+=( "Parallel job = $nprocessor" )
+	if [[ "$verbose" = "1" ]]; then
+		script_conf+=( "Verbose = ON" )
+	else
+		script_conf+=( "Verbose = OFF" )
+	fi
+	if [[ -n "$force_output_dir" ]]; then
+		script_conf+=( "Output directory = $force_output_dir" )
+	fi
+
+	# Encoder
+	if [[ "$only_wav" != "1" ]]; then
+		encoder_conf+=( "FLAC" )
+	fi
+	if [[ "$ape_compress" = "1" ]]; then
+		encoder_conf+=( "APE" )
+	fi
+	if [[ "$wavpack_compress" = "1" ]]; then
+		encoder_conf+=( "WAVPACK" )
+	fi
+	if [[ "$opus_compress" = "1" ]]; then
+		encoder_conf+=( "OPUS" )
+	fi
+
+	# Audio processing
+	if [[ "$force_fade_out" = "1" ]]; then
+		audio_process_conf+=( "Force fade out = ON" )
+	else
+		audio_process_conf+=( "Force fade out = OFF" )
+	fi
+	if [[ "$force_stereo" = "1" ]]; then
+		audio_process_conf+=( "Force Stereo = ON" )
+	else
+		audio_process_conf+=( "Force Stereo = OFF" )
+	fi
+	if [[ "$no_normalization" = "1" ]]; then
+		audio_process_conf+=( "Normalization = OFF" )
+	else
+		audio_process_conf+=( "Normalization = ON" )
+	fi
+	if [[ "$remove_silence" = "1" ]]; then
+		audio_process_conf+=( "Remove silence = ON" )
+	else
+		audio_process_conf+=( "Remove silence = OFF" )
+	fi
+	if [[ "$agressive_silence" = "1" ]]; then
+		audio_process_conf+=( "Remove silence agressive = ON" )
+	else
+		audio_process_conf+=( "Remove silence agressive = OFF" )
+	fi
+
+	display_separator
+	echo_pre_space "Current config"
+	printf ' ~ %s\n' "${script_conf[@]}"
+	echo_pre_space "~ Encoder : WAV ${encoder_conf[*]}"
+	echo_pre_space "~ Audio processing :"
+	printf '   - %s\n' "${audio_process_conf[@]}"
+
+	# Reset
+	script_conf=()
+	encoder_conf=()
+	audio_process_conf=()
 fi
 }
 display_start_summary() {
@@ -782,7 +852,6 @@ elif [[ "${#lst_bchunk_iso[@]}" -gt "1" || "${#lst_bchunk_cue[@]}" -gt "1" ]] \
 fi
 
 # vgmstream & uade test all files
-echo_pre_space "/ vgm2flac /"
 if (( "${#lst_all_files[@]}" )); then
 	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )) || (( "${#xmp_bin}" )) || (( "${#zxtune123_bin}" )); then
 
@@ -4191,7 +4260,12 @@ while [[ $# -gt 0 ]]; do
 		only_wav="1"
 	;;
 
-	# Set force remove silence
+	# Print summary config at begining
+	-s|--summary_conf)
+		summary_conf="1"
+	;;
+
+	# Set remove silence
 	--remove_silence)
 		remove_silence="1"
 	;;
@@ -4218,6 +4292,7 @@ done
 
 # Files source check & set
 check_cache_directory
+display_conf_summary
 list_source_files
 display_start_summary
 
