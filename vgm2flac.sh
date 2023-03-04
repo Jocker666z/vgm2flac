@@ -117,21 +117,22 @@ ext_zxtune_ay="ay"
 ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
-# Extensions exclude from detection
+# Extensions exclude from find all files
 ext_archive_exclude="7z|rar|zip"
 ext_audio_exclude="ape|flac|kss|m4a|mp3|ogg|opus|wav|wv"
 ext_img_exclude="gif|jpg|jpeg|png|tiff|webp"
 ext_lib_exclude="psflib|txth"
-ext_various_exclude="pdf|txt"
+ext_various_exclude="bash|cue|pdf|py|sh|txt"
 ext_video_exclude="avi|mp4|mkv"
-ext_all_raw="${ext_archive_exclude}| \
+ext_find_exclude="${ext_archive_exclude}| \
 			 ${ext_audio_exclude}| \
 			 ${ext_img_exclude}| \
 			 ${ext_lib_exclude}| \
 			 ${ext_various_exclude}| \
-			 ${ext_video_exclude}| \
-			 ${ext_asapconv}| \
-			 ${ext_asapconv}| \
+			 ${ext_video_exclude}"
+ext_find_exclude="${ext_find_exclude//[[:blank:]]/}"
+# Extensions exclude from detection
+ext_detection_exclude="${ext_asapconv}| \
 			 ${ext_bchunk_cue}| \
 			 ${ext_bchunk_iso}| \
 			 ${ext_ffmpeg_gbs}| \
@@ -150,8 +151,8 @@ ext_all_raw="${ext_archive_exclude}| \
 			 ${ext_zxtune_xsf}| \
 			 ${ext_zxtune_ym}| \
 			 ${ext_zxtune_zx_spectrum}"
-ext_input_exclude="${ext_all_raw//[[:blank:]]/}"
-mapfile -t ext_lst_input_exclude < <( echo "${ext_input_exclude//|/$'\n'}" )
+ext_detection_exclude="${ext_detection_exclude//[[:blank:]]/}"
+mapfile -t ext_detection_exclude < <( echo "${ext_detection_exclude//|/$'\n'}" )
 
 # Start check
 common_bin() {
@@ -825,7 +826,7 @@ local zxtune_test_result
 local progress_counter
 local local sox_delta
 
-mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort -V)
+mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | grep -E -i -v '.*\.('$ext_find_exclude')$' | sort -V)
 mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort -V)
 mapfile -t lst_asapconv < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_asapconv')$' 2>/dev/null | sort -V)
 mapfile -t lst_bchunk_cue < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_bchunk_cue')$' 2>/dev/null | sort -V)
@@ -898,7 +899,7 @@ if (( "${#lst_all_files[@]}" )) \
 
 			# Ext. test
 			shopt -s nocasematch
-			for files_ext in "${ext_lst_input_exclude[@]}"; do
+			for files_ext in "${ext_detection_exclude[@]}"; do
 				if [[ "$files_ext" = "${files##*.}" ]]; then
 					ext_test_result_off="1"
 				fi
