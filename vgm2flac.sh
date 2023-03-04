@@ -705,7 +705,6 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	local opus_size_in_mb
 	local diff_in_s
 	local elapsed_time_formated
-
 	# Get source size in mb
 	if (( "${#lst_all_files_pass[@]}" )); then
 		source_size_in_mb=$(display_size_mb "${lst_all_files_pass[@]}")
@@ -857,22 +856,26 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
 				"${lst_mdx2wav[@]}" \
-				"${lst_mednafen_snsf[@]}" \
 				"${lst_midi[@]}" \
+				"${lst_mednafen_snsf[@]}" \
 				"${lst_nsfplay_nsf[@]}" \
 				"${lst_nsfplay_nsfe[@]}" \
 				"${lst_sc68[@]}" \
 				"${lst_sidplayfp_sid[@]}" \
 				"${lst_sox[@]}" \
+				"${lst_uade[@]}" \
 				"${lst_vgm2wav[@]}" \
+				"${lst_vgmstream[@]}" \
+				"${lst_xmp[@]}" \
 				"${lst_zxtune_ay[@]}" \
 				"${lst_zxtune_xsf[@]}" \
 				"${lst_zxtune_ym[@]}" \
+				"${lst_zxtune_various[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" )
 
 # bin/cue clean
 # If bin/iso + cue = 1 + 1 - bchunk use
-if [[ "${#lst_bchunk_iso[@]}" = "1" ]] && [[ "${#lst_bchunk_cue[@]}" = "1" ]]; then
+if [[ "${#lst_bchunk_iso[@]}" = "1" && "${#lst_bchunk_cue[@]}" = "1" ]]; then
 	lst_sox=()
 	bchunk="1"
 # If bin > 1 or cue > 1 - sox use
@@ -955,36 +958,33 @@ if (( "${#lst_all_files[@]}" )) \
 fi
 
 # Conctruct new all pass array if detection add new files
-if (( "${#lst_uade[@]}" )) || (( "${#lst_xmp[@]}" )) \
-|| (( "${#lst_vgmstream[@]}" )) || (( "${#lst_zxtune_various[@]}" )); then
-	# Reset pass array
-	lst_all_files_pass=()
-	# Combine pass array
-	lst_all_files_pass+=( "${lst_adplay[@]}" \
-					"${lst_asapconv[@]}" \
-					"${lst_bchunk_cue[@]}" \
-					"${lst_bchunk_iso[@]}" \
-					"${lst_ffmpeg_gbs[@]}" \
-					"${lst_ffmpeg_hes[@]}" \
-					"${lst_ffmpeg_spc[@]}" \
-					"${lst_mdx2wav[@]}" \
-					"${lst_midi[@]}" \
-					"${lst_mednafen_snsf[@]}" \
-					"${lst_nsfplay_nsf[@]}" \
-					"${lst_nsfplay_nsfe[@]}" \
-					"${lst_sc68[@]}" \
-					"${lst_sidplayfp_sid[@]}" \
-					"${lst_sox[@]}" \
-					"${lst_uade[@]}" \
-					"${lst_vgm2wav[@]}" \
-					"${lst_vgmstream[@]}" \
-					"${lst_xmp[@]}" \
-					"${lst_zxtune_ay[@]}" \
-					"${lst_zxtune_xsf[@]}" \
-					"${lst_zxtune_ym[@]}" \
-					"${lst_zxtune_various[@]}" \
-					"${lst_zxtune_zx_spectrum[@]}" )
-fi
+# Reset pass array
+lst_all_files_pass=()
+# Combine pass array
+lst_all_files_pass+=( "${lst_adplay[@]}" \
+				"${lst_asapconv[@]}" \
+				"${lst_bchunk_cue[@]}" \
+				"${lst_bchunk_iso[@]}" \
+				"${lst_ffmpeg_gbs[@]}" \
+				"${lst_ffmpeg_hes[@]}" \
+				"${lst_ffmpeg_spc[@]}" \
+				"${lst_mdx2wav[@]}" \
+				"${lst_midi[@]}" \
+				"${lst_mednafen_snsf[@]}" \
+				"${lst_nsfplay_nsf[@]}" \
+				"${lst_nsfplay_nsfe[@]}" \
+				"${lst_sc68[@]}" \
+				"${lst_sidplayfp_sid[@]}" \
+				"${lst_sox[@]}" \
+				"${lst_uade[@]}" \
+				"${lst_vgm2wav[@]}" \
+				"${lst_vgmstream[@]}" \
+				"${lst_xmp[@]}" \
+				"${lst_zxtune_ay[@]}" \
+				"${lst_zxtune_xsf[@]}" \
+				"${lst_zxtune_ym[@]}" \
+				"${lst_zxtune_various[@]}" \
+				"${lst_zxtune_zx_spectrum[@]}" )
 }
 list_wav_files() {
 mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort -V)
