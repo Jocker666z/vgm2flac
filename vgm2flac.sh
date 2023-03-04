@@ -802,7 +802,7 @@ local uade_test_result
 local xmp_test_result
 local zxtune_test_result
 local progress_counter
-local local sox_delta
+local sox_delta
 
 mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | grep -E -i -v '.*\.('$ext_find_exclude')$' | sort -V)
 mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort -V)
@@ -863,7 +863,6 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_zxtune_ym[@]}" \
 				"${lst_zxtune_various[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" )
-
 # Detect file not in lst_all_files_pass array
 for files in "${lst_all_files[@]}"; do
 	if [[ ! " ${lst_all_files_pass[*]} " =~ " ${files} " ]]; then
@@ -882,42 +881,38 @@ if (( "${#files_2_test[@]}" )); then
 		for files in "${files_2_test[@]}"; do
 
 			# Test file
-			if [[ "$ext_test_result_off" != "1" ]]; then
+			if (( "${#uade123_bin}" )); then
+				uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
+					if [[ "${#uade_test_result}" -gt "0" ]]; then
+						lst_uade+=("$files")
+					fi
+			fi
 
-				if (( "${#uade123_bin}" )); then
-					uade_test_result=$("$uade123_bin" -g "$files" 2>/dev/null)
-						if [[ "${#uade_test_result}" -gt "0" ]]; then
-							lst_uade+=("$files")
-						fi
-				fi
+			if (( "${#xmp_bin}" )) \
+			&& [[ "${#uade_test_result}" -eq "0" ]]; then
+				xmp_test_result=$("$xmp_bin" --load-only -q "$files" 2>&1)
+					if [[ "${#xmp_test_result}" -eq "0" ]]; then
+						lst_xmp+=("$files")
+					fi
+			fi
 
-				if (( "${#xmp_bin}" )) \
-				&& [[ "${#uade_test_result}" -eq "0" ]]; then
-					xmp_test_result=$("$xmp_bin" --load-only -q "$files" 2>&1)
-						if [[ "${#xmp_test_result}" -eq "0" ]]; then
-							lst_xmp+=("$files")
-						fi
-				fi
+			if (( "${#vgmstream_cli_bin}" )) \
+			&& [[ "${#uade_test_result}" -eq "0" ]] \
+			&& [[ "${#xmp_test_result}" -gt "0" ]]; then
+				vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
+					if [[ "${#vgmstream_test_result}" -gt "0" ]]; then
+						lst_vgmstream+=("$files")
+					fi
+			fi
 
-				if (( "${#vgmstream_cli_bin}" )) \
-				&& [[ "${#uade_test_result}" -eq "0" ]] \
-				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
-					vgmstream_test_result=$("$vgmstream_cli_bin" -m "$files" 2>/dev/null)
-						if [[ "${#vgmstream_test_result}" -gt "0" ]]; then
-							lst_vgmstream+=("$files")
-						fi
-				fi
-
-				if (( "${#zxtune123_bin}" )) \
-				&& [[ "${#uade_test_result}" -eq "0" ]] \
-				&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
-				&& [[ "${#xmp_test_result}" -gt "0" ]]; then
-					zxtune_test_result=$("$zxtune123_bin" "$files" --null 2>&1)
-						if [[ "${#zxtune_test_result}" -gt "0" ]]; then
-							lst_zxtune_various+=("$files")
-						fi
-				fi
-
+			if (( "${#zxtune123_bin}" )) \
+			&& [[ "${#uade_test_result}" -eq "0" ]] \
+			&& [[ "${#vgmstream_test_result}" -eq "0" ]] \
+			&& [[ "${#xmp_test_result}" -gt "0" ]]; then
+				zxtune_test_result=$("$zxtune123_bin" "$files" --null 2>&1)
+					if [[ "${#zxtune_test_result}" -gt "0" ]]; then
+						lst_zxtune_various+=("$files")
+					fi
 			fi
 
 			# Progress bar
