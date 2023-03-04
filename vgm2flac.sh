@@ -848,19 +848,7 @@ mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort -V)
 
-# bin/cue clean
-# If bin/iso + cue = 1 + 1 - bchunk use
-if [[ "${#lst_bchunk_iso[@]}" = "1" ]] && [[ "${#lst_bchunk_cue[@]}" = "1" ]]; then
-	lst_sox=()
-	bchunk="1"
-# If bin > 1 or cue > 1 - sox use
-elif [[ "${#lst_bchunk_iso[@]}" -gt "1" || "${#lst_bchunk_cue[@]}" -gt "1" ]] \
-  || [[ "${#lst_bchunk_iso[@]}" -ge "1" || "${#lst_bchunk_cue[@]}" -eq "0" ]]; then
-	lst_bchunk_cue=()
-	lst_bchunk_iso=()
-fi
-
-# Combine pass array
+# Combine pass array for test
 lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_asapconv[@]}" \
 				"${lst_bchunk_cue[@]}" \
@@ -881,6 +869,18 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_zxtune_xsf[@]}" \
 				"${lst_zxtune_ym[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" )
+
+# bin/cue clean
+# If bin/iso + cue = 1 + 1 - bchunk use
+if [[ "${#lst_bchunk_iso[@]}" = "1" ]] && [[ "${#lst_bchunk_cue[@]}" = "1" ]]; then
+	lst_sox=()
+	bchunk="1"
+# If bin > 1 or cue > 1 - sox use
+elif [[ "${#lst_bchunk_iso[@]}" -gt "1" || "${#lst_bchunk_cue[@]}" -gt "1" ]] \
+  || [[ "${#lst_bchunk_iso[@]}" -ge "1" || "${#lst_bchunk_cue[@]}" -eq "0" ]]; then
+	lst_bchunk_cue=()
+	lst_bchunk_iso=()
+fi
 
 # Test files if number of all files != number of files already in array
 if (( "${#lst_all_files[@]}" )) \
