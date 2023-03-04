@@ -678,7 +678,7 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "Uade" "$uade123_fail" "${lst_uade[@]}"
 	fetched_stat "Various machines" "$vgmstream_fail" "${lst_vgmstream[@]}"
 	fetched_stat "Various machines ISO" "$bchunk_fail" "${lst_bchunk_iso[@]}"
-	fetched_stat "Various machines RAW" "" "${lst_sox[@]}"
+	fetched_stat "Various machines RAW" "" "${lst_sox_pass[@]}"
 	fetched_stat "Various machines SF" "$zxtune123_fail" "${lst_zxtune_xsf[@]}"
 	fetched_stat "Various machines VGM" "$vgm2wav_fail" "${lst_vgm2wav[@]}"
 	fetched_stat "XMP" "$xmp_fail" "${lst_xmp[@]}"
@@ -823,6 +823,7 @@ local uade_test_result
 local xmp_test_result
 local zxtune_test_result
 local progress_counter
+local local sox_delta
 
 mapfile -t lst_all_files < <(find "$PWD" -maxdepth 1 -type f 2>/dev/null | sort -V)
 mapfile -t lst_adplay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_adplay')$' 2>/dev/null | sort -V)
@@ -847,10 +848,21 @@ mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_zx_spectrum')$' 2>/dev/null | sort -V)
 
+# bin/cue clean
+# If bin/iso + cue = 1 + 1 - bchunk use
+if [[ "${#lst_bchunk_iso[@]}" = "1" && "${#lst_bchunk_cue[@]}" = "1" ]]; then
+	lst_sox=()
+	bchunk="1"
+# If bin > 1 or cue > 1 - sox use
+elif [[ "${#lst_bchunk_iso[@]}" -gt "1" || "${#lst_bchunk_cue[@]}" -gt "1" ]] \
+  || [[ "${#lst_bchunk_iso[@]}" -ge "1" || "${#lst_bchunk_cue[@]}" -eq "0" ]]; then
+	lst_bchunk_cue=()
+	lst_bchunk_iso=()
+fi
+
 # Combine pass array for test
 lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_asapconv[@]}" \
-				"${lst_bchunk_cue[@]}" \
 				"${lst_bchunk_iso[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
@@ -872,18 +884,6 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_zxtune_ym[@]}" \
 				"${lst_zxtune_various[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" )
-
-# bin/cue clean
-# If bin/iso + cue = 1 + 1 - bchunk use
-if [[ "${#lst_bchunk_iso[@]}" = "1" && "${#lst_bchunk_cue[@]}" = "1" ]]; then
-	lst_sox=()
-	bchunk="1"
-# If bin > 1 or cue > 1 - sox use
-elif [[ "${#lst_bchunk_iso[@]}" -gt "1" || "${#lst_bchunk_cue[@]}" -gt "1" ]] \
-  || [[ "${#lst_bchunk_iso[@]}" -ge "1" || "${#lst_bchunk_cue[@]}" -eq "0" ]]; then
-	lst_bchunk_cue=()
-	lst_bchunk_iso=()
-fi
 
 # Test files if number of all files != number of files already in array
 if (( "${#lst_all_files[@]}" )) \
@@ -957,13 +957,36 @@ if (( "${#lst_all_files[@]}" )) \
 
 fi
 
+# Sox validation
+if (( "${#lst_sox[@]}" )); then
+	display_separator
+	echo_pre_space "Sox files test:"
+
+	unset progress_counter
+	for files in "${lst_sox[@]}"; do
+		# Test if data by measuring maximum difference between two successive samples
+		sox_delta=$(sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$files" -n stat 2>&1 | grep "Maximum delta:" | awk '{print $3}')
+		# If Maximum delta < 1.9 - raw -> wav
+		if (( $(echo "$sox_delta 1.9" | awk '{print ($1 < $2)}') )); then
+			lst_sox_pass+=("$files")
+		fi
+
+		# Progress bar
+		if [[ "$verbose" != "1" ]]; then
+			progress_counter=$(( progress_counter + 1 ))
+			progress_bar "$progress_counter" "${#lst_sox[@]}"
+		fi
+
+	done
+	wait
+fi
+
 # Conctruct new all pass array if detection add new files
 # Reset pass array
 lst_all_files_pass=()
 # Combine pass array
 lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_asapconv[@]}" \
-				"${lst_bchunk_cue[@]}" \
 				"${lst_bchunk_iso[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
@@ -975,7 +998,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_nsfplay_nsfe[@]}" \
 				"${lst_sc68[@]}" \
 				"${lst_sidplayfp_sid[@]}" \
-				"${lst_sox[@]}" \
+				"${lst_sox_pass[@]}" \
 				"${lst_uade[@]}" \
 				"${lst_vgm2wav[@]}" \
 				"${lst_vgmstream[@]}" \
@@ -2675,9 +2698,8 @@ if (( "${#lst_sidplayfp_sid[@]}" )) && [[ -z "$sidplayfp_fail" ]]; then
 fi
 }
 loop_sox() {					# Various machines
-if (( "${#lst_sox[@]}" )); then
+if (( "${#lst_sox_pass[@]}" )); then
 	# Local variables
-	local delta
 	local sox_sample_rate_question
 	local sox_channel_question
 	local sox_loop_question
@@ -2685,155 +2707,140 @@ if (( "${#lst_sox[@]}" )); then
 	# Reset WAV array
 	lst_wav=()
 
-	# Test files
-	for files in "${lst_sox[@]}"; do
-		# Test if data by measuring maximum difference between two successive samples
-		delta=$(sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$files" -n stat 2>&1 | grep "Maximum delta:" | awk '{print $3}')
-		# If Maximum delta < 1.9 - raw -> wav
-		if awk -v n1="$delta" -v n2="1.9" 'BEGIN {if (n1+0<n2+0) exit 0; exit 1}'; then
-			lst_sox_pass+=("$files")
-		fi
-	done
-	wait
+	# User info - Title
+	display_loop_title "sox" "Various machines - RAW files"
 
-	# Start sox loop with file passed
-	if (( "${#lst_sox_pass[@]}" )); then
+	# Tag
+	tag_questions
+	tag_album
 
-		# User info - Title
-		display_loop_title "sox" "Various machines - RAW files"
+	# Sample rate question
+	echo_pre_space "Choose sample rate:"
+	echo
+	echo_pre_space " [1]  > 8000 Hz"
+	echo_pre_space " [2]  > 11025 Hz"
+	echo_pre_space " [3]  > 16000 Hz"
+	echo_pre_space " [4]  > 22050 Hz"
+	echo_pre_space " [5]  > 24000 Hz"
+	echo_pre_space " [6]  > 32000 Hz"
+	echo_pre_space " [7]* > 44100 Hz"
+	echo_pre_space " [8]  > 48000 Hz"
+	read -r -e -p " -> " sox_sample_rate_question
+	case "$sox_sample_rate_question" in
+		"1")
+			sox_sample_rate="8000"
+		;;
+		"2")
+			sox_sample_rate="11025"
+		;;
+		"3")
+			sox_sample_rate="16000"
+		;;
+		"4")
+			sox_sample_rate="22050"
+		;;
+		"5")
+			sox_sample_rate="24000"
+		;;
+		"6")
+			sox_sample_rate="32000"
+		;;
+		"7")
+			sox_sample_rate="44100"
+		;;
+		"8")
+			sox_sample_rate="48000"
+		;;
+		*)
+			sox_sample_rate="44100"
+			display_remove_previous_line
+			echo " -> 44100"
+		;;
+	esac
 
-		# Tag
-		tag_questions
-		tag_album
+	# Channels question
+	display_separator
+	echo_pre_space "Choose channels number:"
+	echo
+	echo_pre_space " [1]  > Mono"
+	echo_pre_space " [2]* > Stereo"
+	read -r -e -p " -> " sox_channel_question
+	case "$sox_channel_question" in
+		"1")
+			sox_channel="1"
+		;;
+		"2")
+			sox_channel="2"
+		;;
+		*)
+			sox_channel="2"
+			display_remove_previous_line
+			echo " -> 2"
+		;;
+	esac
 
-		# Sample rate question
-		echo_pre_space "Choose sample rate:"
-		echo
-		echo_pre_space " [1]  > 8000 Hz"
-		echo_pre_space " [2]  > 11025 Hz"
-		echo_pre_space " [3]  > 16000 Hz"
-		echo_pre_space " [4]  > 22050 Hz"
-		echo_pre_space " [5]  > 24000 Hz"
-		echo_pre_space " [6]  > 32000 Hz"
-		echo_pre_space " [7]* > 44100 Hz"
-		echo_pre_space " [8]  > 48000 Hz"
-		read -r -e -p " -> " sox_sample_rate_question
-		case "$sox_sample_rate_question" in
-			"1")
-				sox_sample_rate="8000"
-			;;
-			"2")
-				sox_sample_rate="11025"
-			;;
-			"3")
-				sox_sample_rate="16000"
-			;;
-			"4")
-				sox_sample_rate="22050"
-			;;
-			"5")
-				sox_sample_rate="24000"
-			;;
-			"6")
-				sox_sample_rate="32000"
-			;;
-			"7")
-				sox_sample_rate="44100"
-			;;
-			"8")
-				sox_sample_rate="48000"
-			;;
-			*)
-				sox_sample_rate="44100"
-				display_remove_previous_line
-				echo " -> 44100"
-			;;
-		esac
+	# Loop question
+	display_separator
+	echo_pre_space "Choose number of loop:"
+	echo
+	echo_pre_space " [1]* > No loop"
+	echo_pre_space " [2]  > 2 loop"
+	read -r -e -p " -> " sox_loop_question
+	case "$sox_loop_question" in
+		"1")
+			sox_loop="0"
+		;;
+		"2")
+			sox_loop="1"
+		;;
+		*)
+			sox_loop="0"
+			display_remove_previous_line
+			echo " -> 1"
+		;;
+	esac
 
-		# Channels question
-		display_separator
-		echo_pre_space "Choose channels number:"
-		echo
-		echo_pre_space " [1]  > Mono"
-		echo_pre_space " [2]* > Stereo"
-		read -r -e -p " -> " sox_channel_question
-		case "$sox_channel_question" in
-			"1")
-				sox_channel="1"
-			;;
-			"2")
-				sox_channel="2"
-			;;
-			*)
-				sox_channel="2"
-				display_remove_previous_line
-				echo " -> 2"
-			;;
-		esac
-
-		# Loop question
-		display_separator
-		echo_pre_space "Choose number of loop:"
-		echo
-		echo_pre_space " [1]* > No loop"
-		echo_pre_space " [2]  > 2 loop"
-		read -r -e -p " -> " sox_loop_question
-		case "$sox_loop_question" in
-			"1")
-				sox_loop="0"
-			;;
-			"2")
-				sox_loop="1"
-			;;
-			*)
-				sox_loop="0"
-				display_remove_previous_line
-				echo " -> 1"
-			;;
-		esac
-
-		# Extract WAV
-		display_convert_title "WAV"
-		for files in "${lst_sox_pass[@]}"; do
-				(
-				cmd_sox
-				) &
-				if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
-					wait -n
-				fi
-		done
-		wait
-
-		# Generate wav array
-		list_wav_files
-
-		# Flac loop
-		display_convert_title "FLAC"
-		for files in "${lst_wav[@]}"; do
-			# Tag
-			tag_song
-			# Remove silence
-			wav_remove_silent
-			# Fade out
-			if [[ "$force_fade_out" = "1" ]]; then
-				wav_fade_out
-			fi
-			# Peak normalisation, false stereo detection 
-			wav_normalization_channel_test
-			# Flac conversion
+	# Extract WAV
+	display_convert_title "WAV"
+	for files in "${lst_sox_pass[@]}"; do
 			(
-			wav2flac \
-			&& wav2wavpack \
-			&& wav2ape \
-			&& wav2opus
+			cmd_sox
 			) &
 			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
 				wait -n
 			fi
-		done
-		wait
+	done
+	wait
 
-	fi
+	# Generate wav array
+	list_wav_files
+
+	# Flac loop
+	display_convert_title "FLAC"
+	for files in "${lst_wav[@]}"; do
+		# Tag
+		tag_song
+		# Remove silence
+		wav_remove_silent
+		# Fade out
+		if [[ "$force_fade_out" = "1" ]]; then
+			wav_fade_out
+		fi
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
+		# Flac conversion
+		(
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape \
+		&& wav2opus
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
 fi
 }
 loop_uade() {					# Amiga / Tracker
