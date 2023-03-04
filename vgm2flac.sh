@@ -863,16 +863,19 @@ fi
 # Combine pass array
 lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_asapconv[@]}" \
+				"${lst_bchunk_cue[@]}" \
 				"${lst_bchunk_iso[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
 				"${lst_mdx2wav[@]}" \
 				"${lst_mednafen_snsf[@]}" \
+				"${lst_midi[@]}" \
 				"${lst_nsfplay_nsf[@]}" \
 				"${lst_nsfplay_nsfe[@]}" \
 				"${lst_sc68[@]}" \
 				"${lst_sidplayfp_sid[@]}" \
+				"${lst_sox[@]}" \
 				"${lst_vgm2wav[@]}" \
 				"${lst_zxtune_ay[@]}" \
 				"${lst_zxtune_xsf[@]}" \
@@ -959,16 +962,19 @@ if (( "${#lst_uade[@]}" )) || (( "${#lst_xmp[@]}" )) \
 	# Combine pass array
 	lst_all_files_pass+=( "${lst_adplay[@]}" \
 					"${lst_asapconv[@]}" \
+					"${lst_bchunk_cue[@]}" \
 					"${lst_bchunk_iso[@]}" \
 					"${lst_ffmpeg_gbs[@]}" \
 					"${lst_ffmpeg_hes[@]}" \
 					"${lst_ffmpeg_spc[@]}" \
 					"${lst_mdx2wav[@]}" \
+					"${lst_midi[@]}" \
 					"${lst_mednafen_snsf[@]}" \
 					"${lst_nsfplay_nsf[@]}" \
 					"${lst_nsfplay_nsfe[@]}" \
 					"${lst_sc68[@]}" \
 					"${lst_sidplayfp_sid[@]}" \
+					"${lst_sox[@]}" \
 					"${lst_uade[@]}" \
 					"${lst_vgm2wav[@]}" \
 					"${lst_vgmstream[@]}" \
