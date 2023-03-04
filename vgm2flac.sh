@@ -131,28 +131,6 @@ ext_find_exclude="${ext_archive_exclude}| \
 			 ${ext_various_exclude}| \
 			 ${ext_video_exclude}"
 ext_find_exclude="${ext_find_exclude//[[:blank:]]/}"
-# Extensions exclude from detection
-ext_detection_exclude="${ext_asapconv}| \
-			 ${ext_bchunk_cue}| \
-			 ${ext_bchunk_iso}| \
-			 ${ext_ffmpeg_gbs}| \
-			 ${ext_ffmpeg_spc}| \
-			 ${ext_mdx2wav}| \
-			 ${ext_mednafen_snsf}| \
-			 ${ext_midi}| \
-			 ${ext_nsfplay_nsf}| \
-			 ${ext_nsfplay_nsfe}| \
-			 ${ext_sc68}| \
-			 ${ext_sidplayfp_sid}| \
-			 ${ext_sox}| \
-			 ${ext_playlist}| \
-			 ${ext_vgm2wav}| \
-			 ${ext_zxtune_ay}| \
-			 ${ext_zxtune_xsf}| \
-			 ${ext_zxtune_ym}| \
-			 ${ext_zxtune_zx_spectrum}"
-ext_detection_exclude="${ext_detection_exclude//[[:blank:]]/}"
-mapfile -t ext_detection_exclude < <( echo "${ext_detection_exclude//|/$'\n'}" )
 
 # Start check
 common_bin() {
@@ -886,25 +864,22 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_zxtune_various[@]}" \
 				"${lst_zxtune_zx_spectrum[@]}" )
 
-# Test files if number of all files != number of files already in array
-if (( "${#lst_all_files[@]}" )) \
-&& [[ "${#lst_all_files[@]}" != "${#lst_all_files_pass[@]}" ]]; then
+# Detect file not in lst_all_files_pass array
+for files in "${lst_all_files[@]}"; do
+	if [[ ! " ${lst_all_files_pass[*]} " =~ " ${files} " ]]; then
+		files_2_test+=("$files")
+	fi
+done
+
+# Test files
+if (( "${#files_2_test[@]}" )); then
 
 	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )) \
 	|| (( "${#xmp_bin}" )) || (( "${#zxtune123_bin}" )); then
 
 		display_separator
 		echo_pre_space "Files test:"
-		for files in "${lst_all_files[@]}"; do
-
-			# Ext. test
-			shopt -s nocasematch
-			for files_ext in "${ext_detection_exclude[@]}"; do
-				if [[ "$files_ext" = "${files##*.}" ]]; then
-					ext_test_result_off="1"
-				fi
-			done
-			shopt -u nocasematch
+		for files in "${files_2_test[@]}"; do
 
 			# Test file
 			if [[ "$ext_test_result_off" != "1" ]]; then
@@ -948,7 +923,7 @@ if (( "${#lst_all_files[@]}" )) \
 			# Progress bar
 			if [[ "$verbose" != "1" ]]; then
 				progress_counter=$(( progress_counter + 1 ))
-				progress_bar "$progress_counter" "${#lst_all_files[@]}"
+				progress_bar "$progress_counter" "${#files_2_test[@]}"
 			fi
 
 			# Reset
