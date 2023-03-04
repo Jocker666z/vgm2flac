@@ -856,9 +856,31 @@ elif [[ "${#lst_bchunk_iso[@]}" -gt "1" || "${#lst_bchunk_cue[@]}" -gt "1" ]] \
 	lst_bchunk_iso=()
 fi
 
-# vgmstream & uade test all files
-if (( "${#lst_all_files[@]}" )); then
-	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )) || (( "${#xmp_bin}" )) || (( "${#zxtune123_bin}" )); then
+# Combine pass array
+lst_all_files_pass+=( "${lst_adplay[@]}" \
+				"${lst_asapconv[@]}" \
+				"${lst_bchunk_iso[@]}" \
+				"${lst_ffmpeg_gbs[@]}" \
+				"${lst_ffmpeg_hes[@]}" \
+				"${lst_ffmpeg_spc[@]}" \
+				"${lst_mdx2wav[@]}" \
+				"${lst_mednafen_snsf[@]}" \
+				"${lst_nsfplay_nsf[@]}" \
+				"${lst_nsfplay_nsfe[@]}" \
+				"${lst_sc68[@]}" \
+				"${lst_sidplayfp_sid[@]}" \
+				"${lst_vgm2wav[@]}" \
+				"${lst_zxtune_ay[@]}" \
+				"${lst_zxtune_xsf[@]}" \
+				"${lst_zxtune_ym[@]}" \
+				"${lst_zxtune_zx_spectrum[@]}" )
+
+# Test files if number of all files != number of files already in array
+if (( "${#lst_all_files[@]}" )) \
+&& [[ "${#lst_all_files[@]}" != "${#lst_all_files_pass[@]}" ]]; then
+
+	if (( "${#uade123_bin}" )) || (( "${#vgmstream_cli_bin}" )) \
+	|| (( "${#xmp_bin}" )) || (( "${#zxtune123_bin}" )); then
 
 		display_separator
 		echo_pre_space "Files test:"
@@ -922,30 +944,37 @@ if (( "${#lst_all_files[@]}" )); then
 			unset ext_test_result_off
 		done
 	fi
+
 fi
 
-# Combine pass array
-lst_all_files_pass+=( "${lst_adplay[@]}" \
-				"${lst_asapconv[@]}" \
-				"${lst_bchunk_iso[@]}" \
-				"${lst_ffmpeg_gbs[@]}" \
-				"${lst_ffmpeg_hes[@]}" \
-				"${lst_ffmpeg_spc[@]}" \
-				"${lst_mdx2wav[@]}" \
-				"${lst_mednafen_snsf[@]}" \
-				"${lst_nsfplay_nsf[@]}" \
-				"${lst_nsfplay_nsfe[@]}" \
-				"${lst_sc68[@]}" \
-				"${lst_sidplayfp_sid[@]}" \
-				"${lst_uade[@]}" \
-				"${lst_vgm2wav[@]}" \
-				"${lst_vgmstream[@]}" \
-				"${lst_xmp[@]}" \
-				"${lst_zxtune_ay[@]}" \
-				"${lst_zxtune_xsf[@]}" \
-				"${lst_zxtune_ym[@]}" \
-				"${lst_zxtune_various[@]}" \
-				"${lst_zxtune_zx_spectrum[@]}" )
+# Conctruct new all pass array if detection add new files
+if (( "${#lst_uade[@]}" )) || (( "${#lst_xmp[@]}" )) \
+|| (( "${#lst_vgmstream[@]}" )) || (( "${#lst_zxtune_various[@]}" )); then
+	# Reset pass array
+	lst_all_files_pass=()
+	# Combine pass array
+	lst_all_files_pass+=( "${lst_adplay[@]}" \
+					"${lst_asapconv[@]}" \
+					"${lst_bchunk_iso[@]}" \
+					"${lst_ffmpeg_gbs[@]}" \
+					"${lst_ffmpeg_hes[@]}" \
+					"${lst_ffmpeg_spc[@]}" \
+					"${lst_mdx2wav[@]}" \
+					"${lst_mednafen_snsf[@]}" \
+					"${lst_nsfplay_nsf[@]}" \
+					"${lst_nsfplay_nsfe[@]}" \
+					"${lst_sc68[@]}" \
+					"${lst_sidplayfp_sid[@]}" \
+					"${lst_uade[@]}" \
+					"${lst_vgm2wav[@]}" \
+					"${lst_vgmstream[@]}" \
+					"${lst_xmp[@]}" \
+					"${lst_zxtune_ay[@]}" \
+					"${lst_zxtune_xsf[@]}" \
+					"${lst_zxtune_ym[@]}" \
+					"${lst_zxtune_various[@]}" \
+					"${lst_zxtune_zx_spectrum[@]}" )
+fi
 }
 list_wav_files() {
 mapfile -t lst_wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('wav')$' 2>/dev/null | sort -V)
