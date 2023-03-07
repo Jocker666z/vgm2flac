@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2001,SC2015,SC2026,SC2046,SC2086,SC2185
+# shellcheck disable=SC2001,SC2015,SC2026,SC2046,SC2076,SC2086,SC2185
 # vgm2flac
 # Bash tool for vgm encoding to flac
 #
@@ -130,7 +130,7 @@ ext_find_exclude="${ext_archive_exclude}| \
 			 ${ext_lib_exclude}| \
 			 ${ext_various_exclude}| \
 			 ${ext_video_exclude}"
-ext_find_exclude="${ext_find_exclude//[[:blank:]]/}"
+ext_find_exclude=$(echo ${ext_find_exclude//[[:blank:]]/} | tr -s '|')
 
 # Start check
 common_bin() {
