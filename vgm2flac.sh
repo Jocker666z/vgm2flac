@@ -3713,9 +3713,14 @@ fi
 tag_ay() {						# Amstrad CPC, ZX Spectrum
 # Tag extract
 if [[ "$total_sub_track" = "0" ]] || [[ -z "$total_sub_track" ]]; then
-	ffprobe -hide_banner -loglevel panic -select_streams a -show_streams -show_format "$ay" > "$vgm2flac_cache_tag"
+	ffprobe -hide_banner -loglevel panic \
+		-select_streams a -show_streams \
+		-show_format "$ay" > "$vgm2flac_cache_tag"
 else
-	ffprobe -track_index "$sub_track" -hide_banner -loglevel panic -select_streams a -show_streams -show_format "$ay" > "$vgm2flac_cache_tag"
+	ffprobe -track_index "$sub_track" \
+		-hide_banner -loglevel panic \
+		-select_streams a -show_streams \
+		-show_format "$ay" > "$vgm2flac_cache_tag"
 fi
 
 tag_song=$(< "$vgm2flac_cache_tag" grep -i "song=" | awk -F'=' '{print $NF}')
@@ -4176,12 +4181,6 @@ else
 fi
 }
 
-# Common Setup
-test_write_access
-common_bin
-decoder_bin
-encoder_bin
-
 # Arguments variables
 while [[ $# -gt 0 ]]; do
 	vgm2flac_args="$1"
@@ -4311,6 +4310,12 @@ while [[ $# -gt 0 ]]; do
 	esac
 	shift
 done
+
+# Common Setup
+test_write_access
+common_bin
+decoder_bin
+encoder_bin
 
 # Files source check & set
 check_cache_directory
