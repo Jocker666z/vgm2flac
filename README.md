@@ -228,6 +228,7 @@ cp portable_mdx/examples/simple_mdx2wav/simple_mdx2wav /home/$USER/.local/bin/
 Build dependencies: `git build-essential`
 ```
 git clone https://github.com/vgmrips/vgmtools && cd vgmtools
+mkdir build && cd build && cmake .. 
 make -j"$(nproc)"
 cp vgm_tag /home/$USER/.local/bin
 ```
