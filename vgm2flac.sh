@@ -4218,6 +4218,9 @@ while [[ $# -gt 0 ]]; do
 
 	# Print installed dependencies
 	-d|--dependencies)
+		common_bin
+		decoder_bin
+		encoder_bin
 		display_dependencies
 		exit
 	;;
