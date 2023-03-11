@@ -428,7 +428,7 @@ Usage: vgm2flac [options]
   --no_remove_duplicate   Force no remove duplicate files.
   -o|--output <dirname>   Force output directory name.
   --only_wav              Force output wav files only.
-  -s|--summary_conf       Display config before begining.
+  -s|--summary_more       Display more infos at start & end.
   --remove_silence        Remove silence at start & end of track (85db).
   --remove_silence_more   Remove silence agressive mode (58db).
   -v|--verbose            Verbose mode
@@ -545,7 +545,7 @@ fi
 display_conf_summary() {
 echo_pre_space "/ vgm2flac /"
 
-if [[ "$summary_conf" = "1" ]]; then
+if [[ "$summary_more" = "1" ]]; then
 	# Script
 	if [[ -n "$force_output_dir" ]]; then
 		script_conf+=( "Output directory = $force_output_dir" )
@@ -737,9 +737,17 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fi
 	if [[ "$force_stereo" != "1" ]]; then
 		echo_pre_space "Mono      <- ${#lst_wav_in_mono[@]} file(s)"
+		if [[ "$summary_more" = "1" ]] \
+		&& (( "${#lst_wav_in_mono[@]}" )); then
+			printf '   %s\n' "${lst_wav_in_mono[@]}" | column -s $'|' -t -o '  ->  '
+		fi
 	fi
 	if [[ "$no_normalization" != "1" ]]; then
 		echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
+		if [[ "$summary_more" = "1" ]] \
+		&& (( "${#lst_wav_normalized[@]}" )); then
+			printf '   %s\n' "${lst_wav_normalized[@]}" | column -s $'|' -t -o '  ->  '
+		fi
 	fi
 	echo_pre_space "Encoding duration  - $elapsed_time_formated"
 fi
@@ -1223,7 +1231,11 @@ if [[ -f "${files%.*}".wav ]]; then
 			mv temp-out.wav "${files%.*}".wav &>/dev/null
 
 			# Record for summary
-			lst_wav_in_mono+=( "${files%.*}.wav" )
+			if [[ "$left_md5" = "$right_md5" ]]; then
+				lst_wav_in_mono+=( "True false stereo|$(basename "${files%.*}").wav" )
+			else
+				lst_wav_in_mono+=( "Decibel false stereo|$(basename "${files%.*}").wav" )
+			fi
 		fi
 
 	fi
@@ -1250,7 +1262,7 @@ if [[ -f "${files%.*}".wav ]]; then
 			mv temp-out.wav "${files%.*}".wav &>/dev/null
 
 			# Record for summary
-			lst_wav_normalized+=( "${files%.*}.wav" )
+			lst_wav_normalized+=( "+${db}|$(basename "${files%.*}").wav" )
 		fi
 	fi
 
@@ -4286,9 +4298,9 @@ while [[ $# -gt 0 ]]; do
 		only_wav="1"
 	;;
 
-	# Print summary config at begining
-	-s|--summary_conf)
-		summary_conf="1"
+	# Print more summary info
+	-s|--summary_more)
+		summary_more="1"
 	;;
 
 	# Set remove silence
