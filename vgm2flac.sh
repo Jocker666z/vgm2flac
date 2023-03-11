@@ -738,7 +738,9 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	if [[ "$force_stereo" != "1" ]]; then
 		echo_pre_space "Mono      <- ${#lst_wav_in_mono[@]} file(s)"
 	fi
-	echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
+	if [[ "$no_normalization" != "1" ]]; then
+		echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
+	fi
 	echo_pre_space "Encoding duration  - $elapsed_time_formated"
 fi
 }
