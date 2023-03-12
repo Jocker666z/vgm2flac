@@ -795,7 +795,7 @@ fi
 
 # Cache directory
 check_cache_directory() {
-if [ ! -d "$vgm2flac_cache" ]; then
+if [[ ! -d "$vgm2flac_cache" ]]; then
 	mkdir "$vgm2flac_cache"
 fi
 }
@@ -1923,7 +1923,7 @@ if (( "${#lst_ffmpeg_gbs[@]}" )) && [[ -z "$ffmpeg_fail" ]]; then
 			tag_xxs_loop
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
-			if [ -f "$files" ]; then
+			if [[ -f "$files" ]]; then
 				# Fade out
 				imported_sox_fade_out="$xxs_fading_second"
 				wav_fade_out
@@ -1995,7 +1995,7 @@ if (( "${#lst_ffmpeg_hes[@]}" )) && [[ -z "$ffmpeg_fail" ]]; then
 			tag_xxs_loop
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
-			if [ -f "$files" ]; then
+			if [[ -f "$files" ]]; then
 				# Fade out
 				imported_sox_fade_out="$xxs_fading_second"
 				wav_fade_out
@@ -2393,7 +2393,7 @@ if (( "${#lst_nsfplay_nsf[@]}" )) && [[ -z "$nsfplay_fail" ]]; then
 			tag_xxs_loop
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
-			if [ -f "$files" ]; then
+			if [[ -f "$files" ]]; then
 				# Remove silence
 				wav_remove_silent
 				# Add fade out
@@ -2466,7 +2466,7 @@ if (( "${#lst_nsfplay_nsfe[@]}" )) && [[ -z "$nsfplay_fail" ]]; then
 			tag_nsfe
 			# File variable for next function
 			files="$sub_track - $tag_song.wav"
-			if [ -f "$files" ]; then
+			if [[ -f "$files" ]]; then
 				# Remove silence
 				wav_remove_silent
 				# Add fade out
@@ -3276,7 +3276,9 @@ if (( "${#lst_zxtune_xsf[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 		tag_album
 
 		# Consider fade out if N64 files not have tag_length, or force
-		if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ] || [ "$force_fade_out" = "1" ]; then
+		if [[ "${files##*.}" = "miniusf" ]] \
+		|| [[ "${files##*.}" = "usf" ]] \
+		|| [[ "$force_fade_out" = "1" ]]; then
 			if [[ -z "$tag_length" ]]; then
 				# Remove silence
 				wav_remove_silent
@@ -3495,12 +3497,12 @@ if (( "${#lst_flac[@]}" )); then
 		count="$tag_track_count"
 
 		# Add lead zero if necessary
-		if [ "${#lst_flac[@]}" -lt "100" ]; then
+		if [[ "${#lst_flac[@]}" -lt "100" ]]; then
 			# if integer in one digit
 			if [[ "${#tag_track_count}" -eq "1" ]] ; then
 				local tag_track_count="0$tag_track_count" 
 			fi
-		elif [ "${#lst_flac[@]}" -ge "100" ]; then
+		elif [[ "${#lst_flac[@]}" -ge "100" ]]; then
 			# if integer in one digit
 			if [[ "${#tag_track_count}" -eq "1" ]] ; then
 				local tag_track_count="00$tag_track_count"
@@ -3739,7 +3741,7 @@ fi
 
 tag_song=$(< "$vgm2flac_cache_tag" grep -i "song=" | awk -F'=' '{print $NF}')
 tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
-if [[ -z "$tag_song" ]] || [ "$tag_song" = "?" ]; then
+if [[ -z "$tag_song" ]] || [[ "$tag_song" = "?" ]]; then
 	tag_song="[untitled]"
 fi
 
@@ -3747,7 +3749,7 @@ tag_artist_backup="$tag_artist"
 tag_artist=$(< "$vgm2flac_cache_tag" grep -i "author=" | awk -F'=' '{print $NF}')
 if [[ -z "$tag_artist" ]]; then
 	tag_artist="$tag_artist_backup"
-elif [ "$tag_artist" = "?" ]; then
+elif [[ "$tag_artist" = "?" ]]; then
 	tag_artist=""
 fi
 }
@@ -3861,7 +3863,7 @@ if [[ "${sc68_files##*.}" = "sc68" ]]; then
 	tag_artist=$(< "$vgm2flac_cache_tag" grep -i -a artist: | sed 's/^.*: //' | head -1)
 	if [[ -z "$tag_artist" ]]; then
 		tag_artist="Unknown"
-	elif [ "$tag_artist" = "N/A" ]; then
+	elif [[ "$tag_artist" = "N/A" ]]; then
 		tag_artist="Unknown"
 	fi
 	if [[ -z "$tag_date" ]]; then
@@ -3876,14 +3878,14 @@ tag_sid() {						# Commodore 64/128
 if [[ -z "$tag_artist" ]]; then
 	tag_artist=$(xxd -ps -s 0x36 -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 fi
-if [ "$tag_artist" = "<?>" ]; then
+if [[ "$tag_artist" = "<?>" ]]; then
 	unset tag_artist
 fi
 
 if [[ -z "$tag_game" ]]; then
 	tag_game=$(xxd -ps -s 0x16 -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 fi
-if [ "$tag_game" = "<?>" ]; then
+if [[ "$tag_game" = "<?>" ]]; then
 	unset tag_game
 fi
 if [[ -z "$tag_machine" ]]; then
@@ -3896,7 +3898,7 @@ local id666_test
 
 # Tag extract by hexdump
 id666_test=$(xxd -ps -s 0x00023h -l 1 "$files")			# Test ID666 here
-if [ "$id666_test" = "1a" ]; then						# 1a hex = 26 dec
+if [[ "$id666_test" = "1a" ]]; then						# 1a hex = 26 dec
 
 	tag_song=$(xxd -ps -s 0x0002Eh -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
 	if [[ -z "$tag_song" ]]; then
@@ -4011,17 +4013,18 @@ elif [[ "${files##*.}" = "dsf" ]]; then
 fi
 
 # SNSF & N64, get tag lenght for test in loop, notag=notimepoint -> fadeout
-if [ "${files##*.}" = "miniusf" ] || [ "${files##*.}" = "usf" ] \
-   || [ "${files##*.}" = "minisnsf" ] || [ "${files##*.}" = "snsf" ]; then
+if [[ "${files##*.}" = "miniusf" ]] || [[ "${files##*.}" = "usf" ]] \
+|| [[ "${files##*.}" = "minisnsf" ]] || [[ "${files##*.}" = "snsf" ]]; then
 	tag_length=$(< "$vgm2flac_cache_tag" grep -i -a length= | sed 's/^.*=//' \
 					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')
 
-	if [ "${files##*.}" = "minisnsf" ] || [ "${files##*.}" = "snsf" ]; then
+	if [[ "${files##*.}" = "minisnsf" ]] || [[ "${files##*.}" = "snsf" ]]; then
 		# SNSF case duration format is m:s
 		tag_length_format=$(echo "$tag_length" | grep -o ":" | wc -l)
 		# Total duration in s
 		if [[ "$tag_length_format" = "1" ]]; then
-			tag_length=$(echo "$tag_length" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')
+			tag_length=$(echo "$tag_length" \
+						| awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')
 		fi
 
 		# Fade out
@@ -4097,7 +4100,7 @@ if (( "${#lst_wav[@]}" )); then
 
 	# Final WAV target directory
 	wav_target_directory="${PWD}/WAV-${target_directory}"
-	if [ ! -d "$wav_target_directory" ]; then
+	if [[ ! -d "$wav_target_directory" ]]; then
 		mkdir "$wav_target_directory" &>/dev/null
 	# If target exist add date +%s after dir name
 	else
@@ -4112,7 +4115,7 @@ if (( "${#lst_wav[@]}" )); then
 	# Final FLAC target directory
 	if (( "${#lst_flac[@]}" )); then
 		flac_target_directory="${PWD}/FLAC-${target_directory}"
-		if [ ! -d "$flac_target_directory" ]; then
+		if [[ ! -d "$flac_target_directory" ]]; then
 			mkdir "$flac_target_directory" &>/dev/null
 		# If target exist add date +%s after dir name
 		else
@@ -4128,7 +4131,7 @@ if (( "${#lst_wav[@]}" )); then
 	# Final WAVPACK target directory
 	if (( "${#lst_wavpack[@]}" )); then
 		wavpack_target_directory="${PWD}/WAVPACK-${target_directory}"
-		if [ ! -d "$wavpack_target_directory" ]; then
+		if [[ ! -d "$wavpack_target_directory" ]]; then
 			mkdir "$wavpack_target_directory" &>/dev/null
 		# If target exist add date +%s after dir name
 		else
@@ -4144,7 +4147,7 @@ if (( "${#lst_wav[@]}" )); then
 	# Final Monkey's Audio target directory
 	if (( "${#lst_ape[@]}" )); then
 		ape_target_directory="${PWD}/APE-${target_directory}"
-		if [ ! -d "$ape_target_directory" ]; then
+		if [[ ! -d "$ape_target_directory" ]]; then
 			mkdir "$ape_target_directory" &>/dev/null
 		# If target exist add date +%s after dir name
 		else
@@ -4160,7 +4163,7 @@ if (( "${#lst_wav[@]}" )); then
 	# Final Opus target directory
 	if (( "${#lst_opus[@]}" )); then
 		opus_target_directory="${PWD}/OPUS-${target_directory}"
-		if [ ! -d "$opus_target_directory" ]; then
+		if [[ ! -d "$opus_target_directory" ]]; then
 			mkdir "$opus_target_directory" &>/dev/null
 		# If target exist add date +%s after dir name
 		else
