@@ -3635,7 +3635,8 @@ if (( "${#lst_m3u[@]}" )); then
 	local xxs_fading
 	local xxs_fading_format
 
-	tag_song=$(< "$vgm2flac_cache_tag" awk -v var=$xxs_track -F',' '$2 == var { print $0 }' | awk -F"," '{ print $3 }')
+	tag_song=$(< "$vgm2flac_cache_tag" awk -v var=$xxs_track -F',' '$2 == var { print $0 }' \
+				| awk -F"," '{ print $3 }' | sed '/^$/d')
 	tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)							# Replace eventualy "/" & ":" in string
 	if [[ -z "$tag_song" ]]; then
 		tag_song="[untitled]"
@@ -3652,7 +3653,8 @@ if (( "${#lst_m3u[@]}" )); then
 		elif [[ "$xxs_duration_format" = "0" && -n "$xxs_duration" ]]; then				# If duration is in this format = s
 			xxs_duration=$(echo "$xxs_duration" | sed 's/^/00:/')
 		fi
-		xxs_duration_second=$(echo "$xxs_duration" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')	# Total duration in s
+		xxs_duration_second=$(echo "$xxs_duration" | awk -F":" '{ print ($1 * 60) + $2 }' \
+								| tr -d '[:space:]')	# Total duration in s
 		# Duration value
 		xxs_duration_second=$((xxs_duration_second+1))															# Total duration in s + 1s
 		xxs_duration_msecond=$((xxs_duration_second*1000))														# Total duration in ms
@@ -3674,7 +3676,8 @@ if (( "${#lst_m3u[@]}" )); then
 			xxs_fading=$(echo "$xxs_fading" | sed 's/^/00:/')
 		fi
 		# Fading value
-		xxs_fading_second=$(echo "$xxs_fading" | awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')			# Fade out duration in s
+		xxs_fading_second=$(echo "$xxs_fading" | awk -F":" '{ print ($1 * 60) + $2 }' \
+							| tr -d '[:space:]')			# Fade out duration in s
 		xxs_fading_msecond=$((xxs_fading_second*1000))																# Fade out duration in ms
 	else
 		xxs_fading_second="0"
