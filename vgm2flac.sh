@@ -3983,20 +3983,20 @@ local tag_length_format
 # Tag extract
 strings -e S "$files" | sed -n '/TAG/,$p' > "$vgm2flac_cache_tag"
 
-tag_song=$(< "$vgm2flac_cache_tag" grep -i -a title= | sed 's/^.*=//')
+tag_song=$(< "$vgm2flac_cache_tag" grep -i -a title= | awk -F'=' '$0=$NF')
 if [[ -z "$tag_song" ]]; then
 	tag_song
 fi
 
 tag_artist_backup="$tag_artist"
-tag_artist=$(< "$vgm2flac_cache_tag" grep -i -a artist= | sed 's/^.*=//')
+tag_artist=$(< "$vgm2flac_cache_tag" grep -i -a artist= | awk -F'=' '$0=$NF')
 if [[ -z "$tag_artist" ]]; then
 	tag_artist="$tag_artist_backup"
 fi
 
 if [[ -z "$tag_game" && -z "$tag_date" ]]; then
-	tag_game=$(< "$vgm2flac_cache_tag" grep -i -a game= | sed 's/^.*=//')
-	tag_date=$(< "$vgm2flac_cache_tag" grep -i -a year= | sed 's/^.*=//')
+	tag_game=$(< "$vgm2flac_cache_tag" grep -i -a game= | awk -F'=' '$0=$NF')
+	tag_date=$(< "$vgm2flac_cache_tag" grep -i -a year= | awk -F'=' '$0=$NF')
 fi
 
 if [[ "${files##*.}" = "psf" || "${files##*.}" = "minipsf" ]]; then
@@ -4018,7 +4018,7 @@ fi
 # SNSF & N64, get tag lenght for test in loop, notag=notimepoint -> fadeout
 if [[ "${files##*.}" = "miniusf" ]] || [[ "${files##*.}" = "usf" ]] \
 || [[ "${files##*.}" = "minisnsf" ]] || [[ "${files##*.}" = "snsf" ]]; then
-	tag_length=$(< "$vgm2flac_cache_tag" grep -i -a length= | sed 's/^.*=//' \
+	tag_length=$(< "$vgm2flac_cache_tag" grep -i -a length= | awk -F'=' '$0=$NF' \
 					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')
 
 	if [[ "${files##*.}" = "minisnsf" ]] || [[ "${files##*.}" = "snsf" ]]; then
@@ -4031,7 +4031,7 @@ if [[ "${files##*.}" = "miniusf" ]] || [[ "${files##*.}" = "usf" ]] \
 		fi
 
 		# Fade out
-		tag_fade=$(< "$vgm2flac_cache_tag" grep -i -a fade= | sed 's/^.*=//')
+		tag_fade=$(< "$vgm2flac_cache_tag" grep -i -a fade= | awk -F'=' '$0=$NF')
 	fi
 fi
 }
