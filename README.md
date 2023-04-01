@@ -183,7 +183,7 @@ su -c "make install" -m "root"
 ```
 
 ### munt
-Build dependencies: `git build-essential cmake libpulse-dev libasound2-dev libjack-jackd2-dev`
+Build dependencies: `git build-essential cmake libpulse-dev libasound2-dev libjack-jackd2-dev qtbase5-dev`
 ```
 git clone https://github.com/munt/munt && cd munt
 mkdir build && cd build && cmake .. 
