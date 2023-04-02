@@ -243,16 +243,17 @@ su -c "make install" -m "root"
 ```
 
 ### vgmstream-cli
-Build dependencies: `git build-essential cmake audacious-dev libsvtav1enc1 libao-dev libopus-dev libmpg123-dev libgtk-3-dev`
+Build dependencies: `gcc g++ make cmake build-essential git libmpg123-dev libvorbis-dev libspeex-dev libavformat-dev libavcodec-dev libavutil-dev libswresample-dev yasm libopus-dev pkg-config autoconf libtool-bin libao-dev`
 ```
 git clone https://github.com/vgmstream/vgmstream && cd vgmstream
-mkdir build && cd build && cmake .. 
+mkdir build && cd build
+cmake .. -DBUILD_AUDACIOUS=OFF
 make -j"$(nproc)"
 su -c "make install" -m "root"
 ```
 
 ### uade
-Build dependencies: `git build-essential sparse audacious-dev libao-dev libvorbis-dev libmpg123-dev`
+Build dependencies: `git build-essential`
 ```
 git clone https://gitlab.com/heikkiorsila/bencodetools && cd bencodetools
 ./configure && make -j"$(nproc)"
