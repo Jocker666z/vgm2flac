@@ -253,7 +253,7 @@ su -c "make install" -m "root"
 ```
 
 ### uade
-Build dependencies: `git build-essential`
+Build dependencies: `git build-essential sparse`
 ```
 git clone https://gitlab.com/heikkiorsila/bencodetools && cd bencodetools
 ./configure && make -j"$(nproc)"
@@ -272,8 +272,8 @@ su -c "make install" -m "root"
 
 ```
 cd /home/$USER/.local/bin/
-wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r5020_x86_64.tar.bz2
-tar -xf zxtune123_r5020_x86_64.tar.bz2 && rm zxtune123_r5020_x86_64.tar.bz2
+wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r5030_x86_64.tar.bz2
+tar -xf zxtune123_r5030_x86_64.tar.bz2 && rm zxtune123_r5030_x86_64.tar.bz2
 ```
 
 ## TODO
