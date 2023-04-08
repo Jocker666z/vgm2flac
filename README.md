@@ -13,6 +13,7 @@ You will be able to run vgm2flac even if some dependencies are missing. The scri
 * ffmpeg must be compiled with: `--enable-libgme`
 * adplay: https://github.com/adplug/adplay-unix
 * asapconv: https://asap.sourceforge.net/
+* gsf2wav: https://github.com/jprjr/gsf2wav
 * fluidsynth: https://www.fluidsynth.org/
 * mednafen: https://mednafen.github.io/
 * munt: https://github.com/munt/munt
@@ -135,7 +136,10 @@ For use correct track duration, you have 2 solutions:
 In most cases the music is converted without problems, but you may need to add the Kernal, BASIC, and Chargen ROM files to the configuration file of sidplayfp.
 These files are available here https://github.com/Jocker666z/vgm2flac-dep/raw/main/C64-ROM.tar.bz2
 
-## snsf files
+## GSF files (GBA)
+Default conversion made with gfs2wav, but if binary not installed backup convert made by ZXTune.
+
+## snsf files (SNES)
 Here the conversion is highly experimental, it is done while reading the file, this is the only way I found to do it. So you will have to be patient.
 
 ## Known error
@@ -145,8 +149,8 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * Atari ST: http://sndh.atari.org/
 * Atari XL/XE: https://asma.atari.org/
 * Commodore 64: https://hvsc.c64.org/
-* Music from keygens, cracks, trainers, intros: http://www.keygenmusic.net/
-* Various VGM: https://vgmrips.net/
+* Various machines: https://vgm.hcs64.com/
+* VGM: https://vgmrips.net/
 
 ## Holy reading
 * https://wiki.archlinux.org/index.php/FluidSynth
@@ -180,6 +184,17 @@ tar -xf asap-5.2.0.tar.gz
 cd asap-5.2.0
 make -j"$(nproc)"
 su -c "make install" -m "root"
+```
+
+### gsf2wav
+Build dependencies: `git build-essential`
+```
+git clone https://github.com/jprjr/gsf2wav && cd gsf2wav
+git clone --recursive https://github.com/jprjr/lazygsf/
+git clone https://github.com/jprjr/psflib
+mkdir build && cd build
+cmake .. && make -j"$(nproc)"
+cp gsf2wav /home/$USER/.local/bin/
 ```
 
 ### munt

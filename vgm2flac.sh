@@ -61,6 +61,7 @@ decoder_dependency=(
 	'adplay'
 	'asapconv'
 	'bchunk'
+	'gsf2wav'
 	'fluidsynth'
 	'info68'
 	'mednafen'
@@ -103,6 +104,7 @@ ext_bchunk_iso="bin|img|iso"
 ext_ffmpeg_gbs="gbs"
 ext_ffmpeg_hes="hes"
 ext_ffmpeg_spc="spc"
+ext_gsf="gsf|minigsf"
 ext_mdx2wav="mdx"
 ext_mednafen_snsf="minisnsf|snsf"
 ext_midi="mid"
@@ -114,7 +116,7 @@ ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_zxtune_ay="ay"
-ext_zxtune_xsf="2sf|gsf|dsf|psf|psf2|mini2sf|minigsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
+ext_zxtune_xsf="2sf|dsf|psf|psf2|mini2sf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 # Extensions exclude from find all files
@@ -122,7 +124,7 @@ ext_archive_exclude="7z|rar|zip"
 ext_audio_exclude="ape|flac|kss|m4a|mp3|ogg|opus|wav|wv"
 ext_img_exclude="gif|jpg|jpeg|png|tiff|webp"
 ext_lib_exclude="2sflib|dsflib|gsflib|ssflib|psflib|txth"
-ext_various_exclude="bash|cue|pdf|py|sh|txt"
+ext_various_exclude="bash|cue|m3u|pdf|py|sh|txt"
 ext_video_exclude="avi|mp4|mkv"
 ext_find_exclude="${ext_archive_exclude}| \
 			 ${ext_audio_exclude}| \
@@ -223,6 +225,11 @@ for command in "${decoder_dependency[@]}"; do
 		elif [[ "$command" = "fluidsynth" ]]; then
 			fluidsynth_bin="$bin_name"
 			bin_version=$($fluidsynth_bin -V | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "gsf2wav" ]]; then
+			gsf2wav_bin="$bin_name"
+			bin_version="-"
 			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
 		elif [[ "$command" = "info68" ]]; then
@@ -337,9 +344,13 @@ for command in "${decoder_dependency[@]}"; do
 	fi
 done
 
+# gbs fail case
+if [[ -z "$gsf2wav_bin" ]] && [[ -z "$zxtune123_bin" ]]; then
+	gsf_fail="/!\ Not processing, gsf2wav or zxtune123 not installed"
+fi
 # midi fail case
 if [[ -z "$fluidsynth_bin" ]] && [[ -z "$munt_bin" ]]; then
-	midi_fail="/!\ Not processing, fluidsynth & munt not installed"
+	midi_fail="/!\ Not processing, fluidsynth or munt not installed"
 fi
 # sc68 fail case
 if [[ -z "$info68_bin" ]] || [[ -z "$sc68_bin" ]]; then
@@ -645,6 +656,7 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "Amstrad CPC" "$zxtune123_fail" "${lst_zxtune_ay[@]}"
 	fetched_stat "Amstrad CPC, Atari ST" "$zxtune123_fail" "${lst_zxtune_ym[@]}"
 	fetched_stat "Commodore C64/128" "$sidplayfp_fail" "${lst_sidplayfp_sid[@]}"
+	fetched_stat "Game Boy Advance" "$gsf_fail" "${lst_gsf[@]}"
 	fetched_stat "Game Boy, Game Boy Color" "$ffmpeg_fail" "${lst_ffmpeg_gbs[@]}"
 	fetched_stat "NES NSF" "$nsfplay_fail" "${lst_nsfplay_nsf[@]}"
 	fetched_stat "NES NSFE" "$nsfplay_fail" "${lst_nsfplay_nsfe[@]}"
@@ -822,6 +834,7 @@ mapfile -t lst_bchunk_iso < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_gbs')$' 2>/dev/null | sort -V)
 mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort -V)
 mapfile -t lst_ffmpeg_spc < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_spc')$' 2>/dev/null | sort -V)
+mapfile -t lst_gsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_gsf')$' 2>/dev/null | sort -V)
 mapfile -t lst_mdx2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mdx2wav')$' 2>/dev/null | sort -V)
 mapfile -t lst_mednafen_snsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mednafen_snsf')$' 2>/dev/null | sort -V)
 mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort -V)
@@ -856,6 +869,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
+				"${lst_gsf[@]}" \
 				"${lst_mdx2wav[@]}" \
 				"${lst_midi[@]}" \
 				"${lst_mednafen_snsf[@]}" \
@@ -972,6 +986,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
+				"${lst_gsf[@]}" \
 				"${lst_mdx2wav[@]}" \
 				"${lst_midi[@]}" \
 				"${lst_mednafen_snsf[@]}" \
@@ -1365,6 +1380,15 @@ if [[ "$verbose" = "1" ]]; then
 	"$fluidsynth_bin" -v -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" "$files"
 else
 	"$fluidsynth_bin" -F "${files%.*}".wav "$fluidsynth_soundfont" "$files" &>/dev/null \
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
+fi
+}
+cmd_gsf2wav() {
+if [[ "$verbose" = "1" ]]; then
+	"$gsf2wav_bin" "$files" "${files%.*}".wav
+else
+	"$gsf2wav_bin" "$files" "${files%.*}".wav &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
 		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
@@ -2080,6 +2104,115 @@ if (( "${#lst_ffmpeg_spc[@]}" )) && [[ -z "$ffmpeg_fail" ]]; then
 
 fi
 }
+loop_gsf() {					# GBA
+if (( "${#lst_gsf[@]}" )) && [[ -z "$gsf_fail" ]]; then
+	# Reset WAV array
+	lst_wav=()
+
+	# Tag
+	tag_machine="GBA"
+
+	# If gsf2wav
+	if [[ -n "$gsf2wav_bin" ]]; then
+
+		# User info - Title
+		display_loop_title "gfs2wav" "GBA"
+		
+		# Wav loop
+		display_convert_title "WAV"
+		for files in "${lst_gsf[@]}"; do
+			# Tag (one time)
+			if [[ "$files" = "${lst_gsf[0]}" ]];then
+				tag_xfs
+				tag_questions
+				tag_album
+			fi
+			(
+			cmd_gsf2wav
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		done
+		wait
+
+	# If zxtune
+	else
+		# User info - Title
+		display_loop_title "zxtune" "GBA"
+
+		# Wav loop
+		display_convert_title "WAV"
+		for files in "${lst_gsf[@]}"; do
+			# Tag (one time)
+			if [[ "$files" = "${lst_gsf[0]}" ]];then
+				tag_xfs
+				tag_questions
+				tag_album
+			fi
+			# Filename contruction
+			file_name=$(basename "${files%.*}")
+			file_name_random=$(( RANDOM % 10000 ))
+			# Extract WAV
+			(
+			cmd_zxtune_various
+			) &
+			if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+				wait -n
+			fi
+		done
+		wait
+
+	fi
+
+	# Generate wav array
+	list_wav_files
+
+	# Flac/tag loop
+	display_convert_title "FLAC"
+	for files in "${lst_gsf[@]}"; do
+		# Tag
+		tag_xfs
+		tag_questions
+		tag_album
+
+		# Consider fade out if N64 files not have tag_length, or force
+		if [[ "${files##*.}" = "miniusf" ]] \
+		|| [[ "${files##*.}" = "usf" ]] \
+		|| [[ "$force_fade_out" = "1" ]]; then
+			if [[ -z "$tag_length" ]]; then
+				# Remove silence
+				wav_remove_silent
+				# Fade out
+				wav_fade_out
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
+			else
+				# Remove silence
+				wav_remove_silent
+				# Peak normalisation, false stereo detection 
+				wav_normalization_channel_test
+			fi
+		else
+			# Remove silence
+			wav_remove_silent
+			# Peak normalisation, false stereo detection 
+			wav_normalization_channel_test
+		fi
+		# Flac conversion
+		(
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape \
+		&& wav2opus
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+fi
+}
 loop_mdx2wav() {				# Sharp X68000
 if (( "${#lst_mdx2wav[@]}" )) && [[ -z "$mdx2wav_fail" ]]; then
 	# Reset WAV array
@@ -2089,7 +2222,6 @@ if (( "${#lst_mdx2wav[@]}" )) && [[ -z "$mdx2wav_fail" ]]; then
 	tag_machine="Sharp X68000"
 	tag_questions
 	tag_album
-
 
 	# User info - Title
 	display_loop_title "mdx2wav" "Sharp X68000"
@@ -3243,7 +3375,7 @@ if (( "${#lst_zxtune_xsf[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	lst_wav=()
 
 	# User info - Title
-	display_loop_title "zxtune" "Dreamcast, GBA, N64, NDS, Saturn, PS1, PS2"
+	display_loop_title "zxtune" "Dreamcast, N64, NDS, Saturn, PS1, PS2"
 
 	# Wav loop
 	display_convert_title "WAV"
@@ -4356,6 +4488,7 @@ loop_bchunk
 loop_ffmpeg_gbs
 loop_ffmpeg_hes
 loop_ffmpeg_spc
+loop_gsf
 loop_mdx2wav
 loop_mednafen_snsf
 loop_midi
