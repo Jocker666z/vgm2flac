@@ -258,7 +258,7 @@ su -c "make install" -m "root"
 ```
 
 ### vgmstream-cli
-Build dependencies: `gcc g++ make cmake build-essential git libmpg123-dev libvorbis-dev libspeex-dev libavformat-dev libavcodec-dev libavutil-dev libswresample-dev yasm libopus-dev pkg-config autoconf libtool-bin libao-dev`
+Build dependencies: `gcc g++ make cmake build-essential git libmpg123-dev libvorbis-dev libspeex-dev libavformat-dev libavcodec-dev libavutil-dev libswresample-dev yasm libopus-dev pkg-config autoconf libtool-bin libao-dev libjansson-dev`
 ```
 git clone https://github.com/vgmstream/vgmstream && cd vgmstream
 mkdir build && cd build

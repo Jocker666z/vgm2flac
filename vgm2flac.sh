@@ -124,7 +124,7 @@ ext_archive_exclude="7z|rar|zip"
 ext_audio_exclude="ape|flac|kss|m4a|mp3|ogg|opus|wav|wv"
 ext_img_exclude="gif|jpg|jpeg|png|tiff|webp"
 ext_lib_exclude="2sflib|dsflib|gsflib|ssflib|psflib|txth"
-ext_various_exclude="bash|cue|m3u|pdf|py|sh|txt"
+ext_various_exclude="bash|cue|m3u|m3u8|pdf|py|sh|txt"
 ext_video_exclude="avi|mp4|mkv"
 ext_find_exclude="${ext_archive_exclude}| \
 			 ${ext_audio_exclude}| \
