@@ -3759,7 +3759,7 @@ else																					# Hexadecimal track
 fi
 }
 tag_xxs_loop() {				# Game Boy (gbs), NES (nsf), PC-Enginge (HES)
-if (( "${#lst_m3u[@]}" )); then
+if (( "${#lst_m3u[@]}" )) && [[ -f "$m3u_file" ]]; then
 
 	# Local variables
 	local xxs_duration
@@ -3896,18 +3896,22 @@ tag_artist=$(xxd -ps -s 0x30 -l 32 "$gbs" | tr -d '[:space:]' | xxd -r -p | tr -
 # If m3u
 if (( "${#lst_m3u[@]}" )); then
 	m3u_file="${gbs%.*}.m3u"
-	m3u_track_hex_test=$(< "${gbs%.*}".m3u awk -F"," '{ print $2 }' | grep -F -e "$")
-	tag_m3u_clean_extract
+	if [[ -f "$m3u_file" ]]; then
+		m3u_track_hex_test=$(< "${gbs%.*}".m3u awk -F"," '{ print $2 }' | grep -F -e "$")
+		tag_m3u_clean_extract
+	fi
 fi
 }
 tag_hes_extract() {				# PC Engine		- Tag extraction & m3u cleaning
 # If m3u
 if (( "${#lst_m3u[@]}" )); then
 	m3u_file="${hes%.*}.m3u"
-	tag_game=$(< "${hes%.*}".m3u grep "@TITLE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
-	tag_artist=$(< "${hes%.*}".m3u grep "@COMPOSER" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
-	tag_date=$(< "${hes%.*}".m3u grep "@DATE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
-	tag_m3u_clean_extract
+	if [[ -f "$m3u_file" ]]; then
+		tag_game=$(< "${hes%.*}".m3u grep "@TITLE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
+		tag_artist=$(< "${hes%.*}".m3u grep "@COMPOSER" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
+		tag_date=$(< "${hes%.*}".m3u grep "@DATE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
+		tag_m3u_clean_extract
+	fi
 fi
 }
 tag_nsf_extract() {				# NES			- Tag extraction & m3u cleaning
@@ -3918,7 +3922,9 @@ tag_artist=$(xxd -ps -s 0x02E -l 32 "$nsf" | tr -d '[:space:]' | xxd -r -p | tr 
 # If m3u
 if (( "${#lst_m3u}" )); then
 	m3u_file="${nsf%.*}.m3u"
-	tag_m3u_clean_extract
+	if [[ -f "$m3u_file" ]]; then
+		tag_m3u_clean_extract
+	fi
 fi
 }
 tag_nsfe() {					# NES
