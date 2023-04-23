@@ -3750,12 +3750,12 @@ local m3u_track_hex_test
 
 m3u_track_hex_test=$(< "$m3u_file" awk -F"," '{ print $2 }' | grep -F -e "$")
 if [[ -z "$m3u_track_hex_test" ]]; then													# Decimal track
-	< "$m3u_file" sed '/^#/d' | sed 's/\\//g' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
-	| sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
+	< "$m3u_file" sed '/^#/d' | sed 's/\\,/ -/g' | sed 's/\\//g' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
+	| sed 's/.*::/GAME::/' > "$vgm2flac_cache_tag"
 else																					# Hexadecimal track
-	< "$m3u_file" sed '/^#/d' | sed 's/\\//g' | uniq | sed -r '/^\s*$/d' \
+	< "$m3u_file" sed '/^#/d' | sed 's/\\,/ -/g' | sed 's/\\//g' | uniq | sed -r '/^\s*$/d' \
 	| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+0; print}' \
-	| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' | sed -e 's/\\,/ -/g' > "$vgm2flac_cache_tag"
+	| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' > "$vgm2flac_cache_tag"
 fi
 }
 tag_xxs_loop() {				# Game Boy (gbs), NES (nsf), PC-Enginge (HES)
@@ -3907,9 +3907,15 @@ tag_hes_extract() {				# PC Engine		- Tag extraction & m3u cleaning
 if (( "${#lst_m3u[@]}" )); then
 	m3u_file="${hes%.*}.m3u"
 	if [[ -f "$m3u_file" ]]; then
-		tag_game=$(< "${hes%.*}".m3u grep "@TITLE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
-		tag_artist=$(< "${hes%.*}".m3u grep "@COMPOSER" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
-		tag_date=$(< "${hes%.*}".m3u grep "@DATE" | awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' | tr -d "\n\r")
+		tag_game=$(< "${hes%.*}".m3u grep "@TITLE" \
+					| awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' \
+					| tr -d "\n\r")
+		tag_artist=$(< "${hes%.*}".m3u grep "@COMPOSER" \
+					| awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' \
+					| tr -d "\n\r")
+		tag_date=$(< "${hes%.*}".m3u grep "@DATE" \
+					| awk -v n=3 '{ for (i=n; i<=NF; i++) printf "%s%s", $i, (i<NF ? OFS : ORS)}' \
+					| tr -d "\n\r")
 		tag_m3u_clean_extract
 	fi
 fi
