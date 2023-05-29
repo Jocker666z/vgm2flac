@@ -145,7 +145,7 @@ for command in "${core_dependency[@]}"; do
 	then
 		bin_name=$(command -v $command)
 		if [[ "$command" = "awk" ]]; then
-			bin_version=$(awk -V | head -1)
+			bin_version="-"
 			core_dependency_version+=( "${bin_name}|${bin_version}" )
 		elif [[ "$command" = "bash" ]]; then
 			bin_version="${BASH_VERSION}"
