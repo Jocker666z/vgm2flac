@@ -2478,8 +2478,6 @@ fi
 }
 loop_nsfplay_nsf() {			# NES nsf
 if (( "${#lst_nsfplay_nsf[@]}" )) && [[ -z "$nsfplay_fail" ]]; then
-	# Bin check & set
-	nsfplay_bin
 
 	# Local variables
 	local file_total_track
