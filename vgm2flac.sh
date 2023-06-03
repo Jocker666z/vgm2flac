@@ -3785,38 +3785,45 @@ if (( "${#lst_m3u[@]}" )) && [[ -f "$m3u_file" ]]; then
 					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')
 	if [[ -n "$xxs_duration" ]]; then
 		xxs_duration_format=$(echo "$xxs_duration"| grep -o ":" | wc -l)
-		if [[ "$xxs_duration_format" = "2" ]]; then										# If duration is in this format = h:m:s
+		# If duration is in this format = h:m:s
+		if [[ "$xxs_duration_format" = "2" ]]; then
 			xxs_duration=$(echo "$xxs_duration" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$xxs_duration_format" = "0" && -n "$xxs_duration" ]]; then				# If duration is in this format = s
+		# If duration is in this format = s
+		elif [[ "$xxs_duration_format" = "0" && -n "$xxs_duration" ]]; then
 			xxs_duration=$(echo "$xxs_duration" | sed 's/^/00:/')
 		fi
+		# Total duration in s
 		xxs_duration_second=$(echo "$xxs_duration" | awk -F":" '{ print ($1 * 60) + $2 }' \
-								| tr -d '[:space:]')	# Total duration in s
-		# Duration value
-		xxs_duration_second=$((xxs_duration_second+1))															# Total duration in s + 1s
-		xxs_duration_msecond=$((xxs_duration_second*1000))														# Total duration in ms
+								| tr -d '[:space:]')
+		# Duration value - in s+1 & ms
+		xxs_duration_second=$((xxs_duration_second+1))
+		xxs_duration_msecond=$((xxs_duration_second*1000))
 	else
-		# Duration value
+		# Duration value - in s+1 & ms
 		xxs_duration_second="$xxs_default_max_duration"
 		xxs_duration_msecond=$((xxs_default_max_duration*1000))
 	fi
 
 	# Fade out
+	# Fade out duration in ?:m:s
 	xxs_fading=$(< "$vgm2flac_cache_tag" grep ",$xxs_track," \
 				| awk -F"," '{ print $(NF) }' | tr -d '[:space:]' \
-				| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')						# Fade out duration in ?:m:s
+				| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')
 	if [[ -n "$xxs_fading" ]]; then
 		xxs_fading_format=$(echo "$xxs_fading"| grep -o ":" | wc -l)
-		if [[ "$xxs_fading_format" = "2" ]]; then										# If duration is in this format = h:m:s
+		# If duration is in this format = h:m:s
+		if [[ "$xxs_fading_format" = "2" ]]; then
 			xxs_fading=$(echo "$xxs_fading" | awk -F":" '{ print ($2":"$3) }')
-		elif [[ "$xxs_fading_format" = "0" && -n "$xxs_fading" ]]; then					# If duration is in this format = s
+		# If duration is in this format = s
+		elif [[ "$xxs_fading_format" = "0" && -n "$xxs_fading" ]]; then
 			xxs_fading=$(echo "$xxs_fading" | sed 's/^/00:/')
 		fi
-		# Fading value
+		# Fading value - in s & ms
 		xxs_fading_second=$(echo "$xxs_fading" | awk -F":" '{ print ($1 * 60) + $2 }' \
-							| tr -d '[:space:]')			# Fade out duration in s
-		xxs_fading_msecond=$((xxs_fading_second*1000))																# Fade out duration in ms
+							| tr -d '[:space:]')
+		xxs_fading_msecond=$((xxs_fading_second*1000))
 	else
+		# Fading value - in s & ms
 		xxs_fading_second="0"
 		xxs_fading_msecond="0"
 	fi
