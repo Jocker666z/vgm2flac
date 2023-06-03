@@ -3747,10 +3747,14 @@ tag_m3u_clean_extract() {
 local m3u_track_hex_test
 
 m3u_track_hex_test=$(< "$m3u_file" awk -F"," '{ print $2 }' | grep -F -e "$")
-if [[ -z "$m3u_track_hex_test" ]]; then													# Decimal track
+
+# Decimal track
+if [[ -z "$m3u_track_hex_test" ]]; then
 	< "$m3u_file" sed '/^#/d' | sed 's/\\,/ -/g' | sed 's/\\//g' | uniq | sed -r '/^\s*$/d' | sort -t, -k2,2 -n \
 	| sed 's/.*::/GAME::/' > "$vgm2flac_cache_tag"
-else																					# Hexadecimal track
+
+# Hexadecimal track
+else
 	< "$m3u_file" sed '/^#/d' | sed 's/\\,/ -/g' | sed 's/\\//g' | uniq | sed -r '/^\s*$/d' \
 	| tr -d '$' | awk --non-decimal-data -F ',' -v OFS=',' '$1 {$2=("0x"$2)+0; print}' \
 	| sort -t, -k2,2 -n | sed 's/.*::/GAME::/' > "$vgm2flac_cache_tag"
@@ -3765,17 +3769,20 @@ if (( "${#lst_m3u[@]}" )) && [[ -f "$m3u_file" ]]; then
 	local xxs_fading
 	local xxs_fading_format
 
+	# Get song title
 	tag_song=$(< "$vgm2flac_cache_tag" awk -v var=$xxs_track -F',' '$2 == var { print $0 }' \
 				| awk -F"," '{ print $3 }' | sed '/^$/d')
-	tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)							# Replace eventualy "/" & ":" in string
+	# Replace eventualy "/" & ":" in string
+	tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)
 	if [[ -z "$tag_song" ]]; then
 		tag_song="[untitled]"
 	fi
 
-	# Get fade out and duration
+	# Get duration
+	# Total duration in ?:m:s
 	xxs_duration=$(< "$vgm2flac_cache_tag" grep ",$xxs_track," \
 					| awk -F"," '{ print $4 }' | tr -d '[:space:]' \
-					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')					# Total duration in ?:m:s
+					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')
 	if [[ -n "$xxs_duration" ]]; then
 		xxs_duration_format=$(echo "$xxs_duration"| grep -o ":" | wc -l)
 		if [[ "$xxs_duration_format" = "2" ]]; then										# If duration is in this format = h:m:s
@@ -3811,11 +3818,7 @@ if (( "${#lst_m3u[@]}" )) && [[ -f "$m3u_file" ]]; then
 		xxs_fading_msecond=$((xxs_fading_second*1000))																# Fade out duration in ms
 	else
 		xxs_fading_second="0"
-	fi
-
-	# nsfplay fading correction if empty (.nsf apply only)
-	if [[ "$xxs_fading_second" = 0 && "xxs_duration_second" -gt "10" ]]; then
-		xxs_fading_msecond=$((default_wav_fade_out*1000))
+		xxs_fading_msecond="0"
 	fi
 
 	# Prevent incoherence duration between fade out and total duration
