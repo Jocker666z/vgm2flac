@@ -208,7 +208,7 @@ su -c "make install" -m "root"
 ### nsfplay 
 Build dependencies: `git build-essential`
 ```
-git clone https://github.com/bbbradsmith/nsfplay && cd nsfplay/contrib
+git clone -b vgm2flac_stable https://github.com/Jocker666z/nsfplay/ && cd nsfplay/contrib
 make -j"$(nproc)"
 cp nsf2wav /home/$USER/.local/bin
 ```
