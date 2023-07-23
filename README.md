@@ -76,7 +76,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Atari ST: sc68, snd, sndh, ym
 * Atari XL/XE: sap
 * Philips CD-i: xa
-* Commodore C64/128: sid
+* Commodore C64/128: sid, prg
 * Fujitsu FM-7, FM Towns: s98
 * Microsoft Xbox: aix, mus, sndsn, sfd, xwav
 * Microsoft Xbox 360: bik, wem, xwb

@@ -111,7 +111,7 @@ ext_midi="mid"
 ext_nsfplay_nsf="nsf"
 ext_nsfplay_nsfe="nsfe"
 ext_sc68="sc68|snd|sndh"
-ext_sidplayfp_sid="sid"
+ext_sidplayfp_sid="sid|prg"
 ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
@@ -2742,6 +2742,7 @@ if (( "${#lst_sidplayfp_sid[@]}" )) && [[ -z "$sidplayfp_fail" ]]; then
 	# Local variable
 	local test_duration
 	local hvsc_db
+	local test_ext_file
 
 	# Reset WAV array
 	lst_wav=()
@@ -2767,7 +2768,10 @@ if (( "${#lst_sidplayfp_sid[@]}" )) && [[ -z "$sidplayfp_fail" ]]; then
 
 	for files in "${lst_sidplayfp_sid[@]}"; do
 		# Tag extract
-		tag_sid
+		test_ext_file="${files##*.}"
+		if ! [[ "${test_ext_file^^}" =~ "PRG" ]]; then
+			tag_sid
+		fi
 		tag_questions
 		tag_album
 		tag_song
@@ -3136,6 +3140,7 @@ loop_vgmstream() {				# Various machines
 if (( "${#lst_vgmstream[@]}" )) && [[ -z "$vgmstream_fail" ]]; then
 	# Local variables
 	local total_sub_track
+	local test_ext_file
 
 	# Reset WAV array
 	lst_wav=()
