@@ -2627,6 +2627,7 @@ if (( "${#lst_sc68[@]}" )) && [[ -z "$sc68_fail" ]]; then
 	# Local variables
 	local total_sub_track
 	local track_name
+	local ext
 
 	# Reset WAV array
 	lst_wav=()
@@ -2639,7 +2640,9 @@ if (( "${#lst_sc68[@]}" )) && [[ -z "$sc68_fail" ]]; then
 
 	# .snd, .sndh loop
 	for sc68_files in "${lst_sc68[@]}"; do
-		if [[ "${sc68_files##*.}" = "snd" ]] || [[ "${sc68_files##*.}" = "sndh" ]]; then
+		ext="${sc68_files##*.}"
+		ext="${ext,,}"
+		if [[ "$ext" = "sndh" ]]; then
 			# Tag
 			tag_sc68
 			tag_questions
@@ -2698,7 +2701,9 @@ if (( "${#lst_sc68[@]}" )) && [[ -z "$sc68_fail" ]]; then
 
 	# .sc68 loop
 	for sc68_files in "${lst_sc68[@]}"; do
-		if [[ "${sc68_files##*.}" = "sc68" ]]; then
+		ext="${sc68_files##*.}"
+		ext="${ext,,}"
+		if  [[ "$ext" = "snd" ]] || [[ "$ext" = "sc68" ]]; then
 			# Tag
 			tag_sc68
 			tag_questions
