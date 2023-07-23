@@ -3955,20 +3955,24 @@ local nsfplay_sub_track
 
 nsfplay_sub_track="${sub_track}:"
 
-tag_song=$(< "$vgm2flac_cache_tag" grep "$nsfplay_sub_track" | sed -n "s/$nsfplay_sub_track/&\n/;s/.*\n//p" | awk '{$1=$1}1')
+tag_song=$(< "$vgm2flac_cache_tag" grep "$nsfplay_sub_track" \
+			| sed -n "s/$nsfplay_sub_track/&\n/;s/.*\n//p" \
+			| awk '{$1=$1}1')
 tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
 if [[ -z "$tag_song" ]]; then
 	tag_song="[untitled]"
 fi
 
 tag_artist_backup="$tag_artist"
-tag_artist=$(sed -n 's/Artist:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+tag_artist=$(sed -n 's/Artist:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" \
+			| awk '{$1=$1}1')
 if [[ -z "$tag_artist" ]]; then
 	tag_artist="$tag_artist_backup"
 fi
 
 if [[ -z "$tag_game" ]]; then
-	tag_game=$(sed -n 's/Title:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" | awk '{$1=$1}1')
+	tag_game=$(sed -n 's/Title:/&\n/;s/.*\n//p' "$vgm2flac_cache_tag" \
+				| awk '{$1=$1}1')
 fi
 
 # Set max duration s to ms
@@ -4036,14 +4040,18 @@ fi
 tag_sid() {						# Commodore 64/128
 # Tag extract by hexdump
 if [[ -z "$tag_artist" ]]; then
-	tag_artist=$(xxd -ps -s 0x36 -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
+	tag_artist=$(xxd -ps -s 0x36 -l 32 "$files" \
+				| tr -d '[:space:]' | xxd -r -p | tr -d '\0' \
+				| awk '{$1=$1}1')
 fi
 if [[ "$tag_artist" = "<?>" ]]; then
 	unset tag_artist
 fi
 
 if [[ -z "$tag_game" ]]; then
-	tag_game=$(xxd -ps -s 0x16 -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
+	tag_game=$(xxd -ps -s 0x16 -l 32 "$files" \
+				| tr -d '[:space:]' | xxd -r -p | tr -d '\0' \
+				| awk '{$1=$1}1')
 fi
 if [[ "$tag_game" = "<?>" ]]; then
 	unset tag_game
