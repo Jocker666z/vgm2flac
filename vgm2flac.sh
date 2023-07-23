@@ -4260,7 +4260,8 @@ if (( "${#lst_wav[@]}" )); then
 		fi
 		# Raw name of target directory
 		target_directory=$(echo "$tag_game_dir $tag_date_dir $tag_machine_dir $tag_tracker_music_dir" \
-							| tr -s ' ' )
+							| tr -s ' ' \
+							| awk '{$1=$1}1')
 	else
 		# Raw name of target directory
 		target_directory="NO_TAG"
