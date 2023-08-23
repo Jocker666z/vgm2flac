@@ -127,11 +127,11 @@ ext_lib_exclude="2sflib|dsflib|gsflib|ssflib|psflib|txth"
 ext_various_exclude="bash|cue|m3u|m3u8|pdf|py|sh|txt"
 ext_video_exclude="avi|mp4|mkv"
 ext_find_exclude="${ext_archive_exclude}| \
-			 ${ext_audio_exclude}| \
-			 ${ext_img_exclude}| \
-			 ${ext_lib_exclude}| \
-			 ${ext_various_exclude}| \
-			 ${ext_video_exclude}"
+					${ext_audio_exclude}| \
+					${ext_img_exclude}| \
+					${ext_lib_exclude}| \
+					${ext_various_exclude}| \
+					${ext_video_exclude}"
 ext_find_exclude=$(echo ${ext_find_exclude//[[:blank:]]/} | tr -s '|')
 
 # Start check

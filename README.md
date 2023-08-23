@@ -197,6 +197,14 @@ cmake .. && make -j"$(nproc)"
 cp gsf2wav /home/$USER/.local/bin/
 ```
 
+### mednafen
+Build dependencies: `git build-essential pkg-config libasound2-dev libcdio-dev libsdl1.2-dev libsndfile1-dev zlib1g-dev`
+```
+git clone https://github.com/libretro-mirrors/mednafen-git && cd mednafen-git
+./configure && make -j"$(nproc)"
+su -c "make install" -m "root"
+```
+
 ### munt
 Build dependencies: `git build-essential cmake libpulse-dev libasound2-dev libjack-jackd2-dev qtbase5-dev`
 ```
@@ -211,14 +219,6 @@ Build dependencies: `git build-essential`
 git clone -b vgm2flac_stable https://github.com/Jocker666z/nsfplay/ && cd nsfplay/contrib
 make -j"$(nproc)"
 cp nsf2wav /home/$USER/.local/bin
-```
-
-### mednafen
-Build dependencies: `git build-essential pkg-config libasound2-dev libcdio-dev libsdl1.2-dev libsndfile1-dev zlib1g-dev`
-```
-git clone https://github.com/libretro-mirrors/mednafen-git && cd mednafen-git
-./configure && make -j"$(nproc)"
-su -c "make install" -m "root"
 ```
 
 ### sc68 & info68
@@ -287,8 +287,8 @@ su -c "make install" -m "root"
 
 ```
 cd /home/$USER/.local/bin/
-wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r5040_x86_64.tar.bz2
-tar -xf zxtune123_r5040_x86_64.tar.bz2 && rm zxtune123_r5040_x86_64.tar.bz2
+wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r5050_x86_64.tar.bz2
+tar -xf zxtune123_r5050_x86_64.tar.bz2 && rm zxtune123_r5050_x86_64.tar.bz2
 ```
 
 ## TODO
