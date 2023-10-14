@@ -1504,12 +1504,15 @@ else
 fi
 }
 cmd_sox() {
+# Silence = ignoring noise bursts
 if [[ "$verbose" = "1" ]]; then
 	sox -V3  -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
-		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop"
+		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" \
+		silence -l 1 0.03 0.2%
 else
 	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
-		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" &>/dev/null \
+		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" \
+		silence -l 1 0.03 0.2% &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
 		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
