@@ -4050,6 +4050,7 @@ tag_sid() {						# Commodore 64/128
 if [[ -z "$tag_artist" ]]; then
 	tag_artist=$(xxd -ps -s 0x36 -l 32 "$files" \
 				| tr -d '[:space:]' | xxd -r -p | tr -d '\0' \
+				| iconv -f latin1 -t ascii//TRANSLIT \
 				| awk '{$1=$1}1')
 fi
 if [[ "$tag_artist" = "<?>" ]]; then
@@ -4059,6 +4060,7 @@ fi
 if [[ -z "$tag_game" ]]; then
 	tag_game=$(xxd -ps -s 0x16 -l 32 "$files" \
 				| tr -d '[:space:]' | xxd -r -p | tr -d '\0' \
+				| iconv -f latin1 -t ascii//TRANSLIT \
 				| awk '{$1=$1}1')
 fi
 if [[ "$tag_game" = "<?>" ]]; then
