@@ -4155,8 +4155,10 @@ tag_xfs() {						# PS1, PS2, NDS, Saturn, GBA, N64, Dreamcast
 # Local variables
 local tag_length_format
 
-# Tag extract
-strings -e S "$files" | sed -n '/TAG/,$p' > "$vgm2flac_cache_tag"
+# Tag extract (Keep only ascii)
+strings -e S "$files" \
+	| tr -cd '\11\12\15\40-\176' \
+	| sed -n '/TAG/,$p' > "$vgm2flac_cache_tag"
 
 tag_song=$(< "$vgm2flac_cache_tag" grep -i -a title= | awk -F'=' '$0=$NF')
 if [[ -z "$tag_song" ]]; then
