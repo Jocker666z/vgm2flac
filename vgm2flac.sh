@@ -622,9 +622,9 @@ if [[ "$summary_more" = "1" ]]; then
 	printf '   - %s\n' "${audio_process_conf[@]}"
 
 	# Reset
-	script_conf=()
-	encoder_conf=()
-	audio_process_conf=()
+	unset script_conf
+	unset encoder_conf
+	unset audio_process_conf
 fi
 }
 display_start_summary() {
@@ -853,13 +853,13 @@ mapfile -t lst_zxtune_zx_spectrum < <(find "$PWD" -maxdepth 1 -type f -regextype
 # bin/cue clean
 # If bin/iso + cue = 1 + 1 - bchunk use
 if [[ "${#lst_bchunk_iso[@]}" = "1" && "${#lst_bchunk_cue[@]}" = "1" ]]; then
-	lst_sox=()
+	unset lst_sox
 	bchunk="1"
 # If bin > 1 or cue > 1 - sox use
 elif [[ "${#lst_bchunk_iso[@]}" -gt "1" || "${#lst_bchunk_cue[@]}" -gt "1" ]] \
   || [[ "${#lst_bchunk_iso[@]}" -ge "1" || "${#lst_bchunk_cue[@]}" -eq "0" ]]; then
-	lst_bchunk_cue=()
-	lst_bchunk_iso=()
+	unset lst_bchunk_cue
+	unset lst_bchunk_iso
 fi
 
 # Combine pass array for test
@@ -978,7 +978,7 @@ fi
 
 # Conctruct new all pass array if detection add new files
 # Reset pass array
-lst_all_files_pass=()
+unset lst_all_files_pass
 # Combine pass array
 lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_asapconv[@]}" \
@@ -1730,7 +1730,7 @@ fi
 loop_adplay() {					# PC AdLib
 if (( "${#lst_adplay[@]}" )) && [[ -z "$adplay_fail" ]]; then
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "adplay" "PC AdLib"
@@ -1773,7 +1773,7 @@ fi
 loop_asapconv() {				# Atari XL/XE
 if (( "${#lst_asapconv[@]}" )) && [[ -z "$asapconv_fail" ]]; then
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "asapconv" "Atari XL/XE"
@@ -1836,7 +1836,7 @@ if (( "${#lst_bchunk_iso[@]}" )) && [[ -z "$bchunk_fail" ]]; then
 		local track_name
 
 		# Reset WAV array
-		lst_wav=()
+		unset lst_wav
 
 		# User info - Title
 		display_loop_title "bchunk" "Various machines CDDA"
@@ -1890,7 +1890,7 @@ if (( "${#lst_ffmpeg_gbs[@]}" )) && [[ -z "$ffmpeg_fail" ]]; then
 	local total_sub_track
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "ffmpeg" "Game Boy, Game Boy Color"
@@ -1981,7 +1981,7 @@ if (( "${#lst_ffmpeg_hes[@]}" )) && [[ -z "$ffmpeg_fail" ]]; then
 	local total_sub_track
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "ffmpeg" "PC-Engine"
@@ -2053,7 +2053,7 @@ if (( "${#lst_ffmpeg_spc[@]}" )) && [[ -z "$ffmpeg_fail" ]]; then
 	local spc_duration_total
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "ffmpeg" "SNES SPC"
@@ -2110,7 +2110,7 @@ fi
 loop_gsf() {					# GBA
 if (( "${#lst_gsf[@]}" )) && [[ -z "$gsf_fail" ]]; then
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# Tag
 	tag_machine="GBA"
@@ -2219,7 +2219,7 @@ fi
 loop_mdx2wav() {				# Sharp X68000
 if (( "${#lst_mdx2wav[@]}" )) && [[ -z "$mdx2wav_fail" ]]; then
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# Tag
 	tag_machine="Sharp X68000"
@@ -2276,7 +2276,7 @@ if (( "${#lst_mednafen_snsf[@]}" )) && [[ -z "$mednafen_fail" ]]; then
 	local file_name_random
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# Force remove silence
 	remove_silence="1"
@@ -2348,7 +2348,7 @@ if (( "${#lst_midi[@]}" )) && [[ -z "$midi_fail" ]]; then
 	local fluidsynth_loop_nb
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "fluidsynth/munt" "midi"
@@ -2487,7 +2487,7 @@ if (( "${#lst_nsfplay_nsf[@]}" )) && [[ -z "$nsfplay_fail" ]]; then
 	local total_sub_track
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "nsfplay" "NES"
@@ -2562,7 +2562,7 @@ if (( "${#lst_nsfplay_nsfe[@]}" )) && [[ -z "$nsfplay_fail" ]]; then
 	local total_sub_track
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "nsfplay" "NES"
@@ -2633,7 +2633,7 @@ if (( "${#lst_sc68[@]}" )) && [[ -z "$sc68_fail" ]]; then
 	local ext
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "sc68" "Atari ST (YM2149)"
@@ -2753,7 +2753,7 @@ if (( "${#lst_sidplayfp_sid[@]}" )) && [[ -z "$sidplayfp_fail" ]]; then
 	local test_ext_file
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# https://hvsc.c64.org/ db test
 	if [[ -n "$hvsc_directory" ]]; then
@@ -2832,7 +2832,7 @@ if (( "${#lst_sox_pass[@]}" )); then
 	local sox_loop_question
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "sox" "Various machines - RAW files"
@@ -2979,7 +2979,7 @@ if (( "${#lst_uade[@]}" )) && [[ -z "$uade123_fail" ]]; then
 	local file_name
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# FLAC function
 	make_flac() {
@@ -3069,8 +3069,8 @@ if (( "${#lst_uade[@]}" )) && [[ -z "$uade123_fail" ]]; then
 			done
 
 			# Reset
-			all_sub_track=()
-			lst_wav=()
+			unset all_sub_track
+			unset lst_wav
 		fi
 	done
 
@@ -3081,7 +3081,7 @@ fi
 loop_vgm2wav() {				# Various machines
 if (( "${#lst_vgm2wav[@]}" )) && [[ -z "$vgm2wav_fail" ]]; then
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "vgm2wav" "Various machines"
@@ -3151,7 +3151,7 @@ if (( "${#lst_vgmstream[@]}" )) && [[ -z "$vgmstream_fail" ]]; then
 	local test_ext_file
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "vgmstream" "Various machines"
@@ -3238,7 +3238,7 @@ if (( "${#lst_xmp[@]}" )) && [[ -z "$xmp_fail" ]]; then
 	local file_name
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "xmp" "Tracker"
@@ -3282,7 +3282,7 @@ fi
 loop_zxtune_ay() {				# Amstrad CPC, ZX Spectrum
 if (( "${#lst_zxtune_ay[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "zxtune" "Amstrad CPC, ZX Spectrum"
@@ -3383,7 +3383,7 @@ if (( "${#lst_zxtune_xsf[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	local file_name_random
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "zxtune" "Dreamcast, N64, NDS, Saturn, PS1, PS2"
@@ -3464,7 +3464,7 @@ if (( "${#lst_zxtune_ym[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	local file_name
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "zxtune" "Amstrad CPC, Atari ST"
@@ -3523,7 +3523,7 @@ if (( "${#lst_zxtune_various[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	local file_name
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "zxtune" "Various Music"
@@ -3574,7 +3574,7 @@ if (( "${#lst_zxtune_zx_spectrum[@]}" )) && [[ -z "$zxtune123_fail" ]]; then
 	local file_name
 
 	# Reset WAV array
-	lst_wav=()
+	unset lst_wav
 
 	# User info - Title
 	display_loop_title "zxtune" "ZX Spectrum"
