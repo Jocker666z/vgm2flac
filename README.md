@@ -44,14 +44,14 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* apply fade out (if necessary or forced), remove audio silence (optional), peak normalisation to -1db
 	* WAV encoding in FLAC
 	* optional: compress to Monkes's Audio at level `-c5000`
-	* optional: encoding to Opus at 256kb
+	* optional: encoding to Opus at 192kb
 	* optional: compress to WAVPACK at level `-hhx3`
 	* remove duplicate files (diff)
 
 ### Arguments options
 ```
   --add_ape               Compress also in Monkey's Audio.
-  --add_opus              Compress also in Opus at 256k.
+  --add_opus              Compress also in Opus at 192k.
   --add_wavpack           Compress also in WAVPACK.
   -d|--dependencies       Display dependencies status.
   -h|--help               Display this help.

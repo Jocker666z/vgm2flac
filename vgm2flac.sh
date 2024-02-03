@@ -54,7 +54,7 @@ default_wavpack_lvl="-hhx4"
 ## Monkey's Audio
 default_mac_lvl="-c5000"
 ## Opus
-default_opus_bitrate="256"
+default_opus_bitrate="192"
 
 # Input
 decoder_dependency=(
