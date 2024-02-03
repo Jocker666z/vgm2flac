@@ -427,7 +427,7 @@ Bash tool for vgm/chiptune encoding to flac
 Usage: vgm2flac [options]
                           Without option treat current directory.
   --add_ape               Compress also in Monkey's Audio.
-  --add_opus              Compress also in Opus at 256k.
+  --add_opus              Compress also in Opus.
   --add_wavpack           Compress also in WAVPACK.
   -d|--dependencies       Display dependencies status.
   -h|--help               Display this help.
