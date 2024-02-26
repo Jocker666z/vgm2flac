@@ -960,9 +960,11 @@ if (( "${#lst_sox[@]}" )); then
 	unset progress_counter
 	for files in "${lst_sox[@]}"; do
 		# Test if data by measuring maximum difference between two successive samples
-		sox_delta=$(sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$files" -n stat 2>&1 | grep "Maximum delta:" | awk '{print $3}')
-		# If Maximum delta < 1.9 - raw -> wav
-		if (( $(echo "$sox_delta 1.9" | awk '{print ($1 < $2)}') )); then
+		sox_delta=$(sox -t raw -r 44100 -b 16 -c 2 -L -e signed-integer "$files" -n stat 2>&1 \
+					| grep "Maximum delta:" \
+					| awk '{print $3}')
+		# If Maximum delta < 1.97 - raw -> wav
+		if (( $(echo "$sox_delta 1.97" | awk '{print ($1 < $2)}') )); then
 			lst_sox_pass+=("$files")
 		fi
 
