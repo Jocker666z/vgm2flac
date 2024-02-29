@@ -37,7 +37,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 
 * If possible, encoding is done in parallel.
 * If available, the tags are always implemented in the final file.
-* FLAC default quality is: 16 bits with compression level `--best -e`
+* FLAC default quality is: 16 bits with compression level `--lax -8pl32`
 * Default decoding/encoding loop:
 	* vgm encoding in WAV
 	* false stereo detection (md5 channel + noise db compare)
