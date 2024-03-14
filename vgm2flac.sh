@@ -1223,8 +1223,12 @@ if [[ -f "${files%.*}".wav ]]; then
 	elif [[ "$channel_nb" = "2" ]]; then
 
 		# md5 test
-		left_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.0 -f md5 - 2>/dev/null)
-		right_md5=$(ffmpeg -i "${files%.*}".wav -map_channel 0.0.1 -f md5 - 2>/dev/null)
+		left_md5=$(ffmpeg -i "${files%.*}".wav \
+					-map_channel 0.0.0 -f md5 - 2>&1 \
+					| grep "MD5=")
+		right_md5=$(ffmpeg -i "${files%.*}".wav \
+					-map_channel 0.0.1 -f md5 - 2>&1 \
+					| grep "MD5=")
 
 		# Get db difference between channel
 		if [[ "$left_md5" != "$right_md5" ]]; then
