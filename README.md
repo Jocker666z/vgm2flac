@@ -38,17 +38,19 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * If possible, encoding is done in parallel.
 * If available, the tags are always implemented in the final file.
 * FLAC default quality is: 16 bits with compression level `--lax -8pl32`
-* Default decoding/encoding loop:
+* Default decoding/compressing loop:
 	* vgm decoding to WAV
 	* optional: remove audio silence
 	* apply fade out (if necessary or forced)
 	* false stereo detection (md5 channel + noise db compare)
-	* optional: peak normalisation to -1db
+	* -optional- peak normalisation to -1db
 	* WAV compressing to FLAC
-	* optional: compressing to Monkes's Audio at level `-c5000`
-	* optional: encoding to Opus at 192kb
-	* optional: compressing to WAVPACK at level `-hhx3`
+	* -optional- compressing to Monkey's Audio at level `-c5000`
+	* -optional- encoding to OPUS at 192kb `--bitrate 192 --vbr`
+	* -optional- compressing to WAVPACK at level `-hhx3`
 	* remove duplicate files (diff)
+	* tag FLAC
+	* apply a REPLAYGAIN (if no peak normalisation)
 
 ### Arguments options
 ```

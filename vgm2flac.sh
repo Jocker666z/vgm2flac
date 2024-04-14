@@ -35,6 +35,7 @@ encoder_dependency=(
 	'metaflac'
 	'mac'
 	'opusenc'
+	'rsgain'
 	'wavpack'
 	'wvtag'
 )
@@ -391,6 +392,13 @@ for command in "${encoder_dependency[@]}"; do
 		elif [[ "$command" = "opusenc" ]]; then
 			opusenc_bin="$bin_name"
 			bin_version=$($opusenc_bin --version | head -1)
+			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "rsgain" ]]; then
+			rsgain_bin="$bin_name"
+			bin_version=$($rsgain_bin -v \
+							| sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2};?)?)?[mGK]//g" \
+							| head -1 | cut -d'-' -f-1)
 			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
 		elif [[ "$command" = "wavpack" ]]; then
@@ -1267,11 +1275,13 @@ if [[ -f "${files%.*}".wav ]]; then
 		testdb=$(ffmpeg -i "${files%.*}".wav \
 				-af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 \
 				| grep "max_volume" | awk '{print $5;}')
-		testdb_diff=$(echo "${testdb/-/} > $default_peakdb_norm" | bc -l 2>/dev/null)
+		testdb_diff=$(echo "${testdb/-/} > $default_peakdb_norm" \
+					| bc -l 2>/dev/null)
 
 		# Apply if db detected < default peak db variable
 		if [[ "${testdb:0:1}" == "-" ]] && [[ "$testdb_diff" = "1" ]]; then
-			db="$(echo "${testdb/-/}" | awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
+			db="$(echo "${testdb/-/}" \
+				| awk -v var="$default_peakdb_norm" '{print $1-var}')dB"
 			afilter="-af volume=$db"
 
 			# Encoding Wav
@@ -3759,6 +3769,27 @@ tag_album=$(echo "$tag_game $tag_machine_album_formated $tag_tracker_music_album
 tag_song() {
 tag_song=$(basename "${files%.*}")
 }
+tag_replaygain() {
+if (( "${#lst_flac[@]}" )) \
+&& [[ "$normalization" != "1" ]]; then
+
+	for files in "${lst_flac[@]}"; do
+
+		# Add track tag with metaflac
+		if [[ -n "$rsgain_bin" ]]; then
+			"$rsgain_bin" custom -q -c a -s i "$files"
+		elif [[ -n "$metaflac_bin" ]] \
+		  && [[ -s "${files%.*}.flac" ]]; then
+			"$metaflac_bin" --add-replay-gain "$files"
+		fi
+
+		# Record for summary
+		#lst_wav_normalized+=( "+${db}|$(basename "${files%.*}").wav" )
+
+	done
+
+fi
+}
 
 # Tag by files type
 tag_m3u_clean_extract() {
@@ -4376,6 +4407,7 @@ else
 	if [[ "$flac_loop_activated" = "1" ]]; then
 		clean_target_validation
 		tag_track
+		tag_replaygain
 		display_all_in_errors
 		display_end_summary
 		mk_target_directory
