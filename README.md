@@ -1,6 +1,6 @@
 # vgm2flac
 
-Bash tool for encoding various video game music files to FLAC.
+Bash tool for convert various video game music files to FLAC.
 
 ## Install & update
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
@@ -39,13 +39,15 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * If available, the tags are always implemented in the final file.
 * FLAC default quality is: 16 bits with compression level `--lax -8pl32`
 * Default decoding/encoding loop:
-	* vgm encoding in WAV
+	* vgm decoding to WAV
+	* optional: remove audio silence
+	* apply fade out (if necessary or forced)
 	* false stereo detection (md5 channel + noise db compare)
-	* apply fade out (if necessary or forced), remove audio silence (optional), peak normalisation to -1db
-	* WAV encoding in FLAC
-	* optional: compress to Monkes's Audio at level `-c5000`
+	* optional: peak normalisation to -1db
+	* WAV compressing to FLAC
+	* optional: compressing to Monkes's Audio at level `-c5000`
 	* optional: encoding to Opus at 192kb
-	* optional: compress to WAVPACK at level `-hhx3`
+	* optional: compressing to WAVPACK at level `-hhx3`
 	* remove duplicate files (diff)
 
 ### Arguments options
@@ -59,8 +61,8 @@ Simply launch vgm2flac command in directory with vgm files supported.
   --force_stereo          Force stereo output.
   -j|--job                Set the number of parallel jobs.
   --no_fade_out           Force no fade out.
-  --no_normalization      Force no peak db normalization.
   --no_remove_duplicate   Force no remove duplicate files.
+  --normalization         Force peak db normalization.
   -o|--output <dirname>   Force output directory name.
   --only_wav              Force output wav files only.
   -s|--summary_more       Display more infos at start & end.

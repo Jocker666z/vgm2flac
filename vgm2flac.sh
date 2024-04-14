@@ -300,7 +300,7 @@ for command in "${decoder_dependency[@]}"; do
 
 	else
 
-		decoder_dependency_version+=( "${command}|not installed" )
+		decoder_dependency_version+=( "${command}|[not installed]" )
 
 		if [[ "$command" = "adplay" ]]; then
 			adplay_fail="/!\ Not processing, $command not installed"
@@ -435,8 +435,8 @@ Usage: vgm2flac [options]
   --force_stereo          Force stereo output.
   -j|--job                Set the number of parallel jobs.
   --no_fade_out           Force no fade out.
-  --no_normalization      Force no peak db normalization.
   --no_remove_duplicate   Force no remove duplicate files.
+  --normalization         Force no peak db normalization.
   -o|--output <dirname>   Force output directory name.
   --only_wav              Force output wav files only.
   -s|--summary_more       Display more infos at start & end.
@@ -598,10 +598,10 @@ if [[ "$summary_more" = "1" ]]; then
 	else
 		audio_process_conf+=( "Force Stereo = OFF" )
 	fi
-	if [[ "$no_normalization" = "1" ]]; then
-		audio_process_conf+=( "Normalization = OFF" )
-	else
+	if [[ "$normalization" = "1" ]]; then
 		audio_process_conf+=( "Normalization = ON" )
+	else
+		audio_process_conf+=( "Normalization = OFF" )
 	fi
 	if [[ "$remove_silence" = "1" ]]; then
 		audio_process_conf+=( "Remove silence = ON" )
@@ -754,7 +754,7 @@ if (( "${#lst_all_files_pass[@]}" )); then
 			printf '   %s\n' "${lst_wav_in_mono[@]}" | column -s $'|' -t -o '  ->  '
 		fi
 	fi
-	if [[ "$no_normalization" != "1" ]]; then
+	if [[ "$normalization" = "1" ]]; then
 		echo_pre_space "Normalized to -${default_peakdb_norm}dB - ${#lst_wav_normalized[@]} file(s)"
 		if [[ "$summary_more" = "1" ]] \
 		&& (( "${#lst_wav_normalized[@]}" )); then
@@ -1205,7 +1205,7 @@ if [[ -f "${files%.*}".wav ]]; then
 	local testdb_stereo
 	local afilter
 
-	# Inital test of channel number
+	# Test of channel number
 	channel_nb=$(ffprobe -show_entries stream=channels -of compact=p=0:nk=1 -v 0 "${files%.*}".wav)
 
 	# If force stereo
@@ -1262,7 +1262,7 @@ if [[ -f "${files%.*}".wav ]]; then
 	fi
 
 	# Volume normalization
-	if ! [[ "$no_normalization" = "1" ]]; then
+	if [[ "$normalization" = "1" ]]; then
 
 		testdb=$(ffmpeg -i "${files%.*}".wav \
 				-af "volumedetect" -vn -sn -dn -f null /dev/null 2>&1 \
@@ -4468,9 +4468,9 @@ while [[ $# -gt 0 ]]; do
 		no_remove_duplicate="1"
 	;;
 
-	# Set force no peak db norm
-	--no_normalization)
-		no_normalization="1"
+	# Set force peak db norm
+	--normalization)
+		normalization="1"
 	;;
 
 	# Set force output dir
