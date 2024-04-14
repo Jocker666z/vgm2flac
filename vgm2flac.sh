@@ -4417,6 +4417,12 @@ else
 fi
 }
 
+# Common Setup
+test_write_access
+common_bin
+decoder_bin
+encoder_bin
+
 # Arguments variables
 while [[ $# -gt 0 ]]; do
 	vgm2flac_args="$1"
@@ -4549,12 +4555,6 @@ while [[ $# -gt 0 ]]; do
 	esac
 	shift
 done
-
-# Common Setup
-test_write_access
-common_bin
-decoder_bin
-encoder_bin
 
 # Files source check & set
 check_cache_directory
