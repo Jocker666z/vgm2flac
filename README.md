@@ -36,7 +36,7 @@ You will be able to run vgm2flac even if some dependencies are missing. The scri
 
 Help is available at the bottom of the page for the installation of dependencies that are generally not present on the official repositories of the largest GNU/Linux distributions.
 
-## Decode, compress, tag & ReplayGain
+## Compress, encode, tag & ReplayGain
 `flac metaflac mac opusenc rsgain wavpack wvtag`
 
 * metaflac: used for tag & ReplayGain
