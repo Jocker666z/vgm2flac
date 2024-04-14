@@ -3688,20 +3688,20 @@ if (( "${#lst_flac[@]}" )); then
 				mv "${files%.*}"-temp.flac "$files" &>/dev/null
 			fi
 		fi
-		
-		# WAVPACK if exist
+
+		# Monkey's Audio
+		if [[ -s "${files%.*}.ape" ]]; then
+			"$mac_bin" \
+			"${files%.*}.ape" \
+			-t "Track=${tag_track_count}|EncodedBy=${mac_version}" &>/dev/null
+		fi
+
+		# WAVPACK
 		if [[ -s "${files%.*}.wv" ]]; then
 			"$wvtag_bin" -q -y \
 			-w Track="$tag_track_count" \
 			-w EncodedBy="$wavpack_version" \
 			"${files%.*}.wv"
-		fi
-
-		# Monkey's Audio if exist
-		if [[ -s "${files%.*}.ape" ]]; then
-			"$mac_bin" \
-			"${files%.*}.ape" \
-			-t "Track=${tag_track_count}|EncodedBy=${mac_version}" &>/dev/null
 		fi
 
 	done
@@ -3776,12 +3776,31 @@ if (( "${#lst_flac[@]}" )) \
 
 	for files in "${lst_flac[@]}"; do
 
-		# Add track tag with metaflac
-		if [[ -n "$rsgain_bin" ]]; then
+		# FLAC
+		if [[ -n "$rsgain_bin" ]]\
+		  && [[ -s "${files%.*}.flac" ]]; then
 			"$rsgain_bin" custom -q -c a -s i "$files"
 		elif [[ -n "$metaflac_bin" ]] \
 		  && [[ -s "${files%.*}.flac" ]]; then
 			"$metaflac_bin" --add-replay-gain "$files"
+		fi
+
+		# OPUS
+		if [[ -n "$rsgain_bin" ]]\
+		  && [[ -s "${files%.*}.opus" ]]; then
+			"$rsgain_bin" custom -q -c a -s i "${files%.*}.opus"
+		fi
+
+		# Monkey's Audio
+		if [[ -n "$rsgain_bin" ]]\
+		  && [[ -s "${files%.*}.ape" ]]; then
+			"$rsgain_bin" custom -q -c a -s i "${files%.*}.ape"
+		fi
+
+		# WAVPACK
+		if [[ -n "$rsgain_bin" ]]\
+		  && [[ -s "${files%.*}.wv" ]]; then
+			"$rsgain_bin" custom -q -c a -s i "${files%.*}.wv"
 		fi
 
 		# Record for summary
