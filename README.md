@@ -6,14 +6,18 @@ Bash tool for convert various video game music files to FLAC.
 `curl https://raw.githubusercontent.com/Jocker666z/vgm2flac/main/vgm2flac.sh > /home/$USER/.local/bin/vgm2flac && chmod +rx /home/$USER/.local/bin/vgm2flac`
 
 ### Dependencies
-`adplay asapconv bc bchunk ffmpeg ffprobe fluidsynth find info68 mednafen munt nsfplay sc68 sidplayfp sox vgm2wav vgmstream_cli vgm_tag uade xmp xxd zxtune123`
+## Core
+`bc ffmpeg ffprobe sox soxi xxd`
+
+## Decoder
+`adplay asapconv bc bchunk fluidsynth gsf2wav info68 mednafen munt nsfplay sc68 sidplayfp vgm2wav vgmstream_cli vgm_tag uade xmp zxtune123`
 
 You will be able to run vgm2flac even if some dependencies are missing. The script will warn you if a dependency is not met depending on the file format to convert.
 
-* ffmpeg must be compiled with: `--enable-libgme`
 * adplay: https://github.com/adplug/adplay-unix
 * asapconv: https://asap.sourceforge.net/
 * gsf2wav: https://github.com/jprjr/gsf2wav
+* ffmpeg: must be compiled with `--enable-libgme`
 * fluidsynth: https://www.fluidsynth.org/
 * mednafen: https://mednafen.github.io/
 * munt: https://github.com/munt/munt
@@ -31,6 +35,14 @@ You will be able to run vgm2flac even if some dependencies are missing. The scri
 * zxtune: https://zxtune.bitbucket.io/
 
 Help is available at the bottom of the page for the installation of dependencies that are generally not present on the official repositories of the largest GNU/Linux distributions.
+
+## Decode, compress, tag & ReplayGain
+`flac metaflac mac opusenc rsgain wavpack wvtag`
+
+* metaflac: used for tag & ReplayGain
+* rsgain: used for ReplayGain https://github.com/complexlogic/rsgain
+
+These dependencies are all optional. But are highly recommended, especially `flac`, `metaflac` & `rsgain`.
 
 ## Use & description
 Simply launch vgm2flac command in directory with vgm files supported.
@@ -50,7 +62,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 	* -optional- compressing to WAVPACK at level `-hhx3`
 	* remove duplicate files (diff)
 	* tag FLAC
-	* apply a REPLAYGAIN (if no peak normalisation)
+	* apply a ReplayGain (if no peak normalisation)
 
 ### Arguments options
 ```

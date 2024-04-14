@@ -288,15 +288,16 @@ for command in "${decoder_dependency[@]}"; do
 			bin_version=$($uade123_bin -h | head -1)
 			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
+		elif [[ "$command" = "xmp" ]]; then
+			xmp_bin="$bin_name"
+			bin_version=$($xmp_bin -V)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
 		elif [[ "$command" = "zxtune123" ]]; then
 			zxtune123_bin="$bin_name"
 			bin_version=$($zxtune123_bin --version)
 			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
-		elif [[ "$command" = "xmp" ]]; then
-			xmp_bin="$bin_name"
-			bin_version=$($xmp_bin -V)
-			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
 		fi
 
 	else
@@ -4406,8 +4407,8 @@ if [[ "$only_wav" = "1" ]]; then
 else
 	if [[ "$flac_loop_activated" = "1" ]]; then
 		clean_target_validation
-		tag_track
 		tag_replaygain
+		tag_track
 		display_all_in_errors
 		display_end_summary
 		mk_target_directory
@@ -4450,7 +4451,8 @@ while [[ $# -gt 0 ]]; do
 
 	# Set WAVPACK compress too
 	--add_wavpack)
-		if [[ -n "$wavpack_bin" ]] || [[ -n "$wvtag_bin" ]]; then
+		if [[ -n "$wavpack_bin" ]] \
+		&& [[ -n "$wvtag_bin" ]]; then
 			wavpack_compress="1"
 		else
 			echo_pre_space "fail, wavpack binary not installed"
@@ -4460,9 +4462,6 @@ while [[ $# -gt 0 ]]; do
 
 	# Print installed dependencies
 	-d|--dependencies)
-		common_bin
-		decoder_bin
-		encoder_bin
 		display_dependencies
 		exit
 	;;
