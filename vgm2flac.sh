@@ -34,6 +34,7 @@ encoder_dependency=(
 	'flac'
 	'metaflac'
 	'mac'
+	'mutagen-inspect'
 	'opusenc'
 	'rsgain'
 	'wavpack'
@@ -388,6 +389,11 @@ for command in "${encoder_dependency[@]}"; do
 			bin_version="Monkey's Audio $($mac_bin 2>&1 | head -1 \
 							| awk -F"[()]" '{print $2}' | tr -d ' ')"
 			mac_version="$bin_version $default_mac_lvl"
+			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "mutagen-inspect" ]]; then
+			mutagen_inspect_bin="$bin_name"
+			bin_version="-"
 			encoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
 		elif [[ "$command" = "opusenc" ]]; then
@@ -769,6 +775,14 @@ if (( "${#lst_all_files_pass[@]}" )); then
 		&& (( "${#lst_wav_normalized[@]}" )); then
 			printf '   %s\n' "${lst_wav_normalized[@]}" | column -s $'|' -t -o '  ->  '
 		fi
+	fi
+	if [[ "$normalization" != "1" ]] \
+	&& [[ -n "$rsgain_bin" || -n "$metaflac_bin" ]] \
+	&& [[ -n "$mutagen_inspect_bin" ]] \
+	&& (( "${#lst_replaygain[@]}" )) \
+	&& [[ "$summary_more" = "1" ]]; then
+		echo_pre_space "ReplayGain applied:"
+		printf '   %s\n' "${lst_replaygain[@]}" | column -s $'|' -t -o '  ->  '
 	fi
 	echo_pre_space "Encoding duration  - $elapsed_time_formated"
 fi
@@ -3772,41 +3786,103 @@ tag_song=$(basename "${files%.*}")
 }
 tag_replaygain() {
 if (( "${#lst_flac[@]}" )) \
+&& [[ -n "$rsgain_bin" || -n "$metaflac_bin" ]] \
 && [[ "$normalization" != "1" ]]; then
+
+	local db
+	local db_filename
 
 	for files in "${lst_flac[@]}"; do
 
+		(
 		# FLAC
 		if [[ -n "$rsgain_bin" ]]\
-		  && [[ -s "${files%.*}.flac" ]]; then
-			"$rsgain_bin" custom -q -c a -s i "$files"
+		&& [[ -s "${files%.*}.flac" ]]; then
+			"$rsgain_bin" custom -q -c a -s i "${files%.*}.flac"
 		elif [[ -n "$metaflac_bin" ]] \
-		  && [[ -s "${files%.*}.flac" ]]; then
-			"$metaflac_bin" --add-replay-gain "$files"
+		&& [[ -s "${files%.*}.flac" ]]; then
+			"$metaflac_bin" --add-replay-gain "${files%.*}.flac"
 		fi
 
 		# OPUS
 		if [[ -n "$rsgain_bin" ]]\
-		  && [[ -s "${files%.*}.opus" ]]; then
+		&& [[ -s "${files%.*}.opus" ]]; then
 			"$rsgain_bin" custom -q -c a -s i "${files%.*}.opus"
 		fi
 
 		# Monkey's Audio
 		if [[ -n "$rsgain_bin" ]]\
-		  && [[ -s "${files%.*}.ape" ]]; then
+		&& [[ -s "${files%.*}.ape" ]]; then
 			"$rsgain_bin" custom -q -c a -s i "${files%.*}.ape"
 		fi
 
 		# WAVPACK
 		if [[ -n "$rsgain_bin" ]]\
-		  && [[ -s "${files%.*}.wv" ]]; then
+		&& [[ -s "${files%.*}.wv" ]]; then
 			"$rsgain_bin" custom -q -c a -s i "${files%.*}.wv"
 		fi
-
-		# Record for summary
-		#lst_wav_normalized+=( "+${db}|$(basename "${files%.*}").wav" )
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
 
 	done
+	wait
+
+	# Record for summary
+	if [[ -n "$mutagen_inspect_bin" ]]; then
+		for files in "${lst_flac[@]}"; do
+
+			# FLAC
+			if [[ -n "$rsgain_bin" || -n "$metaflac_bin" ]]\
+			&& [[ -s "${files%.*}.flac" ]]; then
+				db_filename=$(basename "${files%.*}".flac)
+				db=$("$mutagen_inspect_bin" "${files%.*}.flac" \
+					| grep -Po "REPLAYGAIN_TRACK_GAIN=\K.*")
+				if ! [[ "${db:0:1}" == "-" ]]; then
+					db="+${db}"
+				fi
+				lst_replaygain+=( "${db}|${db_filename}" )
+			fi
+
+			# OPUS
+			if [[ -n "$rsgain_bin" ]]\
+			&& [[ -s "${files%.*}.opus" ]]; then
+				db_filename=$(basename "${files%.*}".opus)
+				db=$("$mutagen_inspect_bin" "${files%.*}.opus" \
+					| grep -Po "REPLAYGAIN_TRACK_GAIN=\K.*")
+				if ! [[ "${db:0:1}" == "-" ]]; then
+					db="+${db}"
+				fi
+				lst_replaygain+=( "${db}|${db_filename}" )
+			fi
+
+			# Monkey's Audio
+			if [[ -n "$rsgain_bin" ]]\
+			&& [[ -s "${files%.*}.ape" ]]; then
+				db_filename=$(basename "${files%.*}".ape)
+				db=$("$mutagen_inspect_bin" "${files%.*}.ape" \
+					| grep -Po "REPLAYGAIN_TRACK_GAIN=\K.*")
+				if ! [[ "${db:0:1}" == "-" ]]; then
+					db="+${db}"
+				fi
+				lst_replaygain+=( "${db}|${db_filename}" )
+			fi
+
+			# WAVPACK
+			if [[ -n "$rsgain_bin" ]]\
+			&& [[ -s "${files%.*}.wv" ]]; then
+				db_filename=$(basename "${files%.*}".wv)
+				db=$("$mutagen_inspect_bin" "${files%.*}.wv" \
+					| grep -Po "REPLAYGAIN_TRACK_GAIN=\K.*")
+				if ! [[ "${db:0:1}" == "-" ]]; then
+					db="+${db}"
+				fi
+				lst_replaygain+=( "${db}|${db_filename}" )
+			fi
+
+		done
+	fi
 
 fi
 }

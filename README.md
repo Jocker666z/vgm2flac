@@ -37,12 +37,13 @@ You will be able to run vgm2flac even if some dependencies are missing. The scri
 Help is available at the bottom of the page for the installation of dependencies that are generally not present on the official repositories of the largest GNU/Linux distributions.
 
 ## Compress, encode, tag & ReplayGain
-`flac metaflac mac opusenc rsgain wavpack wvtag`
+`flac metaflac mac mutagen-inspect opusenc rsgain wavpack wvtag`
 
 * metaflac: used for tag & ReplayGain
-* [rsgain](https://github.com/complexlogic/rsgain): used for ReplayGain, it takes precedence over metaflac, and handles all other final file types.
+* mutagen-inspect: for display info (in `python3-mutagen` package)
+* [rsgain](https://github.com/complexlogic/rsgain): used for ReplayGain, it takes precedence over metaflac, and handles all other final file types
 
-These dependencies are all optional. But are highly recommended, especially `flac`, `metaflac` & `rsgain`.
+These dependencies are all optional. But are highly recommended, especially `flac`, `metaflac`, `mutagen-inspect` & `rsgain`.
 
 
 ## Use & description
