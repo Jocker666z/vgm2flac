@@ -1866,7 +1866,7 @@ if (( "${#lst_bchunk_iso[@]}" )) && [[ -z "$bchunk_fail" ]]; then
 		display_convert_title "FLAC"
 		for files in "${lst_wav[@]}"; do
 			# Tag
-			tag_song="[untitled]"
+			tag_song="[unknown]"
 			# Remove silence
 			wav_remove_silent
 			# Add fade out
@@ -2686,7 +2686,7 @@ if (( "${#lst_sc68[@]}" )) && [[ -z "$sc68_fail" ]]; then
 			display_convert_title "FLAC"
 			for files in "${lst_wav[@]}"; do
 				# Tag
-				tag_song="[untitled]"
+				tag_song="[unknown]"
 				# Remove silence
 				wav_remove_silent
 				# Add fade out
@@ -2807,7 +2807,7 @@ if (( "${#lst_sidplayfp_sid[@]}" )) && [[ -z "$sidplayfp_fail" ]]; then
 		display_convert_title "FLAC"
 		for files in "${lst_wav[@]}"; do
 			# Tag
-			tag_song="[untitled]"
+			tag_song="[unknown]"
 			# Remove silence
 			wav_remove_silent
 			# Add fade out
@@ -3704,7 +3704,7 @@ if [[ "$only_wav" != "1" ]]; then
 		read -r -e -p " Enter the game or album title: " tag_game
 		display_remove_previous_line
 		if [[ -z "$tag_game" ]]; then
-			tag_game="Unknown"
+			tag_game="[unknown]"
 		fi
 	fi
 
@@ -3713,7 +3713,7 @@ if [[ "$only_wav" != "1" ]]; then
 		read -r -e -p " Enter the audio artist: " tag_artist
 		display_remove_previous_line
 		if [[ -z "$tag_artist" ]]; then
-			tag_artist="Unknown"
+			tag_artist="[unknown]"
 		fi
 	fi
 
@@ -3794,7 +3794,7 @@ if (( "${#lst_m3u[@]}" )) && [[ -f "$m3u_file" ]]; then
 	# Replace eventualy "/" & ":" in string
 	tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)
 	if [[ -z "$tag_song" ]]; then
-		tag_song="[untitled]"
+		tag_song="[unknown]"
 	fi
 
 	# Get duration
@@ -3854,7 +3854,7 @@ if (( "${#lst_m3u[@]}" )) && [[ -f "$m3u_file" ]]; then
 	fi
 
 else
-	tag_song="[untitled]"
+	tag_song="[unknown]"
 	xxs_duration_second="$xxs_default_max_duration"
 
 	# nsfplay duration & fading s to ms
@@ -3904,7 +3904,7 @@ fi
 tag_song=$(< "$vgm2flac_cache_tag" grep -i "song=" | awk -F'=' '{print $NF}')
 tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
 if [[ -z "$tag_song" ]] || [[ "$tag_song" = "?" ]]; then
-	tag_song="[untitled]"
+	tag_song="[unknown]"
 fi
 
 tag_artist_backup="$tag_artist"
@@ -3974,7 +3974,7 @@ tag_song=$(< "$vgm2flac_cache_tag" grep "$nsfplay_sub_track" \
 			| awk '{$1=$1}1')
 tag_song=$(echo "$tag_song" | sed s#/#-#g | sed s#:#-#g)					# Replace eventualy "/" & ":" in string
 if [[ -z "$tag_song" ]]; then
-	tag_song="[untitled]"
+	tag_song="[unknown]"
 fi
 
 tag_artist_backup="$tag_artist"
