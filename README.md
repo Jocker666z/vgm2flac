@@ -40,9 +40,10 @@ Help is available at the bottom of the page for the installation of dependencies
 `flac metaflac mac opusenc rsgain wavpack wvtag`
 
 * metaflac: used for tag & ReplayGain
-* rsgain: used for ReplayGain https://github.com/complexlogic/rsgain
+* [rsgain](https://github.com/complexlogic/rsgain): used for ReplayGain, it takes precedence over metaflac, and handles all other final file types.
 
 These dependencies are all optional. But are highly recommended, especially `flac`, `metaflac` & `rsgain`.
+
 
 ## Use & description
 Simply launch vgm2flac command in directory with vgm files supported.
