@@ -302,12 +302,7 @@ su -c "make install" -m "root"
 ```
 
 ### zxtune123
-
-```
-cd /home/$USER/.local/bin/
-wget https://github.com/Jocker666z/vgm2flac-dep/raw/main/zxtune123_r5052_x86_64.tar.bz2
-tar -xf zxtune123_r5052_x86_64.tar.bz2 && rm zxtune123_r5052_x86_64.tar.bz2
-```
+Bin here: https://zxtune.bitbucket.io/
 
 ## TODO
 * .eup .fmb .pmb : EUPHONY Module https://github.com/gzaffin/eupmini

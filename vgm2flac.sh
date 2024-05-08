@@ -123,7 +123,7 @@ ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 # Extensions exclude from find all files
 ext_archive_exclude="7z|rar|zip"
-ext_audio_exclude="ape|flac|kss|m4a|mp3|ogg|opus|wav|wv"
+ext_audio_exclude="ape|flac|kss|m4a|mp2|mp3|ogg|opus|wav|wv"
 ext_img_exclude="gif|jpg|jpeg|png|tiff|webp"
 ext_lib_exclude="2sflib|dsflib|gsflib|ssflib|psflib|txth|usflib"
 ext_various_exclude="bash|cue|m3u|m3u8|pdf|py|sh|txt"
