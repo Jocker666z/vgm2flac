@@ -1684,6 +1684,17 @@ if ! [[ "$only_wav" = "1" ]]; then
 					|| echo_pre_space "x FLAC    <- $(basename "${files%.*}").wav"
 			fi
 	fi
+
+	# Proper tag artists list
+	if [[ -n "$metaflac_bin" ]] \
+	&& [[ "${tag_artist}" = *","* ]]; then
+		unset tag_artists_list
+		mapfile -t tag_artists_list < <( echo "${tag_artist}" | tr "," "\n" | awk '{$1=$1};1' )
+		metaflac "${files%.*}.flac" --remove-tag=ARTIST
+		for i in "${!tag_artists_list[@]}"; do
+			metaflac "${files%.*}.flac" --set-tag=ARTIST="${tag_artists_list[i]}"
+		done
+	fi
 fi
 }
 wav2wavpack() {
