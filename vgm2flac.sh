@@ -869,7 +869,6 @@ mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort -V)
 mapfile -t lst_ffmpeg_spc < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_spc')$' 2>/dev/null | sort -V)
 mapfile -t lst_gsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_gsf')$' 2>/dev/null | sort -V)
-mapfile -t lst_wildmidi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_wildmidi')$' 2>/dev/null | sort -V)
 mapfile -t lst_mdx2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mdx2wav')$' 2>/dev/null | sort -V)
 mapfile -t lst_mednafen_snsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mednafen_snsf')$' 2>/dev/null | sort -V)
 mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort -V)
@@ -880,6 +879,7 @@ mapfile -t lst_sc68 < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -
 mapfile -t lst_sidplayfp_sid < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sidplayfp_sid')$' 2>/dev/null | sort -V)
 mapfile -t lst_sox < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_sox')$' 2>/dev/null | sort -V)
 mapfile -t lst_vgm2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_vgm2wav')$' 2>/dev/null | sort -V)
+mapfile -t lst_wildmidi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_wildmidi')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_ay < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ay')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_xsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_xsf')$' 2>/dev/null | sort -V)
 mapfile -t lst_zxtune_ym < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_zxtune_ym')$' 2>/dev/null | sort -V)
@@ -905,7 +905,6 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
 				"${lst_gsf[@]}" \
-				"${lst_wildmidi[@]}" \
 				"${lst_mdx2wav[@]}" \
 				"${lst_midi[@]}" \
 				"${lst_mednafen_snsf[@]}" \
@@ -917,6 +916,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_uade[@]}" \
 				"${lst_vgm2wav[@]}" \
 				"${lst_vgmstream[@]}" \
+				"${lst_wildmidi[@]}" \
 				"${lst_xmp[@]}" \
 				"${lst_zxtune_ay[@]}" \
 				"${lst_zxtune_xsf[@]}" \
@@ -1024,7 +1024,6 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
-				"${lst_wildmidi[@]}" \
 				"${lst_gsf[@]}" \
 				"${lst_mdx2wav[@]}" \
 				"${lst_midi[@]}" \
@@ -1037,6 +1036,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_uade[@]}" \
 				"${lst_vgm2wav[@]}" \
 				"${lst_vgmstream[@]}" \
+				"${lst_wildmidi[@]}" \
 				"${lst_xmp[@]}" \
 				"${lst_zxtune_ay[@]}" \
 				"${lst_zxtune_xsf[@]}" \
