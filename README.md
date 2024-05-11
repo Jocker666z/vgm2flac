@@ -10,7 +10,7 @@ Bash tool for convert various video game music files to FLAC.
 `bc ffmpeg ffprobe sox soxi xxd`
 
 ## Decoder
-`adplay asapconv bc bchunk fluidsynth gsf2wav info68 mednafen munt nsfplay sc68 sidplayfp vgm2wav vgmstream_cli vgm_tag uade xmp zxtune123`
+`adplay asapconv bc bchunk fluidsynth gsf2wav info68 mednafen munt nsfplay sc68 sidplayfp vgm2wav vgmstream_cli vgm_tag uade wildmidi xmp zxtune123`
 
 You will be able to run vgm2flac even if some dependencies are missing. The script will warn you if a dependency is not met depending on the file format to convert.
 
@@ -31,6 +31,7 @@ You will be able to run vgm2flac even if some dependencies are missing. The scri
 * vgm2wav: https://github.com/ValleyBell/libvgm
 * vgmstream-cli: https://github.com/losnoco/vgmstream
 * vgmtag: https://github.com/vgmrips/vgmtools
+* wildmidi: https://github.com/Mindwerks/wildmidi
 * xmp: https://xmp.sourceforge.net/
 * zxtune: https://zxtune.bitbucket.io/
 
