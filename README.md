@@ -127,6 +127,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Philips CD-i: grn
 * PC: apc, bik, bnk, fsb, his, hvl, imc, logg, mab, mid, mod, sab, sdb, snds, smk, txtp, v2m, wem, xwb
 * PC AdLib: adl, amd, bam, cff, cmf, d00, ddt, dtm, got, hsc, hsq, imf, ksm, laa, mdi, rad, rol, sdb, sqx, wlf, xms
+* PC HMI/XMI: hmi, hmp, xmi
 * Various machines: vgm, vgz
 * Various machines CD-DA: bin, bin/cue, img/cue, iso/cue
 * ZX Spectrum: asc, ay, psc, pt2, pt3, sqt, stc, stp
@@ -192,6 +193,7 @@ Here the conversion is highly experimental, it is done while reading the file, t
 * SNSF https://snsf.caitsith2.net/snsf%20spec.txt
 * SPC  https://ocremix.org/info/SPC_Format_Specification
 * PSF  https://gist.githubusercontent.com/SaxxonPike/a0b47f8579aad703b842001b24d40c00/raw/a6fa28b44fb598b8874923dbffe932459f6a61b9/psf_format.txt
+* XMI  https://moddingwiki.shikadi.net/wiki/XMI_Format
 
 ## Dependencies installation:
 ### asap

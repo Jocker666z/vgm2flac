@@ -108,7 +108,6 @@ ext_ffmpeg_gbs="gbs"
 ext_ffmpeg_hes="hes"
 ext_ffmpeg_spc="spc"
 ext_gsf="gsf|minigsf"
-ext_hmi="hmi|hmp"
 ext_mdx2wav="mdx"
 ext_mednafen_snsf="minisnsf|snsf"
 ext_midi="mid"
@@ -119,6 +118,7 @@ ext_sidplayfp_sid="sid|prg"
 ext_sox="bin|pcm|raw"
 ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
+ext_wildmidi="hmi|hmp|xmi"
 ext_zxtune_ay="ay"
 ext_zxtune_xsf="2sf|dsf|psf|psf2|mini2sf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
@@ -345,11 +345,14 @@ for command in "${decoder_dependency[@]}"; do
 		elif [[ "$command" = "uade123" ]]; then
 			uade123_fail="/!\ Not processing, $command not installed"
 
-		elif [[ "$command" = "zxtune123" ]]; then
-			zxtune123_fail="/!\ Not processing, $command not installed"
+		elif [[ "$command" = "wildmidi" ]]; then
+			wildmidi_fail="/!\ Not processing, $command not installed"
 
 		elif [[ "$command" = "xmp" ]]; then
 			xmp_fail="/!\ Not processing, $command not installed"
+
+		elif [[ "$command" = "zxtune123" ]]; then
+			zxtune123_fail="/!\ Not processing, $command not installed"
 		fi
 	fi
 done
@@ -687,6 +690,7 @@ if (( "${#lst_all_files_pass[@]}" )); then
 	fetched_stat "SNES SNSF" "$mednafen_fail" "${lst_mednafen_snsf[@]}"
 	fetched_stat "PC AdLib" "$adplay_fail" "${lst_adplay[@]}"
 	fetched_stat "PC Engine, TurboGrafx-16" "$ffmpeg_fail" "${lst_ffmpeg_hes[@]}"
+	fetched_stat "PC HMI/XMI" "$wildmidi_fail" "${lst_wildmidi[@]}"
 	fetched_stat "PC midi" "$midi_fail" "${lst_midi[@]}"
 	fetched_stat "Uade" "$uade123_fail" "${lst_uade[@]}"
 	fetched_stat "Various machines" "$vgmstream_fail" "${lst_vgmstream[@]}"
@@ -865,6 +869,7 @@ mapfile -t lst_ffmpeg_gbs < <(find "$PWD" -maxdepth 1 -type f -regextype posix-e
 mapfile -t lst_ffmpeg_hes < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_hes')$' 2>/dev/null | sort -V)
 mapfile -t lst_ffmpeg_spc < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_ffmpeg_spc')$' 2>/dev/null | sort -V)
 mapfile -t lst_gsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_gsf')$' 2>/dev/null | sort -V)
+mapfile -t lst_wildmidi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_wildmidi')$' 2>/dev/null | sort -V)
 mapfile -t lst_mdx2wav < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mdx2wav')$' 2>/dev/null | sort -V)
 mapfile -t lst_mednafen_snsf < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_mednafen_snsf')$' 2>/dev/null | sort -V)
 mapfile -t lst_midi < <(find "$PWD" -maxdepth 1 -type f -regextype posix-egrep -iregex '.*\.('$ext_midi')$' 2>/dev/null | sort -V)
@@ -900,6 +905,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
 				"${lst_gsf[@]}" \
+				"${lst_wildmidi[@]}" \
 				"${lst_mdx2wav[@]}" \
 				"${lst_midi[@]}" \
 				"${lst_mednafen_snsf[@]}" \
@@ -1018,6 +1024,7 @@ lst_all_files_pass+=( "${lst_adplay[@]}" \
 				"${lst_ffmpeg_gbs[@]}" \
 				"${lst_ffmpeg_hes[@]}" \
 				"${lst_ffmpeg_spc[@]}" \
+				"${lst_wildmidi[@]}" \
 				"${lst_gsf[@]}" \
 				"${lst_mdx2wav[@]}" \
 				"${lst_midi[@]}" \
@@ -1597,6 +1604,15 @@ else
 		-o "${files%.*}"-"$sub_track".wav "$files" &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files%.*}-$sub_track" \
 		|| echo_pre_space "x WAV     <- ${files%.*}-$sub_track"
+fi
+}
+cmd_wildmidi() {
+if [[ "$verbose" = "1" ]]; then
+	"$wildmidi_bin" -b -s "$files" -o "${files%.*}".wav
+else
+	"$wildmidi_bin" -b -s "$files" -o "${files%.*}".wav &>/dev/null \
+		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
+		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
 }
 cmd_xmp() {
@@ -3281,6 +3297,60 @@ if (( "${#lst_vgmstream[@]}" )) && [[ -z "$vgmstream_fail" ]]; then
 
 fi
 }
+loop_wildmidi() {				# HMI/XMI
+if (( "${#lst_wildmidi[@]}" )) && [[ -z "$wildmidi_fail" ]]; then
+	# Local variables
+	local file_name
+	local test_ext_file
+
+	# Reset WAV array
+	unset lst_wav
+
+	# User info - Title
+	display_loop_title "wildmidi" "HMI/XMI"
+
+	# Tag
+	tag_questions
+
+	# Loop
+	display_convert_title "LINE"
+	for files in "${lst_wildmidi[@]}"; do
+		# Extract WAV
+		cmd_wildmidi
+		# Tag extract
+		test_ext_file="${files##*.}"
+		if [[ "${test_ext_file^^}" = "HMI" ]] \
+		|| [[ "${test_ext_file^^}" = "HMP" ]]; then
+			tag_machine="PC HMI"
+		elif [[ "${test_ext_file^^}" = "XMI" ]]; then
+			tag_machine="PC XMI"
+		fi
+		# Tag
+		tag_song
+		tag_album
+		# Remove silence
+		wav_remove_silent
+		# Add fade out
+		wav_fade_out
+		# Peak normalisation, false stereo detection 
+		wav_normalization_channel_test
+		# Flac conversion
+		(
+		wav2flac \
+		&& wav2wavpack \
+		&& wav2ape \
+		&& wav2opus
+		) &
+		if [[ $(jobs -r -p | wc -l) -ge $nprocessor ]]; then
+			wait -n
+		fi
+	done
+	wait
+
+	# Reset
+	unset tag_tracker_music
+fi
+}
 loop_xmp() {					# XMP
 if (( "${#lst_xmp[@]}" )) && [[ -z "$xmp_fail" ]]; then
 	# Local variables
@@ -4699,6 +4769,7 @@ loop_zxtune_various_music
 loop_zxtune_xfs
 loop_zxtune_ym
 loop_zxtune_zx_spectrum
+loop_wildmidi
 loop_uade
 loop_xmp
 loop_vgmstream
