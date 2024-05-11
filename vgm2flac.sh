@@ -76,8 +76,9 @@ decoder_dependency=(
 	'vgm_tag'
 	'vgmstream-cli'
 	'uade123'
-	'zxtune123'
+	'wildmidi'
 	'xmp'
+	'zxtune123'
 )
 ## Atari ST
 sc68_loops="1"
@@ -107,6 +108,7 @@ ext_ffmpeg_gbs="gbs"
 ext_ffmpeg_hes="hes"
 ext_ffmpeg_spc="spc"
 ext_gsf="gsf|minigsf"
+ext_hmi="hmi|hmp"
 ext_mdx2wav="mdx"
 ext_mednafen_snsf="minisnsf|snsf"
 ext_midi="mid"
@@ -287,6 +289,11 @@ for command in "${decoder_dependency[@]}"; do
 		elif [[ "$command" = "uade123" ]]; then
 			uade123_bin="$bin_name"
 			bin_version=$($uade123_bin -h | head -1)
+			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
+
+		elif [[ "$command" = "wildmidi" ]]; then
+			wildmidi_bin="$bin_name"
+			bin_version=$($wildmidi_bin | grep WildMidi | head -1 | sed 's/Op.*//g')
 			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
 		elif [[ "$command" = "xmp" ]]; then
