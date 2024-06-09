@@ -4295,26 +4295,43 @@ tag_spc() {						# SNES
 # Local variable
 local id666_test
 
-# Tag extract by hexdump
-id666_test=$(xxd -ps -s 0x00023h -l 1 "$files")			# Test ID666 here
-if [[ "$id666_test" = "1a" ]]; then						# 1a hex = 26 dec
+# Tag extract by hexdump; test ID666 presence (1a hex = 26 dec)
+id666_test=$(xxd -ps -s 0x00023h -l 1 "$files")
+if [[ "$id666_test" = "1a" ]]; then
 
-	tag_song=$(xxd -ps -s 0x0002Eh -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
+	tag_song=$(xxd -ps -s 0x0002Eh -l 32 "$files" \
+				| tr -d '[:space:]' \
+				| xxd -r -p \
+				| tr -d '\0')
 	if [[ -z "$tag_song" ]]; then
 		tag_song
 	fi
 
 	tag_artist_backup="$tag_artist"
-	tag_artist=$(xxd -ps -s 0x000B1h -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
+	tag_artist=$(xxd -ps -s 0x000B1h -l 32 "$files" \
+				| tr -d '[:space:]' \
+				| xxd -r -p \
+				| tr -d '\0')
 	if [[ -z "$tag_artist" ]]; then
 		tag_artist="$tag_artist_backup"
 	fi
 
 	if [[ -z "$tag_game" ]]; then
-		tag_game=$(xxd -ps -s 0x0004Eh -l 32 "$files" | tr -d '[:space:]' | xxd -r -p | tr -d '\0')
+		tag_game=$(xxd -ps -s 0x0004Eh -l 32 "$files" \
+					| tr -d '[:space:]' \
+					| xxd -r -p \
+					| tr -d '\0')
 	fi
-	spc_duration=$(xxd -ps -s 0x000A9h -l 3 "$files" | xxd -r -p | tr -d '\0')	# In s
-	spc_fading=$(xxd -ps -s 0x000ACh -l 5 "$files" | xxd -r -p | tr -d '\0')	# In ms
+	# Duration in s
+	spc_duration=$(xxd -ps -s 0x000A9h -l 3 "$files" \
+					| xxd -r -p \
+					| tr -d '\0' \
+					| sed 's/^0*//')
+	# Fading in ms
+	spc_fading=$(xxd -ps -s 0x000ACh -l 5 "$files" \
+				| xxd -r -p \
+				| tr -d '\0' \
+				| sed 's/^0*//')
 
 	# Duration correction if empty, or not an integer
 	if [[ -z "$spc_duration" ]] || ! [[ "$spc_duration" =~ ^[0-9]*$ ]]; then
@@ -4342,13 +4359,19 @@ local loop
 loop="$1"
 
 if [[ "$loop" = "uade" ]]; then
-	tag_tracker_music=$("$uade123_bin" -g "$uade_files" | grep "playername:" | sed 's/^.*: //')
+	tag_tracker_music=$("$uade123_bin" -g "$uade_files" \
+						| grep "playername:" \
+						| sed 's/^.*: //')
 fi
 if [[ "$loop" = "xmp" ]]; then
-	tag_tracker_music=$("$xmp_bin" "$files" --load-only 2>&1 | grep "Module type" | sed 's/^.*: //')
+	tag_tracker_music=$("$xmp_bin" "$files" --load-only 2>&1 \
+						| grep "Module type" \
+						| sed 's/^.*: //')
 fi
 if [[ "$loop" = "zxtune" ]]; then
-	tag_tracker_music=$("$zxtune123_bin" "$files" --null 2>&1 | grep Program | sed 's/^.*: //')
+	tag_tracker_music=$("$zxtune123_bin" "$files" --null 2>&1 \
+						| grep Program \
+						| sed 's/^.*: //')
 fi
 }
 tag_vgm() {						# Various machines
@@ -4416,8 +4439,9 @@ fi
 # SNSF & N64, get tag lenght for test in loop, notag=notimepoint -> fadeout
 if [[ "${files##*.}" = "miniusf" ]] || [[ "${files##*.}" = "usf" ]] \
 || [[ "${files##*.}" = "minisnsf" ]] || [[ "${files##*.}" = "snsf" ]]; then
-	tag_length=$(< "$vgm2flac_cache_tag" grep -i -a length= | awk -F'=' '$0=$NF' \
-					| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')
+	tag_length=$(< "$vgm2flac_cache_tag" grep -i -a length= \
+				| awk -F'=' '$0=$NF' \
+				| awk -F '.' 'NF > 1 { printf "%s", $1; exit } 1')
 
 	if [[ "${files##*.}" = "minisnsf" ]] || [[ "${files##*.}" = "snsf" ]]; then
 		# SNSF case duration format is m:s
@@ -4425,11 +4449,13 @@ if [[ "${files##*.}" = "miniusf" ]] || [[ "${files##*.}" = "usf" ]] \
 		# Total duration in s
 		if [[ "$tag_length_format" = "1" ]]; then
 			tag_length=$(echo "$tag_length" \
-						| awk -F":" '{ print ($1 * 60) + $2 }' | tr -d '[:space:]')
+						| awk -F":" '{ print ($1 * 60) + $2 }' \
+						| tr -d '[:space:]')
 		fi
 
 		# Fade out
-		tag_fade=$(< "$vgm2flac_cache_tag" grep -i -a fade= | awk -F'=' '$0=$NF')
+		tag_fade=$(< "$vgm2flac_cache_tag" grep -i -a fade= \
+					| awk -F'=' '$0=$NF')
 	fi
 fi
 }
