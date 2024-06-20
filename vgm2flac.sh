@@ -461,7 +461,7 @@ Usage: vgm2flac [options]
   -j|--job                Set the number of parallel jobs.
   --no_fade_out           Force no fade out.
   --no_remove_duplicate   Force no remove duplicate files.
-  --normalization         Force no peak db normalization.
+  --normalization         Force peak db normalization.
   -o|--output <dirname>   Force output directory name.
   --only_wav              Force output wav files only.
   -s|--summary_more       Display more infos at start & end.
