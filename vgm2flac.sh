@@ -1555,7 +1555,7 @@ if [[ "$verbose" = "1" ]]; then
 		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop"
 else
 	sox -t raw -r "$sox_sample_rate" -b 16 -c "$sox_channel" \
-		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" &>/dev/null
+		-L -e signed-integer "$files" "${files%.*}".wav repeat "$sox_loop" &>/dev/null \
 		&& echo_pre_space "✓ WAV     <- ${files##*/}" \
 		|| echo_pre_space "x WAV     <- ${files##*/}"
 fi
