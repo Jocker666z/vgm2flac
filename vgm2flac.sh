@@ -1279,7 +1279,9 @@ if [[ -f "${files%.*}".wav ]]; then
 
 		# If left_md5=right_md5
 		# If difference between channel is lower than -85db = noise db diff
-		if [[ "$testdb_stereo" -gt "85" ]] || [[ "$left_md5" = "$right_md5" ]]; then
+		if [[ "$testdb_stereo" -gt "85" ]] \
+		|| [[ "$testdb_stereo" = "inf" ]]; then
+		|| [[ "$left_md5" = "$right_md5" ]]; then
 			# Encoding Wav
 			ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
 				-channel_layout mono \
