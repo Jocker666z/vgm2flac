@@ -50,7 +50,7 @@ default_agressive_silent_db_cut="58"														# Agressive silence db value f
 default_ffmpeg_flac_bit_depth="s16"															# ffmpeg FLAC bit depth, must be s16 or s32
 default_ffmpeg_flac_lvl="12"																# ffmpeg FLAC compression level, 0 to 12
 ## FLAC with flac bin
-default_flac_lvl="--lax -8pl32"																# FLAC bin compression level
+default_flac_lvl="-8"																# FLAC bin compression level
 ## WAVPACK
 default_wavpack_lvl="-hhx4"
 ## Monkey's Audio
