@@ -1246,7 +1246,8 @@ if [[ -f "${files%.*}".wav ]]; then
 	channel_nb=$(ffprobe -show_entries stream=channels -of compact=p=0:nk=1 -v 0 "${files%.*}".wav)
 
 	# If force stereo
-	if [[ "$force_stereo" = "1" ]] && [[ "$channel_nb" != "2" ]]; then
+	if [[ "$force_stereo" = "1" ]] \
+	&& [[ "$channel_nb" != "2" ]]; then
 
 		# Encoding Wav
 		ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
@@ -1280,7 +1281,7 @@ if [[ -f "${files%.*}".wav ]]; then
 		# If left_md5=right_md5
 		# If difference between channel is lower than -85db = noise db diff
 		if [[ "$testdb_stereo" -gt "85" ]] \
-		|| [[ "$testdb_stereo" = "inf" ]]; then
+		|| [[ "$testdb_stereo" = "inf" ]] \
 		|| [[ "$left_md5" = "$right_md5" ]]; then
 			# Encoding Wav
 			ffmpeg $ffmpeg_log_lvl -y -i "${files%.*}".wav \
