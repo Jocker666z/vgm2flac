@@ -117,7 +117,7 @@ Simply launch vgm2flac command in directory with vgm files supported.
 * Sega Mark III/Master System: vgm, vgz
 * Sega Mega Drive/Genesis: vgm, vgz
 * Sega Saturn: minissf, ssf
-* Sega Dreamcast: adx, dsf, spsd, str
+* Sega Dreamcast: adx, dsf, minidsf, spsd, str
 * Sony Playstation: psf, minipsf, pona, xa, vag
 * Sony Playstation 2: ads, adpcm, adx, genh, psf2, int, mib, minipsf2, ss2, sps, svag, vag, vpk, sng, vgs
 * Sony Playstation 3: aa3, adx, at3, cps, genh, hca, laac, idmsf, msf, msadpcm, mtaf, sgd, ss2, vag, xvag, txtp, wem

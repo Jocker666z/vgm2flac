@@ -120,7 +120,7 @@ ext_playlist="m3u"
 ext_vgm2wav="s98|vgm|vgz"
 ext_wildmidi="hmi|hmp|xmi"
 ext_zxtune_ay="ay"
-ext_zxtune_xsf="2sf|dsf|psf|psf2|mini2sf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
+ext_zxtune_xsf="2sf|dsf|psf|psf2|mini2sf|minidsf|minipsf|minipsf2|minissf|miniusf|minincsf|ncsf|ssf|usf"
 ext_zxtune_ym="ym"
 ext_zxtune_zx_spectrum="asc|psc|pt2|pt3|sqt|stc|stp"
 # Extensions exclude from find all files
@@ -4433,7 +4433,7 @@ elif [[ "${files##*.}" = "gsf" || "${files##*.}" = "minigsf" ]]; then
 	tag_machine="GBA"
 elif [[ "${files##*.}" = "usf" || "${files##*.}" = "miniusf" ]]; then
 	tag_machine="N64"
-elif [[ "${files##*.}" = "dsf" ]]; then
+elif [[ "${files##*.}" = "dsf" || "${files##*.}" = "minidsf" ]]; then
 	tag_machine="Dreamcast"
 fi
 
