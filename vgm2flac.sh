@@ -293,7 +293,7 @@ for command in "${decoder_dependency[@]}"; do
 
 		elif [[ "$command" = "wildmidi" ]]; then
 			wildmidi_bin="$bin_name"
-			bin_version=$($wildmidi_bin | grep WildMidi | head -1 | sed 's/Op.*//g')
+			bin_version=$($wildmidi_bin -v | grep WildMidi | head -1 | sed 's/Op.*//g')
 			decoder_dependency_version+=( "${bin_name}|${bin_version}" )
 
 		elif [[ "$command" = "xmp" ]]; then
